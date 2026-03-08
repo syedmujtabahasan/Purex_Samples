@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard — PUREX Household</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            purex: { blue: '#4d9ed5', dark: '#181818', light: '#f7f7f7' },
+          },
+          fontFamily: {
+            heading: ['"Poppins"', 'sans-serif'],
+            body: ['"Inter"', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #0a0e17; color: #f7f7f7; font-family: 'Inter', sans-serif; overflow-x: hidden; }
+    .glass { background: rgba(77, 158, 213, 0.05); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.08); }
+    .glass-strong { background: rgba(255,255,255,0.04); backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px); border: 1px solid rgba(255,255,255,0.1); }
+    .grain { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; opacity: 0.03; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E"); }
+    .text-gradient { background: linear-gradient(135deg, #4d9ed5, #7bb8e0, #4d9ed5); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .bento-card { transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease, border-color 0.3s ease; }
+    .bento-card:hover { transform: translateY(-2px); box-shadow: 0 10px 40px rgba(77,158,213,0.08); border-color: rgba(77,158,213,0.15); }
+    .sidebar-link { transition: all 0.2s ease; }
+    .sidebar-link:hover, .sidebar-link.active { background: rgba(77,158,213,0.08); color: #4d9ed5; }
+    .sidebar-link.active { border-right: 2px solid #4d9ed5; }
+    .spark-line { stroke-dasharray: 200; stroke-dashoffset: 200; }
+    .mini-bar { transform-origin: bottom; transform: scaleY(0); }
+    .table-row { transition: background 0.2s ease; }
+    .table-row:hover { background: rgba(77,158,213,0.04); }
+    .status-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+    .pulse-ring { animation: pulse-ring 2s ease-out infinite; }
+    @keyframes pulse-ring { 0% { transform: scale(1); opacity: 0.4; } 100% { transform: scale(2.5); opacity: 0; } }
+  </style>
+</head>
+<body>
+  <div class="grain"></div>
+
+  <div class="flex min-h-screen">
+    <!-- ─── SIDEBAR ─── -->
+    <aside class="hidden lg:flex flex-col w-64 border-r border-white/5 glass-strong fixed h-full z-40">
+      <div class="px-6 pt-4 pb-2">
+        <a href="../index.html" class="text-[11px] text-white/40 hover:text-white transition tracking-wider">&larr; All Concepts</a>
+      </div>
+      <div class="p-6 pt-2 border-b border-white/5">
+        <a href="index.html" class="flex items-center gap-3 group">
+          <svg width="32" height="32" viewBox="0 0 100 100" class="transition-transform duration-300 group-hover:scale-110">
+            <path d="M25 20 L25 80 L40 80 L40 55 L55 55 L70 35 L70 20 L55 20 L55 35 L40 35 L40 20 Z" fill="#4d9ed5"/>
+            <path d="M55 45 L55 55 L45 55 L65 80 L80 80 L60 55 L70 55 L70 45 Z" fill="#4d9ed5"/>
+          </svg>
+          <div>
+            <div class="flex items-baseline">
+              <span class="font-heading text-sm font-light tracking-[0.3em] text-white">PURE</span>
+              <span class="font-heading text-lg font-light text-purex-blue">X</span>
+            </div>
+            <p class="text-[9px] tracking-[0.2em] text-white/30 -mt-0.5">ADMIN PANEL</p>
+          </div>
+        </a>
+      </div>
+
+      <nav class="flex-1 py-4 px-3 space-y-1">
+        <a href="#" class="sidebar-link active flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="6" height="6" rx="1"/><rect x="10" y="2" width="6" height="6" rx="1"/><rect x="2" y="10" width="6" height="6" rx="1"/><rect x="10" y="10" width="6" height="6" rx="1"/></svg>
+          Overview
+        </a>
+        <a href="#" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-white/50">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4h10v12H4z"/><path d="M7 4V2h4v2M7 8h4"/></svg>
+          Inventory
+        </a>
+        <a href="#" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-white/50">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 2l4 14 3-6 6-3z"/></svg>
+          Orders
+        </a>
+        <a href="#" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-white/50">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="9" cy="6" r="4"/><path d="M2 16c0-3.3 3.1-6 7-6s7 2.7 7 6"/></svg>
+          Customers
+        </a>
+        <a href="#" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-white/50">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 14l4-6 3 3 5-7"/></svg>
+          Analytics
+        </a>
+        <a href="#" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-white/50">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="9" cy="9" r="3"/><path d="M9 2v2M9 14v2M2 9h2M14 9h2M4.2 4.2l1.4 1.4M12.4 12.4l1.4 1.4M4.2 13.8l1.4-1.4M12.4 5.6l1.4-1.4"/></svg>
+          Settings
+        </a>
+      </nav>
+
+      <div class="p-4 border-t border-white/5">
+        <div class="flex items-center gap-3 px-2">
+          <div class="w-8 h-8 rounded-full bg-purex-blue/20 flex items-center justify-center text-xs text-purex-blue font-heading">SB</div>
+          <div>
+            <p class="text-xs text-white font-light">Suleman Bhatti</p>
+            <p class="text-[10px] text-white/30">CEO</p>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ─── MAIN CONTENT ─── -->
+    <main class="flex-1 lg:ml-64">
+      <!-- Top bar -->
+      <header class="sticky top-0 z-30 glass-strong border-b border-white/5 px-6 py-4 flex items-center justify-between">
+        <div>
+          <h1 class="font-heading text-xl font-light text-white">Dashboard</h1>
+          <p class="text-xs text-white/30 mt-0.5">Welcome back, Suleman</p>
+        </div>
+        <div class="flex items-center gap-4">
+          <div class="hidden md:flex items-center glass rounded-full px-4 py-2 gap-2">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" class="text-white/30"><circle cx="7" cy="7" r="5"/><path d="M11 11l3 3"/></svg>
+            <input type="text" placeholder="Search..." class="bg-transparent text-sm text-white/60 font-light outline-none w-40 placeholder:text-white/20" />
+          </div>
+          <button class="relative p-2">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="text-white/50"><path d="M9 2a5 5 0 015 5c0 3-1 5.5-3 7H7c-2-1.5-3-4-3-7a5 5 0 015-5zM7 14v1a2 2 0 004 0v-1"/></svg>
+            <span class="absolute top-1 right-1 w-2 h-2 bg-purex-blue rounded-full"><span class="pulse-ring absolute inset-0 rounded-full bg-purex-blue"></span></span>
+          </button>
+          <a href="index.html" class="text-xs text-white/30 hover:text-white/60 transition hidden md:block">View Site &rarr;</a>
+        </div>
+      </header>
+
+      <!-- ─── BENTO GRID ─── -->
+      <div class="p-6 space-y-6">
+
+        <!-- Row 1: KPI Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          <!-- Revenue -->
+          <div class="bento-card glass-strong rounded-2xl p-5">
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-xs text-white/40 tracking-wider">REVENUE</span>
+              <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400">+12.5%</span>
+            </div>
+            <p class="text-2xl font-heading font-light text-white kpi-number" data-target="2450000">Rs.0</p>
+            <div class="mt-3 h-10">
+              <svg width="100%" height="40" class="overflow-visible">
+                <polyline class="spark-line" fill="none" stroke="#4d9ed5" stroke-width="1.5"
+                  points="0,35 15,28 30,32 45,20 60,22 75,15 90,18 105,8 120,12 135,5 150,10 165,3"/>
+                <polyline fill="none" stroke="rgba(77,158,213,0.1)" stroke-width="20"
+                  points="0,35 15,28 30,32 45,20 60,22 75,15 90,18 105,8 120,12 135,5 150,10 165,3"/>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Active Orders -->
+          <div class="bento-card glass-strong rounded-2xl p-5">
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-xs text-white/40 tracking-wider">ACTIVE ORDERS</span>
+              <span class="text-[10px] px-2 py-0.5 rounded-full bg-purex-blue/10 text-purex-blue">Live</span>
+            </div>
+            <p class="text-2xl font-heading font-light text-white kpi-number" data-target="47">0</p>
+            <div class="flex items-center gap-1 mt-3">
+              <div class="flex -space-x-2">
+                <div class="w-6 h-6 rounded-full bg-purex-blue/20 border border-white/10 flex items-center justify-center text-[8px] text-purex-blue">AB</div>
+                <div class="w-6 h-6 rounded-full bg-emerald-500/20 border border-white/10 flex items-center justify-center text-[8px] text-emerald-400">CK</div>
+                <div class="w-6 h-6 rounded-full bg-amber-500/20 border border-white/10 flex items-center justify-center text-[8px] text-amber-400">RJ</div>
+              </div>
+              <span class="text-[10px] text-white/30 ml-2">+12 pending</span>
+            </div>
+          </div>
+
+          <!-- Inventory -->
+          <div class="bento-card glass-strong rounded-2xl p-5">
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-xs text-white/40 tracking-wider">INVENTORY</span>
+              <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400">3 Low</span>
+            </div>
+            <p class="text-2xl font-heading font-light text-white kpi-number" data-target="1248">0</p>
+            <div class="flex gap-1 mt-3 items-end h-8">
+              <div class="mini-bar w-3 bg-purex-blue/40 rounded-t" style="height: 60%;"></div>
+              <div class="mini-bar w-3 bg-purex-blue/40 rounded-t" style="height: 80%;"></div>
+              <div class="mini-bar w-3 bg-purex-blue/40 rounded-t" style="height: 45%;"></div>
+              <div class="mini-bar w-3 bg-purex-blue/40 rounded-t" style="height: 90%;"></div>
+              <div class="mini-bar w-3 bg-purex-blue/40 rounded-t" style="height: 70%;"></div>
+              <div class="mini-bar w-3 bg-amber-400/40 rounded-t" style="height: 25%;"></div>
+              <div class="mini-bar w-3 bg-purex-blue/40 rounded-t" style="height: 55%;"></div>
+              <div class="mini-bar w-3 bg-purex-blue/40 rounded-t" style="height: 85%;"></div>
+            </div>
+          </div>
+
+          <!-- Profit -->
+          <div class="bento-card glass-strong rounded-2xl p-5">
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-xs text-white/40 tracking-wider">NET PROFIT</span>
+              <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400">+8.3%</span>
+            </div>
+            <p class="text-2xl font-heading font-light text-white kpi-number" data-target="580000">Rs.0</p>
+            <div class="mt-3 flex items-center gap-2">
+              <div class="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
+                <div class="h-full bg-gradient-to-r from-purex-blue to-emerald-400 rounded-full progress-bar" style="width: 0%;"></div>
+              </div>
+              <span class="text-[10px] text-white/30">73%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 2: Bento main grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+
+          <!-- Sales Chart (spans 2 cols) -->
+          <div class="lg:col-span-2 bento-card glass-strong rounded-2xl p-6">
+            <div class="flex items-center justify-between mb-6">
+              <div>
+                <h3 class="font-heading text-sm font-light text-white">Sales Overview</h3>
+                <p class="text-[10px] text-white/30 mt-0.5">Monthly revenue breakdown</p>
+              </div>
+              <div class="flex gap-2">
+                <button class="text-[10px] px-3 py-1 rounded-full glass text-purex-blue">Monthly</button>
+                <button class="text-[10px] px-3 py-1 rounded-full text-white/30 hover:text-white/50 transition">Weekly</button>
+              </div>
+            </div>
+            <div class="h-52" id="sales-chart">
+              <svg width="100%" height="100%" viewBox="0 0 600 200" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id="chart-grad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#4d9ed5" stop-opacity="0.3"/>
+                    <stop offset="100%" stop-color="#4d9ed5" stop-opacity="0"/>
+                  </linearGradient>
+                </defs>
+                <!-- Grid lines -->
+                <line x1="0" y1="50" x2="600" y2="50" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+                <line x1="0" y1="100" x2="600" y2="100" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+                <line x1="0" y1="150" x2="600" y2="150" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+                <!-- Area -->
+                <path id="chart-area" d="M0,180 L50,160 100,140 150,120 200,130 250,100 300,90 350,70 400,80 450,50 500,60 550,30 600,40 L600,200 L0,200 Z" fill="url(#chart-grad)" opacity="0"/>
+                <!-- Line -->
+                <polyline id="chart-line" fill="none" stroke="#4d9ed5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                  points="0,180 50,160 100,140 150,120 200,130 250,100 300,90 350,70 400,80 450,50 500,60 550,30 600,40" style="stroke-dasharray: 1000; stroke-dashoffset: 1000;"/>
+                <!-- Dots -->
+                <g id="chart-dots">
+                  <circle cx="0" cy="180" r="0" fill="#4d9ed5"/>
+                  <circle cx="50" cy="160" r="0" fill="#4d9ed5"/>
+                  <circle cx="100" cy="140" r="0" fill="#4d9ed5"/>
+                  <circle cx="150" cy="120" r="0" fill="#4d9ed5"/>
+                  <circle cx="200" cy="130" r="0" fill="#4d9ed5"/>
+                  <circle cx="250" cy="100" r="0" fill="#4d9ed5"/>
+                  <circle cx="300" cy="90" r="0" fill="#4d9ed5"/>
+                  <circle cx="350" cy="70" r="0" fill="#4d9ed5"/>
+                  <circle cx="400" cy="80" r="0" fill="#4d9ed5"/>
+                  <circle cx="450" cy="50" r="0" fill="#4d9ed5"/>
+                  <circle cx="500" cy="60" r="0" fill="#4d9ed5"/>
+                  <circle cx="550" cy="30" r="0" fill="#4d9ed5"/>
+                  <circle cx="600" cy="40" r="0" fill="#4d9ed5"/>
+                </g>
+              </svg>
+              <div class="flex justify-between mt-2 px-1">
+                <span class="text-[9px] text-white/20">Jan</span>
+                <span class="text-[9px] text-white/20">Feb</span>
+                <span class="text-[9px] text-white/20">Mar</span>
+                <span class="text-[9px] text-white/20">Apr</span>
+                <span class="text-[9px] text-white/20">May</span>
+                <span class="text-[9px] text-white/20">Jun</span>
+                <span class="text-[9px] text-white/20">Jul</span>
+                <span class="text-[9px] text-white/20">Aug</span>
+                <span class="text-[9px] text-white/20">Sep</span>
+                <span class="text-[9px] text-white/20">Oct</span>
+                <span class="text-[9px] text-white/20">Nov</span>
+                <span class="text-[9px] text-white/20">Dec</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Top Products -->
+          <div class="bento-card glass-strong rounded-2xl p-6">
+            <h3 class="font-heading text-sm font-light text-white mb-1">Top Products</h3>
+            <p class="text-[10px] text-white/30 mb-5">By revenue this month</p>
+            <div class="space-y-4">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-purex-blue/10 flex items-center justify-center text-[10px] text-purex-blue font-heading">01</div>
+                <div class="flex-1">
+                  <p class="text-xs text-white font-light">Taizab Cleaning Acid 1L</p>
+                  <div class="w-full h-1 bg-white/5 rounded-full mt-1.5"><div class="h-full bg-purex-blue rounded-full" style="width: 92%;"></div></div>
+                </div>
+                <span class="text-xs text-white/40">Rs.248k</span>
+              </div>
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-[10px] text-emerald-400 font-heading">02</div>
+                <div class="flex-1">
+                  <p class="text-xs text-white font-light">Sweep Floor Cleaner 1L</p>
+                  <div class="w-full h-1 bg-white/5 rounded-full mt-1.5"><div class="h-full bg-emerald-400 rounded-full" style="width: 78%;"></div></div>
+                </div>
+                <span class="text-xs text-white/40">Rs.186k</span>
+              </div>
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center text-[10px] text-amber-400 font-heading">03</div>
+                <div class="flex-1">
+                  <p class="text-xs text-white font-light">Purex Clothes Soap 4-Pack</p>
+                  <div class="w-full h-1 bg-white/5 rounded-full mt-1.5"><div class="h-full bg-amber-400 rounded-full" style="width: 65%;"></div></div>
+                </div>
+                <span class="text-xs text-white/40">Rs.142k</span>
+              </div>
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center text-[10px] text-purple-400 font-heading">04</div>
+                <div class="flex-1">
+                  <p class="text-xs text-white font-light">Purex Neel Liquid 250ml</p>
+                  <div class="w-full h-1 bg-white/5 rounded-full mt-1.5"><div class="h-full bg-purple-400 rounded-full" style="width: 52%;"></div></div>
+                </div>
+                <span class="text-xs text-white/40">Rs.98k</span>
+              </div>
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-rose-500/10 flex items-center justify-center text-[10px] text-rose-400 font-heading">05</div>
+                <div class="flex-1">
+                  <p class="text-xs text-white font-light">Purex Bleach 1L</p>
+                  <div class="w-full h-1 bg-white/5 rounded-full mt-1.5"><div class="h-full bg-rose-400 rounded-full" style="width: 41%;"></div></div>
+                </div>
+                <span class="text-xs text-white/40">Rs.76k</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 3: Orders table + Activity -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+
+          <!-- Recent Orders (spans 2) -->
+          <div class="lg:col-span-2 bento-card glass-strong rounded-2xl p-6">
+            <div class="flex items-center justify-between mb-5">
+              <div>
+                <h3 class="font-heading text-sm font-light text-white">Recent Orders</h3>
+                <p class="text-[10px] text-white/30 mt-0.5">Latest transactions</p>
+              </div>
+              <button class="text-[10px] px-3 py-1 rounded-full glass text-purex-blue hover:bg-purex-blue/10 transition">View All</button>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full">
+                <thead>
+                  <tr class="text-[10px] text-white/30 tracking-wider border-b border-white/5">
+                    <th class="text-left pb-3 font-light">ORDER ID</th>
+                    <th class="text-left pb-3 font-light">CUSTOMER</th>
+                    <th class="text-left pb-3 font-light hidden sm:table-cell">PRODUCT</th>
+                    <th class="text-left pb-3 font-light">AMOUNT</th>
+                    <th class="text-left pb-3 font-light">STATUS</th>
+                  </tr>
+                </thead>
+                <tbody id="orders-body">
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Activity Feed -->
+          <div class="bento-card glass-strong rounded-2xl p-6">
+            <h3 class="font-heading text-sm font-light text-white mb-1">Activity</h3>
+            <p class="text-[10px] text-white/30 mb-5">Recent events</p>
+            <div class="space-y-4" id="activity-feed">
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 4: Quick POS + Inventory Status -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+          <!-- Quick POS -->
+          <div class="bento-card glass-strong rounded-2xl p-6">
+            <h3 class="font-heading text-sm font-light text-white mb-1">Quick POS</h3>
+            <p class="text-[10px] text-white/30 mb-5">Process walk-in sales</p>
+            <div class="grid grid-cols-3 gap-2 mb-4" id="pos-items">
+            </div>
+            <div class="glass rounded-xl p-4 mt-4">
+              <div class="flex justify-between text-xs text-white/40 mb-2">
+                <span>Subtotal</span><span id="pos-subtotal">Rs.0</span>
+              </div>
+              <div class="flex justify-between text-xs text-white/40 mb-2">
+                <span>Tax (15%)</span><span id="pos-tax">Rs.0</span>
+              </div>
+              <div class="h-px bg-white/5 my-2"></div>
+              <div class="flex justify-between">
+                <span class="text-sm text-white font-light">Total</span>
+                <span id="pos-total" class="text-lg font-heading text-purex-blue">Rs.0</span>
+              </div>
+              <button id="pos-checkout" class="w-full mt-4 bg-purex-blue text-white py-2.5 rounded-full text-sm tracking-wider hover:bg-purex-blue/80 transition-all duration-300 active:scale-95">
+                Process Payment
+              </button>
+            </div>
+          </div>
+
+          <!-- Inventory Status -->
+          <div class="bento-card glass-strong rounded-2xl p-6">
+            <div class="flex items-center justify-between mb-5">
+              <div>
+                <h3 class="font-heading text-sm font-light text-white">Inventory Status</h3>
+                <p class="text-[10px] text-white/30 mt-0.5">Stock level monitoring</p>
+              </div>
+              <div class="flex items-center gap-4 text-[10px]">
+                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-400"></span> Good</span>
+                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-400"></span> Low</span>
+                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-red-400"></span> Critical</span>
+              </div>
+            </div>
+            <div class="space-y-3" id="inventory-list">
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    gsap.registerPlugin();
+
+    // ─── KPI COUNTER ANIMATION ───
+    document.querySelectorAll('.kpi-number').forEach(el => {
+      const target = parseInt(el.dataset.target);
+      const prefix = el.textContent.startsWith('Rs.') ? 'Rs.' : '';
+      gsap.to({ val: 0 }, {
+        val: target,
+        duration: 2,
+        delay: 0.3,
+        ease: 'power2.out',
+        onUpdate: function() {
+          const v = Math.round(this.targets()[0].val);
+          el.textContent = prefix + v.toLocaleString();
+        }
+      });
+    });
+
+    // ─── SPARKLINE ANIMATION ───
+    gsap.to('.spark-line', { strokeDashoffset: 0, duration: 2, delay: 0.5, ease: 'power2.out' });
+
+    // ─── MINI BAR ANIMATION ───
+    gsap.to('.mini-bar', { scaleY: 1, duration: 0.6, stagger: 0.08, delay: 0.4, ease: 'back.out(1.5)' });
+
+    // ─── PROGRESS BAR ───
+    gsap.to('.progress-bar', { width: '73%', duration: 1.5, delay: 0.6, ease: 'power2.out' });
+
+    // ─── SALES CHART ANIMATION ───
+    gsap.to('#chart-line', { strokeDashoffset: 0, duration: 2, delay: 0.3, ease: 'power2.out' });
+    gsap.to('#chart-area', { opacity: 1, duration: 1, delay: 1.5 });
+    gsap.to('#chart-dots circle', { r: 3, duration: 0.3, stagger: 0.1, delay: 1.8, ease: 'back.out(3)' });
+
+    // ─── BENTO CARD STAGGER ───
+    gsap.from('.bento-card', { opacity: 0, y: 20, duration: 0.5, stagger: 0.08, delay: 0.1, ease: 'power3.out' });
+
+    // ─── ORDERS TABLE ───
+    const orders = [
+      { id: 'PX-7842', customer: 'Al-Madina General Store', product: 'Taizab Acid 1L x100', amount: 'Rs.20,000', status: 'completed' },
+      { id: 'PX-7841', customer: 'Karachi Super Mart', product: 'Sweep Floor 1L x80', amount: 'Rs.21,600', status: 'processing' },
+      { id: 'PX-7840', customer: 'Islamabad Wholesale', product: 'Clothes Soap 4Pk x50', amount: 'Rs.10,000', status: 'completed' },
+      { id: 'PX-7839', customer: 'Faisalabad Traders', product: 'Neel Liquid 250ml x200', amount: 'Rs.13,000', status: 'shipped' },
+      { id: 'PX-7838', customer: 'Multan Kiryana Store', product: 'Bath Soap Rose x300', amount: 'Rs.18,000', status: 'pending' },
+      { id: 'PX-7837', customer: 'Peshawar Distributor', product: 'Bleach 1L x120', amount: 'Rs.19,200', status: 'completed' },
+    ];
+
+    const statusColors = {
+      completed: 'bg-emerald-400',
+      processing: 'bg-purex-blue',
+      shipped: 'bg-amber-400',
+      pending: 'bg-white/30'
+    };
+
+    document.getElementById('orders-body').innerHTML = orders.map(o => `
+      <tr class="table-row border-b border-white/[0.03]">
+        <td class="py-3 text-xs text-purex-blue font-mono">${o.id}</td>
+        <td class="py-3 text-xs text-white/70 font-light">${o.customer}</td>
+        <td class="py-3 text-xs text-white/40 font-light hidden sm:table-cell">${o.product}</td>
+        <td class="py-3 text-xs text-white/70 font-light">${o.amount}</td>
+        <td class="py-3"><span class="flex items-center gap-1.5 text-[10px] text-white/50 capitalize"><span class="status-dot ${statusColors[o.status]}"></span>${o.status}</span></td>
+      </tr>
+    `).join('');
+
+    // ─── ACTIVITY FEED ───
+    const activities = [
+      { icon: '📦', text: 'New order PX-7842 from Al-Madina Store', time: '2 min ago', color: 'purex-blue' },
+      { icon: '✅', text: 'Order PX-7839 shipped to Faisalabad', time: '15 min ago', color: 'emerald-400' },
+      { icon: '⚠️', text: 'Low stock: Taizab Lemon 500ml', time: '1 hr ago', color: 'amber-400' },
+      { icon: '👤', text: 'New retailer registered: Quetta Mart', time: '2 hrs ago', color: 'purple-400' },
+      { icon: '💰', text: 'Payment received Rs.19,200', time: '3 hrs ago', color: 'emerald-400' },
+      { icon: '🏭', text: 'New batch Neel Liquid ready', time: '4 hrs ago', color: 'purex-blue' },
+    ];
+
+    document.getElementById('activity-feed').innerHTML = activities.map(a => `
+      <div class="flex items-start gap-3">
+        <div class="w-7 h-7 rounded-lg bg-white/[0.03] flex items-center justify-center text-xs flex-shrink-0 mt-0.5">${a.icon}</div>
+        <div class="flex-1 min-w-0">
+          <p class="text-xs text-white/70 font-light">${a.text}</p>
+          <p class="text-[10px] text-white/25 mt-0.5">${a.time}</p>
+        </div>
+      </div>
+    `).join('');
+
+    // ─── QUICK POS ───
+    const posProducts = [
+      { name: 'Taizab 500ml', price: 120 },
+      { name: 'Taizab 1L', price: 200 },
+      { name: 'Sweep Floor 1L', price: 270 },
+      { name: 'Bleach 1L', price: 160 },
+      { name: 'Neel 250ml', price: 65 },
+      { name: 'Clothes Soap', price: 55 },
+    ];
+
+    let posCart = {};
+
+    document.getElementById('pos-items').innerHTML = posProducts.map((p, i) => `
+      <button class="pos-item glass rounded-xl p-3 text-center hover:border-purex-blue/20 transition-all active:scale-95" onclick="addToPOS(${i})">
+        <p class="text-xs text-white/70 font-light">${p.name}</p>
+        <p class="text-[10px] text-purex-blue mt-1">Rs.${p.price}</p>
+      </button>
+    `).join('');
+
+    function addToPOS(idx) {
+      const p = posProducts[idx];
+      posCart[p.name] = (posCart[p.name] || 0) + 1;
+      updatePOS();
+      // Button bounce
+      const btns = document.querySelectorAll('.pos-item');
+      gsap.fromTo(btns[idx], { scale: 0.92 }, { scale: 1, duration: 0.4, ease: 'elastic.out(1, 0.4)' });
+    }
+
+    function updatePOS() {
+      let subtotal = 0;
+      Object.entries(posCart).forEach(([name, qty]) => {
+        const p = posProducts.find(x => x.name === name);
+        subtotal += p.price * qty;
+      });
+      const tax = subtotal * 0.15;
+      document.getElementById('pos-subtotal').textContent = 'Rs.' + subtotal.toLocaleString();
+      document.getElementById('pos-tax').textContent = 'Rs.' + Math.round(tax).toLocaleString();
+      document.getElementById('pos-total').textContent = 'Rs.' + Math.round(subtotal + tax).toLocaleString();
+    }
+
+    document.getElementById('pos-checkout').addEventListener('click', function() {
+      if (Object.keys(posCart).length === 0) return;
+      gsap.to(this, {
+        scale: 0.95, duration: 0.1, yoyo: true, repeat: 1,
+        onComplete: () => {
+          posCart = {};
+          updatePOS();
+          gsap.fromTo(this, { boxShadow: '0 0 30px rgba(77,158,213,0.5)' }, { boxShadow: '0 0 0 rgba(77,158,213,0)', duration: 1 });
+        }
+      });
+    });
+
+    // ─── INVENTORY STATUS ───
+    const inventory = [
+      { name: 'Taizab Acid 500ml', stock: 850, max: 1000, status: 'good' },
+      { name: 'Taizab Acid 1L', stock: 620, max: 800, status: 'good' },
+      { name: 'Taizab Lemon 500ml', stock: 80, max: 500, status: 'low' },
+      { name: 'Sweep Floor 500ml', stock: 410, max: 500, status: 'good' },
+      { name: 'Sweep Floor 1L', stock: 45, max: 400, status: 'critical' },
+      { name: 'Sweep Toilet 500ml', stock: 310, max: 400, status: 'good' },
+      { name: 'Bleach 500ml', stock: 90, max: 300, status: 'low' },
+      { name: 'Bleach 1L', stock: 25, max: 300, status: 'critical' },
+    ];
+
+    const stockColors = { good: 'bg-emerald-400', low: 'bg-amber-400', critical: 'bg-red-400' };
+
+    document.getElementById('inventory-list').innerHTML = inventory.map(item => {
+      const pct = (item.stock / item.max * 100).toFixed(0);
+      return `
+        <div class="flex items-center gap-3">
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center justify-between mb-1">
+              <p class="text-xs text-white/70 font-light truncate">${item.name}</p>
+              <span class="text-[10px] text-white/30 ml-2">${item.stock}/${item.max}</span>
+            </div>
+            <div class="w-full h-1 bg-white/5 rounded-full overflow-hidden">
+              <div class="h-full ${stockColors[item.status]} rounded-full inv-bar transition-all" style="width: 0%;" data-width="${pct}%"></div>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Animate inventory bars
+    setTimeout(() => {
+      document.querySelectorAll('.inv-bar').forEach(bar => {
+        gsap.to(bar, { width: bar.dataset.width, duration: 1, ease: 'power2.out' });
+      });
+    }, 500);
+  </script>
+</body>
+</html>

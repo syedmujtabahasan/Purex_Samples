@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PUREX — Trusted Household &amp; Cleaning Essentials</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            purex: { blue: '#4d9ed5', dark: '#181818', light: '#f7f7f7' },
+          },
+          fontFamily: {
+            heading: ['"Poppins"', 'sans-serif'],
+            body: ['"Inter"', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/lenis@1/dist/lenis.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: auto; }
+    body { background: #0a0e17; color: #f7f7f7; font-family: 'Inter', sans-serif; overflow-x: hidden; }
+    .glass { background: rgba(77, 158, 213, 0.05); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.08); }
+    .glass-strong { background: rgba(255,255,255,0.04); backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px); border: 1px solid rgba(255,255,255,0.1); }
+    .grain { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; opacity: 0.03; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E"); }
+    .text-gradient { background: linear-gradient(135deg, #4d9ed5, #7bb8e0, #4d9ed5); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .hero-glow { position: absolute; width: 600px; height: 600px; background: radial-gradient(circle, rgba(77,158,213,0.15) 0%, transparent 70%); border-radius: 50%; pointer-events: none; }
+    .product-float { filter: drop-shadow(0 20px 60px rgba(77,158,213,0.3)); }
+    .nav-link { position: relative; }
+    .nav-link::after { content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 1px; background: #4d9ed5; transition: width 0.3s ease; }
+    .nav-link:hover::after { width: 100%; }
+    @keyframes float { 0%, 100% { transform: translateY(0px) rotate(0deg); } 50% { transform: translateY(-20px) rotate(2deg); } }
+    .floating { animation: float 6s ease-in-out infinite; }
+    .section-reveal { opacity: 0; transform: translateY(60px); }
+  </style>
+</head>
+<body>
+  <div class="grain"></div>
+
+  <!-- ─── NAVBAR ─── -->
+  <nav class="fixed top-0 w-full z-50 transition-all duration-500" id="navbar">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <a href="../index.html" class="text-[11px] text-white/40 hover:text-white transition tracking-wider">&larr; All Concepts</a>
+      </div>
+      <a href="index.html" class="flex items-center gap-3 group">
+        <svg width="40" height="40" viewBox="0 0 100 100" class="transition-transform duration-300 group-hover:scale-110">
+          <path d="M25 20 L25 80 L40 80 L40 55 L55 55 L70 35 L70 20 L55 20 L55 35 L40 35 L40 20 Z" fill="#4d9ed5"/>
+          <path d="M55 45 L55 55 L45 55 L65 80 L80 80 L60 55 L70 55 L70 45 Z" fill="#4d9ed5"/>
+        </svg>
+        <div class="flex items-baseline">
+          <span class="font-heading text-lg font-light tracking-[0.3em] text-white">PURE</span>
+          <span class="font-heading text-2xl font-light text-purex-blue">X</span>
+          <span class="font-heading text-[10px] font-light tracking-[0.25em] text-white/60 ml-2">HOUSEHOLD ESSENTIALS</span>
+        </div>
+      </a>
+      <div class="hidden md:flex items-center gap-8">
+        <a href="index.html" class="nav-link text-sm font-light tracking-wider text-white/80 hover:text-white transition">Home</a>
+        <a href="shop.html" class="nav-link text-sm font-light tracking-wider text-white/80 hover:text-white transition">Shop</a>
+        <a href="admin.html" class="nav-link text-sm font-light tracking-wider text-white/80 hover:text-white transition">Dashboard</a>
+        <a href="shop.html" class="glass px-5 py-2 rounded-full text-sm font-light tracking-wider text-purex-blue hover:bg-purex-blue/10 transition-all duration-300">Get Started</a>
+      </div>
+      <button id="mobile-toggle" class="md:hidden text-white/80" onclick="document.getElementById('mobile-menu').classList.toggle('hidden')">
+        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+    </div>
+    <div id="mobile-menu" class="hidden md:hidden glass-strong mx-4 mb-2 rounded-2xl p-4">
+      <a href="index.html" class="block py-2 text-sm text-white/80">Home</a>
+      <a href="shop.html" class="block py-2 text-sm text-white/80">Shop</a>
+      <a href="admin.html" class="block py-2 text-sm text-white/80">Dashboard</a>
+    </div>
+  </nav>
+
+  <!-- ─── HERO SCROLLYTELLING SECTION ─── -->
+  <section id="hero-container" class="relative" style="height: 300vh;">
+    <div class="sticky top-0 h-screen flex items-center justify-center overflow-hidden">
+      <!-- Glows -->
+      <div class="hero-glow" style="top: 10%; left: -10%;"></div>
+      <div class="hero-glow" style="bottom: -10%; right: -5%; opacity: 0.5;"></div>
+
+      <!-- Grid lines bg -->
+      <div class="absolute inset-0 opacity-[0.03]" style="background-image: linear-gradient(rgba(77,158,213,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(77,158,213,0.3) 1px, transparent 1px); background-size: 80px 80px;"></div>
+
+      <!-- Central product container -->
+      <div id="hero-product" class="relative z-10 flex flex-col items-center">
+        <!-- Animated chemical flask SVG -->
+        <svg id="flask-svg" width="220" height="280" viewBox="0 0 220 280" class="product-float">
+          <defs>
+            <linearGradient id="flask-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#4d9ed5" stop-opacity="0.9"/>
+              <stop offset="100%" stop-color="#2a7ab5" stop-opacity="0.9"/>
+            </linearGradient>
+            <linearGradient id="liquid-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="#4d9ed5" stop-opacity="0.6"/>
+              <stop offset="100%" stop-color="#1a5a8a" stop-opacity="0.9"/>
+            </linearGradient>
+            <filter id="glow">
+              <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+              <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+          </defs>
+          <!-- Flask body -->
+          <path d="M85 10 L85 90 L30 200 Q20 225 40 250 L180 250 Q200 225 190 200 L135 90 L135 10 Z" fill="none" stroke="rgba(77,158,213,0.4)" stroke-width="2" filter="url(#glow)"/>
+          <!-- Liquid -->
+          <path id="liquid" d="M50 190 Q60 175 110 180 Q160 185 170 190 L180 250 Q200 225 190 200 L135 90 L135 100 Q110 95 85 100 L85 90 L30 200 Q20 225 40 250 Z" fill="url(#liquid-grad)" opacity="0.7"/>
+          <!-- Flask neck -->
+          <rect x="80" y="5" width="60" height="12" rx="3" fill="rgba(77,158,213,0.3)" stroke="rgba(77,158,213,0.5)" stroke-width="1"/>
+          <!-- Bubbles -->
+          <circle class="bubble" cx="100" cy="200" r="4" fill="rgba(77,158,213,0.4)"/>
+          <circle class="bubble" cx="120" cy="220" r="3" fill="rgba(77,158,213,0.3)"/>
+          <circle class="bubble" cx="90" cy="210" r="5" fill="rgba(77,158,213,0.3)"/>
+        </svg>
+      </div>
+
+      <!-- Scroll-driven text layers -->
+      <div id="hero-text-1" class="absolute z-20 text-center px-6">
+        <p class="font-heading text-sm tracking-[0.4em] text-purex-blue/80 uppercase mb-4">Trusted by Every Pakistani Home</p>
+        <h1 class="font-heading text-5xl md:text-7xl lg:text-8xl font-extralight leading-[0.95]">
+          <span class="text-white">PURE</span><span class="text-purex-blue text-6xl md:text-8xl lg:text-9xl">X</span>
+        </h1>
+        <p class="font-heading text-lg md:text-xl font-extralight tracking-[0.2em] text-white/40 mt-4">HOUSEHOLD ESSENTIALS</p>
+      </div>
+
+      <div id="hero-text-2" class="absolute z-20 text-center px-6 opacity-0">
+        <p class="font-heading text-sm tracking-[0.4em] text-purex-blue/80 uppercase mb-4">Har Ghar Ki Zaroorat</p>
+        <h2 class="font-heading text-4xl md:text-6xl font-extralight text-white">
+          Clean Homes, Pure <span class="text-gradient">Kitchens</span>
+        </h2>
+        <p class="text-white/40 font-light mt-4 max-w-md mx-auto">From Taizab acid that destroys limescale to Neel that keeps whites brilliant — Purex delivers daily essentials you can trust.</p>
+      </div>
+
+      <div id="hero-text-3" class="absolute z-20 text-center px-6 opacity-0">
+        <p class="font-heading text-sm tracking-[0.4em] text-purex-blue/80 uppercase mb-6">Trusted Across Pakistan</p>
+        <h2 class="font-heading text-4xl md:text-6xl font-extralight text-white">
+          Quality You Can <span class="text-gradient">See</span>
+        </h2>
+        <div class="flex gap-8 mt-8 justify-center">
+          <div class="text-center">
+            <p class="text-3xl md:text-4xl font-heading font-light text-purex-blue" id="counter-1">0</p>
+            <p class="text-xs tracking-widest text-white/40 mt-1">PRODUCTS</p>
+          </div>
+          <div class="w-px bg-white/10"></div>
+          <div class="text-center">
+            <p class="text-3xl md:text-4xl font-heading font-light text-purex-blue" id="counter-2">0</p>
+            <p class="text-xs tracking-widest text-white/40 mt-1">HOMES</p>
+          </div>
+          <div class="w-px bg-white/10"></div>
+          <div class="text-center">
+            <p class="text-3xl md:text-4xl font-heading font-light text-purex-blue" id="counter-3">0</p>
+            <p class="text-xs tracking-widest text-white/40 mt-1">YEARS</p>
+          </div>
+        </div>
+        <a href="shop.html" class="inline-block mt-10 glass px-8 py-3 rounded-full text-sm tracking-wider text-purex-blue hover:bg-purex-blue/10 transition-all duration-300 group">
+          Explore Products <span class="inline-block transition-transform group-hover:translate-x-1">&rarr;</span>
+        </a>
+      </div>
+
+      <!-- Scroll indicator -->
+      <div id="scroll-indicator" class="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
+        <p class="text-[10px] tracking-[0.3em] text-white/30 uppercase">Scroll</p>
+        <div class="w-px h-8 bg-gradient-to-b from-purex-blue/60 to-transparent scroll-line"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── FEATURES SECTION ─── -->
+  <section class="relative py-32 px-6">
+    <div class="max-w-6xl mx-auto">
+      <div class="section-reveal text-center mb-20">
+        <p class="font-heading text-sm tracking-[0.4em] text-purex-blue/80 uppercase mb-4">Why Purex</p>
+        <h2 class="font-heading text-4xl md:text-5xl font-extralight text-white">Everyday <span class="text-gradient">Reliability</span></h2>
+      </div>
+      <div class="grid md:grid-cols-3 gap-6">
+        <div class="section-reveal glass-strong rounded-2xl p-8 hover:border-purex-blue/20 transition-all duration-500 group">
+          <div class="w-12 h-12 rounded-xl bg-purex-blue/10 flex items-center justify-center mb-6 group-hover:bg-purex-blue/20 transition">
+            <svg width="24" height="24" fill="none" stroke="#4d9ed5" stroke-width="1.5"><path d="M9 3L5 7l4 4M15 3l4 4-4 4M13 3l-2 8"/><rect x="3" y="14" width="18" height="7" rx="2"/></svg>
+          </div>
+          <h3 class="font-heading text-lg font-light text-white mb-3">Effective Formulas</h3>
+          <p class="text-sm text-white/40 font-light leading-relaxed">Taizab cuts through the toughest grime. Sweep leaves floors spotless. Neel keeps every white garment brilliant. No compromises.</p>
+        </div>
+        <div class="section-reveal glass-strong rounded-2xl p-8 hover:border-purex-blue/20 transition-all duration-500 group">
+          <div class="w-12 h-12 rounded-xl bg-purex-blue/10 flex items-center justify-center mb-6 group-hover:bg-purex-blue/20 transition">
+            <svg width="24" height="24" fill="none" stroke="#4d9ed5" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6L5.6 18.4"/></svg>
+          </div>
+          <h3 class="font-heading text-lg font-light text-white mb-3">Available Everywhere</h3>
+          <p class="text-sm text-white/40 font-light leading-relaxed">From Lahore to Quetta, find Purex at your nearest general store, supermart, or order online.</p>
+        </div>
+        <div class="section-reveal glass-strong rounded-2xl p-8 hover:border-purex-blue/20 transition-all duration-500 group">
+          <div class="w-12 h-12 rounded-xl bg-purex-blue/10 flex items-center justify-center mb-6 group-hover:bg-purex-blue/20 transition">
+            <svg width="24" height="24" fill="none" stroke="#4d9ed5" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          </div>
+          <h3 class="font-heading text-lg font-light text-white mb-3">Honest Pricing</h3>
+          <p class="text-sm text-white/40 font-light leading-relaxed">Fair prices for real Pakistani families. No hidden costs, no watered-down products. Full value, every bottle.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── CTA SECTION ─── -->
+  <section class="relative py-32 px-6">
+    <div class="max-w-4xl mx-auto text-center section-reveal">
+      <div class="glass-strong rounded-3xl p-12 md:p-20 relative overflow-hidden">
+        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-px bg-gradient-to-r from-transparent via-purex-blue/50 to-transparent"></div>
+        <p class="font-heading text-sm tracking-[0.4em] text-purex-blue/80 uppercase mb-4">Ready to Restock?</p>
+        <h2 class="font-heading text-3xl md:text-5xl font-extralight text-white mb-6">Order Your Essentials <span class="text-gradient">Today</span></h2>
+        <p class="text-white/40 font-light max-w-lg mx-auto mb-10">Join thousands of shopkeepers and families who rely on Purex — from Taizab to Neel to Sweep.</p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <a href="shop.html" class="bg-purex-blue text-white px-8 py-3 rounded-full text-sm tracking-wider hover:bg-purex-blue/80 transition-all duration-300">Shop Now</a>
+          <a href="#" class="glass px-8 py-3 rounded-full text-sm tracking-wider text-purex-blue hover:bg-purex-blue/10 transition-all duration-300">Become a Retailer</a>
+        </div>
+        <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-40 h-px bg-gradient-to-r from-transparent via-purex-blue/50 to-transparent"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── FOOTER ─── -->
+  <footer class="border-t border-white/5 py-12 px-6">
+    <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+      <div class="flex items-center gap-3">
+        <svg width="28" height="28" viewBox="0 0 100 100">
+          <path d="M25 20 L25 80 L40 80 L40 55 L55 55 L70 35 L70 20 L55 20 L55 35 L40 35 L40 20 Z" fill="#4d9ed5"/>
+          <path d="M55 45 L55 55 L45 55 L65 80 L80 80 L60 55 L70 55 L70 45 Z" fill="#4d9ed5"/>
+        </svg>
+        <span class="text-xs tracking-[0.2em] text-white/30">PUREX CHEMICALS</span>
+      </div>
+      <div class="flex gap-6">
+        <a href="#" class="text-xs text-white/30 hover:text-white/60 transition">Privacy</a>
+        <a href="#" class="text-xs text-white/30 hover:text-white/60 transition">Terms</a>
+        <a href="#" class="text-xs text-white/30 hover:text-white/60 transition">Retailer Portal</a>
+      </div>
+      <p class="text-xs text-white/20">&copy; 2026 Purex Chemicals. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script>
+    // ─── LENIS SMOOTH SCROLL ───
+    const lenis = new Lenis({ duration: 1.2, easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), smooth: true });
+    function raf(time) { lenis.raf(time); requestAnimationFrame(raf); }
+    requestAnimationFrame(raf);
+    gsap.ticker.add((time) => lenis.raf(time * 1000));
+    gsap.ticker.lagSmoothing(0);
+
+    // ─── NAVBAR SCROLL EFFECT ───
+    const navbar = document.getElementById('navbar');
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 50) {
+        navbar.classList.add('glass-strong');
+        navbar.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
+      } else {
+        navbar.classList.remove('glass-strong');
+        navbar.style.borderBottom = 'none';
+      }
+    });
+
+    // ─── HERO SCROLLYTELLING ───
+    gsap.registerPlugin(ScrollTrigger);
+
+    const heroTL = gsap.timeline({
+      scrollTrigger: {
+        trigger: '#hero-container',
+        start: 'top top',
+        end: 'bottom bottom',
+        scrub: 1,
+        pin: false,
+      }
+    });
+
+    // Phase 1: Initial text fades out, product scales up
+    heroTL
+      .to('#hero-text-1', { opacity: 0, y: -80, scale: 0.9, duration: 1 }, 0)
+      .to('#flask-svg', { scale: 1.2, rotation: 5, duration: 1 }, 0)
+      .to('#scroll-indicator', { opacity: 0, duration: 0.5 }, 0)
+
+    // Phase 2: Second text appears
+      .to('#hero-text-2', { opacity: 1, y: 0, duration: 1 }, 1)
+      .to('#flask-svg', { scale: 0.8, rotation: -5, x: -100, duration: 1 }, 1)
+
+    // Phase 3: Second text out, third in
+      .to('#hero-text-2', { opacity: 0, y: -80, duration: 1 }, 2.5)
+      .to('#flask-svg', { scale: 1, rotation: 0, x: 0, y: 0, duration: 1 }, 2.5)
+      .to('#hero-text-3', { opacity: 1, y: 0, duration: 1 }, 3);
+
+    // Counter animation
+    ScrollTrigger.create({
+      trigger: '#hero-container',
+      start: '70% top',
+      onEnter: () => {
+        animateCounter('counter-1', 20);
+        animateCounter('counter-2', 10000);
+        animateCounter('counter-3', 15);
+      },
+      once: true
+    });
+
+    function animateCounter(id, target) {
+      const el = document.getElementById(id);
+      gsap.to({ val: 0 }, {
+        val: target,
+        duration: 2,
+        ease: 'power2.out',
+        onUpdate: function() { el.textContent = Math.round(this.targets()[0].val) + '+'; }
+      });
+    }
+
+    // ─── BUBBLE ANIMATION ───
+    document.querySelectorAll('.bubble').forEach((b, i) => {
+      gsap.to(b, {
+        y: -40 - i * 10,
+        opacity: 0,
+        duration: 2 + i * 0.5,
+        repeat: -1,
+        ease: 'power1.out',
+        delay: i * 0.8
+      });
+    });
+
+    // ─── SECTION REVEALS ───
+    document.querySelectorAll('.section-reveal').forEach((el, i) => {
+      gsap.to(el, {
+        scrollTrigger: { trigger: el, start: 'top 85%', toggleActions: 'play none none none' },
+        opacity: 1, y: 0, duration: 0.8, delay: i * 0.1, ease: 'power3.out'
+      });
+    });
+
+    // ─── SCROLL LINE PULSE ───
+    gsap.to('.scroll-line', { scaleY: 0.5, opacity: 0.3, duration: 1, repeat: -1, yoyo: true, ease: 'power1.inOut' });
+  </script>
+</body>
+</html>

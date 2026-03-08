@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — PUREX POS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: '#4d9ed5',
+            taizab: '#D97706',
+            sweep: '#16A34A',
+            neel: '#2563EB',
+            soap: '#7C3AED',
+            bleach: '#0891B2',
+            charcoal: '#1E293B',
+          },
+          fontFamily: {
+            sans: ['"Inter"', 'system-ui', 'sans-serif'],
+            display: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    ::selection { background: #4d9ed5; color: white; }
+    body { background: #F1F5F9; color: #1E293B; font-family: 'Inter', system-ui, sans-serif; overflow-x: hidden; }
+
+    /* ── BENTO CARD ── */
+    .bento {
+      background: white;
+      border: 1px solid #E2E8F0;
+      border-radius: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+      transition: box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+    .bento:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.06); border-color: #CBD5E1; }
+
+    /* ── POS KEY (large, tap-friendly) ── */
+    .pos-key {
+      background: white;
+      border: 1px solid #E2E8F0;
+      border-radius: 12px;
+      padding: 12px 8px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.1s ease;
+      min-height: 72px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .pos-key:hover { border-color: #94A3B8; background: #F8FAFC; }
+    .pos-key:active { transform: scale(0.95); background: #F1F5F9; }
+    .pos-key .key-dot { width: 6px; height: 6px; border-radius: 50%; margin-bottom: 6px; }
+
+    /* ── TABLE ── */
+    .t-row { transition: background 0.1s; }
+    .t-row:hover { background: #F8FAFC; }
+
+    /* Status pills */
+    .pill-done { background: #DCFCE7; color: #166534; }
+    .pill-proc { background: #DBEAFE; color: #1E40AF; }
+    .pill-ship { background: #FEF3C7; color: #92400E; }
+    .pill-wait { background: #F1F5F9; color: #64748B; }
+
+    /* ── SIDEBAR ── */
+    .sidebar-link { transition: all 0.1s; border-radius: 10px; }
+    .sidebar-link:hover { background: #F1F5F9; }
+    .sidebar-link.active { background: #EFF6FF; color: #2563EB; }
+
+    /* ── INVENTORY BAR ── */
+    .stock-bar-bg { background: #F1F5F9; height: 4px; border-radius: 2px; }
+    .stock-bar { height: 4px; border-radius: 2px; transition: width 0.8s ease; }
+  </style>
+</head>
+<body>
+
+  <div class="flex min-h-screen">
+
+    <!-- ═══ SIDEBAR ═══ -->
+    <aside class="hidden lg:flex flex-col w-60 bg-white border-r border-slate-200 fixed h-full z-40">
+      <div class="px-5 pt-4 pb-1">
+        <a href="../index.html" class="text-[11px] text-slate-400 hover:text-slate-600 transition font-medium">&larr; All Concepts</a>
+      </div>
+      <div class="p-5 pt-2 border-b border-slate-100">
+        <a href="index.html" class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-brand flex items-center justify-center">
+            <svg width="18" height="18" viewBox="0 0 100 100"><path d="M25 20 L25 80 L40 80 L40 55 L55 55 L70 35 L70 20 L55 20 L55 35 L40 35 L40 20 Z" fill="white"/><path d="M55 45 L55 55 L45 55 L65 80 L80 80 L60 55 L70 55 L70 45 Z" fill="white" opacity="0.7"/></svg>
+          </div>
+          <div>
+            <span class="font-display font-bold text-charcoal text-sm">Purex</span>
+            <p class="text-[10px] text-slate-400 -mt-0.5">Admin Dashboard</p>
+          </div>
+        </a>
+      </div>
+
+      <nav class="flex-1 p-3 space-y-0.5">
+        <a href="#" class="sidebar-link active flex items-center gap-3 px-3 py-2.5 text-sm font-medium">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="6" height="6" rx="1.5"/><rect x="10" y="2" width="6" height="6" rx="1.5"/><rect x="2" y="10" width="6" height="6" rx="1.5"/><rect x="10" y="10" width="6" height="6" rx="1.5"/></svg>
+          Overview
+        </a>
+        <a href="#" class="sidebar-link flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-400">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4h10v12H4z"/><path d="M7 4V2h4v2M7 9h4"/></svg>
+          Inventory
+        </a>
+        <a href="#" class="sidebar-link flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-400">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3h12v4H3z"/><path d="M3 11h12v4H3z"/></svg>
+          Orders
+        </a>
+        <a href="#" class="sidebar-link flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-400">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="9" cy="6" r="4"/><path d="M2 16c0-3.3 3.1-6 7-6s7 2.7 7 6"/></svg>
+          Customers
+        </a>
+      </nav>
+
+      <div class="p-4 border-t border-slate-100">
+        <div class="flex items-center gap-3 px-2">
+          <div class="w-8 h-8 rounded-full bg-brand/10 flex items-center justify-center text-xs font-bold text-brand">SB</div>
+          <div>
+            <p class="text-xs font-semibold text-charcoal">Suleman Bhatti</p>
+            <p class="text-[10px] text-slate-400">CEO</p>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ═══ MAIN ═══ -->
+    <main class="flex-1 lg:ml-60">
+
+      <!-- ── TOP BAR ── -->
+      <header class="sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-slate-100 px-6 h-16 flex items-center justify-between">
+        <div>
+          <h1 class="font-display text-lg font-bold text-charcoal">Dashboard</h1>
+          <p class="text-[11px] text-slate-400 -mt-0.5">Welcome back, Suleman</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <a href="index.html" class="text-xs text-slate-400 hover:text-charcoal transition font-medium">View Site →</a>
+        </div>
+      </header>
+
+      <!-- ── CONTENT ── -->
+      <div class="p-6 space-y-5">
+
+        <!-- ── ROW 1: KPIs ── -->
+        <div class="grid grid-cols-2 xl:grid-cols-4 gap-4">
+          <div class="bento p-5">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-[11px] text-slate-400 font-semibold tracking-wide">REVENUE</span>
+              <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600">+12.5%</span>
+            </div>
+            <p class="font-display text-2xl font-extrabold text-charcoal kpi" data-val="2450000" data-pre="Rs. ">Rs. 0</p>
+          </div>
+          <div class="bento p-5">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-[11px] text-slate-400 font-semibold tracking-wide">ORDERS</span>
+              <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-600">12 pending</span>
+            </div>
+            <p class="font-display text-2xl font-extrabold text-charcoal kpi" data-val="47">0</p>
+          </div>
+          <div class="bento p-5">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-[11px] text-slate-400 font-semibold tracking-wide">PROFIT</span>
+              <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600">+8.3%</span>
+            </div>
+            <p class="font-display text-2xl font-extrabold text-charcoal kpi" data-val="580000" data-pre="Rs. ">Rs. 0</p>
+          </div>
+          <div class="bento p-5">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-[11px] text-slate-400 font-semibold tracking-wide">ACTIVE SKUs</span>
+              <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-600">3 low</span>
+            </div>
+            <p class="font-display text-2xl font-extrabold text-charcoal kpi" data-val="20">0</p>
+          </div>
+        </div>
+
+        <!-- ── ROW 2: POS + RECENT ORDERS ── -->
+        <div class="grid grid-cols-1 xl:grid-cols-5 gap-5">
+
+          <!-- POS TERMINAL (3-col span) -->
+          <div class="xl:col-span-3 bento p-6">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h3 class="font-display text-sm font-bold text-charcoal">Quick POS</h3>
+                <p class="text-[10px] text-slate-400 mt-0.5">Tap product → Complete sale</p>
+              </div>
+              <span class="text-[10px] text-slate-300 font-medium">SESSION #0041</span>
+            </div>
+
+            <!-- ── POS GRID (large, tap-friendly) ── -->
+            <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 mb-5" id="pos-grid"></div>
+
+            <!-- ── POS RECEIPT ── -->
+            <div class="bg-slate-50 rounded-xl border border-slate-100 p-4">
+              <div id="pos-receipt" class="space-y-1.5 mb-3 min-h-[40px]">
+                <p class="text-[11px] text-slate-300 text-center py-2">No items yet</p>
+              </div>
+              <div class="border-t border-dashed border-slate-200 pt-3">
+                <div class="flex justify-between text-xs text-slate-400 mb-1">
+                  <span>Subtotal</span><span id="pos-sub">Rs. 0</span>
+                </div>
+                <div class="flex justify-between text-xs text-slate-400 mb-2">
+                  <span>Tax (0%)</span><span>Rs. 0</span>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="text-sm font-semibold text-charcoal">Total</span>
+                  <span id="pos-total" class="font-display text-xl font-extrabold text-charcoal">Rs. 0</span>
+                </div>
+              </div>
+              <div class="flex gap-2 mt-4">
+                <button class="flex-1 bg-slate-200 text-charcoal py-3 rounded-xl text-xs font-semibold hover:bg-slate-300 transition active:scale-[0.97]" onclick="clearPOS()">Clear</button>
+                <button class="flex-[2] bg-charcoal text-white py-3 rounded-xl text-sm font-semibold hover:bg-slate-700 transition active:scale-[0.97]" onclick="completeSale()" id="sale-btn">Complete Sale</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- RECENT ORDERS (2-col span) -->
+          <div class="xl:col-span-2 bento p-6 flex flex-col">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-display text-sm font-bold text-charcoal">Recent Orders</h3>
+              <span class="text-[10px] text-slate-300 font-medium">Last 24h</span>
+            </div>
+            <div class="flex-1 overflow-y-auto -mx-2">
+              <table class="w-full">
+                <thead>
+                  <tr class="text-[10px] text-slate-400 font-semibold tracking-wide">
+                    <th class="text-left px-2 pb-2">ID</th>
+                    <th class="text-left px-2 pb-2">Customer</th>
+                    <th class="text-right px-2 pb-2">Amount</th>
+                    <th class="text-right px-2 pb-2">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="orders-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── ROW 3: INVENTORY + TOP PRODUCTS ── -->
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
+
+          <!-- INVENTORY (2 col) -->
+          <div class="xl:col-span-2 bento p-6">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h3 class="font-display text-sm font-bold text-charcoal">Inventory Status</h3>
+                <p class="text-[10px] text-slate-400 mt-0.5">20 SKUs tracked</p>
+              </div>
+              <div class="flex items-center gap-3 text-[10px] font-medium">
+                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-400"></span> Good</span>
+                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-400"></span> Low</span>
+                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-red-400"></span> Critical</span>
+              </div>
+            </div>
+            <div class="overflow-y-auto max-h-[420px] -mx-1">
+              <table class="w-full">
+                <thead class="sticky top-0 bg-white">
+                  <tr class="text-[10px] text-slate-400 font-semibold tracking-wide">
+                    <th class="text-left px-2 pb-2">SKU</th>
+                    <th class="text-left px-2 pb-2">Product</th>
+                    <th class="text-right px-2 pb-2">Stock</th>
+                    <th class="px-2 pb-2 w-24">Level</th>
+                    <th class="text-right px-2 pb-2">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="inv-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- TOP PRODUCTS (1 col) -->
+          <div class="bento p-6">
+            <h3 class="font-display text-sm font-bold text-charcoal mb-1">Top Products</h3>
+            <p class="text-[10px] text-slate-400 mb-5">By revenue this month</p>
+            <div class="space-y-4" id="top-products"></div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // ─── KPI COUNTERS ───
+    document.querySelectorAll('.kpi').forEach(el => {
+      const target = parseInt(el.dataset.val);
+      const pre = el.dataset.pre || '';
+      gsap.to({ v: 0 }, {
+        v: target, duration: 1.8, delay: 0.2, ease: 'power2.out',
+        onUpdate: function() {
+          el.textContent = pre + Math.round(this.targets()[0].v).toLocaleString();
+        }
+      });
+    });
+
+    // ─── BENTO STAGGER ───
+    gsap.from('.bento', { opacity: 0, y: 16, duration: 0.4, stagger: 0.06, delay: 0.1, ease: 'power3.out' });
+
+    // ─── POS TERMINAL ───
+    const posItems = [
+      { code: 'TZB', name: 'Taizab 500ml', price: 120, color: '#D97706', bg: '#FEF3C7' },
+      { code: 'TZ1', name: 'Taizab 1L', price: 200, color: '#D97706', bg: '#FEF3C7' },
+      { code: 'TZL', name: 'Taizab Lemon', price: 140, color: '#D97706', bg: '#FEF3C7' },
+      { code: 'SWF', name: 'Sweep Floor', price: 270, color: '#16A34A', bg: '#DCFCE7' },
+      { code: 'SWT', name: 'Sweep WC', price: 160, color: '#16A34A', bg: '#DCFCE7' },
+      { code: 'BLC', name: 'Bleach 1L', price: 160, color: '#0891B2', bg: '#CFFAFE' },
+      { code: 'CSB', name: 'Clothes Soap', price: 55, color: '#7C3AED', bg: '#EDE9FE' },
+      { code: 'CS4', name: 'Clothes 4-Pk', price: 200, color: '#7C3AED', bg: '#EDE9FE' },
+      { code: 'BSR', name: 'Bath Rose', price: 60, color: '#DB2777', bg: '#FCE7F3' },
+      { code: 'BSN', name: 'Bath Neem', price: 55, color: '#16A34A', bg: '#DCFCE7' },
+      { code: 'DSL', name: 'Dish Liquid', price: 130, color: '#EA580C', bg: '#FFF7ED' },
+      { code: 'NEL', name: 'Neel 250ml', price: 65, color: '#2563EB', bg: '#DBEAFE' },
+    ];
+
+    let posCart = {};
+
+    document.getElementById('pos-grid').innerHTML = posItems.map((p, i) => `
+      <button class="pos-key" onclick="posAdd(${i}, this)">
+        <div class="key-dot" style="background: ${p.color}"></div>
+        <span class="text-xs font-bold text-charcoal">${p.code}</span>
+        <span class="text-[9px] text-slate-400 leading-tight mt-0.5">${p.name}</span>
+        <span class="text-[10px] font-bold mt-1" style="color: ${p.color}">Rs. ${p.price}</span>
+      </button>
+    `).join('');
+
+    function posAdd(idx, btn) {
+      const p = posItems[idx];
+      posCart[p.code] = (posCart[p.code] || 0) + 1;
+      updatePOS();
+      gsap.fromTo(btn, { scale: 0.92 }, { scale: 1, duration: 0.35, ease: 'elastic.out(1.2, 0.4)' });
+    }
+
+    function updatePOS() {
+      let total = 0;
+      const lines = [];
+      Object.entries(posCart).forEach(([code, qty]) => {
+        const p = posItems.find(x => x.code === code);
+        const line = p.price * qty;
+        total += line;
+        lines.push({ name: p.name, qty, price: p.price, line, color: p.color });
+      });
+
+      const receiptEl = document.getElementById('pos-receipt');
+      if (lines.length === 0) {
+        receiptEl.innerHTML = '<p class="text-[11px] text-slate-300 text-center py-2">No items yet</p>';
+      } else {
+        receiptEl.innerHTML = lines.map(l => `
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-1.5 h-1.5 rounded-full" style="background:${l.color}"></span>
+              <span class="text-xs text-charcoal font-medium">${l.name}</span>
+              <span class="text-[10px] text-slate-300">×${l.qty}</span>
+            </div>
+            <span class="text-xs font-semibold text-charcoal">Rs. ${l.line.toLocaleString()}</span>
+          </div>
+        `).join('');
+      }
+
+      document.getElementById('pos-sub').textContent = 'Rs. ' + total.toLocaleString();
+      document.getElementById('pos-total').textContent = 'Rs. ' + total.toLocaleString();
+    }
+
+    function clearPOS() { posCart = {}; updatePOS(); }
+
+    function completeSale() {
+      if (Object.keys(posCart).length === 0) return;
+      const btn = document.getElementById('sale-btn');
+      gsap.to(btn, { scale: 0.96, duration: 0.08, yoyo: true, repeat: 1, onComplete: () => {
+        gsap.fromTo(btn, { boxShadow: '0 0 0 3px rgba(16,185,129,0.3)' }, { boxShadow: '0 0 0 0px rgba(16,185,129,0)', duration: 1 });
+        posCart = {};
+        updatePOS();
+      }});
+    }
+
+    // ─── ORDERS ───
+    const orders = [
+      { id: 'PX-7842', customer: 'Al-Madina Store', amount: 'Rs. 20,000', status: 'done' },
+      { id: 'PX-7841', customer: 'Karachi Mart', amount: 'Rs. 21,600', status: 'proc' },
+      { id: 'PX-7840', customer: 'ISB Wholesale', amount: 'Rs. 10,000', status: 'done' },
+      { id: 'PX-7839', customer: 'FSD Traders', amount: 'Rs. 13,000', status: 'ship' },
+      { id: 'PX-7838', customer: 'Multan Kiryana', amount: 'Rs. 18,000', status: 'wait' },
+      { id: 'PX-7837', customer: 'Peshawar Dist.', amount: 'Rs. 19,200', status: 'done' },
+      { id: 'PX-7836', customer: 'Quetta Wholesale', amount: 'Rs. 13,800', status: 'proc' },
+      { id: 'PX-7835', customer: 'Sialkot Mart', amount: 'Rs. 21,000', status: 'done' },
+    ];
+    const statusPill = { done: ['Done', 'pill-done'], proc: ['Processing', 'pill-proc'], ship: ['Shipped', 'pill-ship'], wait: ['Pending', 'pill-wait'] };
+
+    document.getElementById('orders-tbody').innerHTML = orders.map(o => {
+      const [label, cls] = statusPill[o.status];
+      return `
+        <tr class="t-row border-b border-slate-50">
+          <td class="px-2 py-2.5 text-[11px] font-semibold text-brand">${o.id}</td>
+          <td class="px-2 py-2.5 text-xs text-charcoal">${o.customer}</td>
+          <td class="px-2 py-2.5 text-xs text-charcoal text-right font-semibold">${o.amount}</td>
+          <td class="px-2 py-2.5 text-right"><span class="${cls} text-[10px] font-semibold px-2 py-0.5 rounded-full">${label}</span></td>
+        </tr>`;
+    }).join('');
+
+    // ─── INVENTORY (20 SKUs) ───
+    const inventory = [
+      { sku: 'TZB-500', name: 'Taizab Acid 500ml', stock: 850, cap: 1000, color: '#D97706' },
+      { sku: 'TZB-1K', name: 'Taizab Acid 1L', stock: 620, cap: 800, color: '#D97706' },
+      { sku: 'TZB-L5', name: 'Taizab Lemon 500ml', stock: 80, cap: 500, color: '#D97706' },
+      { sku: 'SWP-F5', name: 'Sweep Floor 500ml', stock: 410, cap: 500, color: '#16A34A' },
+      { sku: 'SWP-F1', name: 'Sweep Floor 1L', stock: 45, cap: 400, color: '#16A34A' },
+      { sku: 'SWP-T5', name: 'Sweep Toilet 500ml', stock: 310, cap: 400, color: '#16A34A' },
+      { sku: 'BLC-500', name: 'Bleach 500ml', stock: 180, cap: 300, color: '#0891B2' },
+      { sku: 'BLC-1K', name: 'Bleach 1L', stock: 25, cap: 300, color: '#0891B2' },
+      { sku: 'CS-130', name: 'Clothes Soap 130g', stock: 900, cap: 1000, color: '#7C3AED' },
+      { sku: 'CS-230', name: 'Clothes Soap 230g', stock: 520, cap: 600, color: '#7C3AED' },
+      { sku: 'CS-4PK', name: 'Clothes Soap 4-Pk', stock: 150, cap: 400, color: '#7C3AED' },
+      { sku: 'BS-R', name: 'Bath Soap Rose', stock: 700, cap: 800, color: '#DB2777' },
+      { sku: 'BS-N', name: 'Bath Soap Neem', stock: 340, cap: 500, color: '#16A34A' },
+      { sku: 'BS-3PK', name: 'Bath Soap 3-Pack', stock: 200, cap: 300, color: '#DB2777' },
+      { sku: 'DS-200', name: 'Dish Soap Bar', stock: 450, cap: 500, color: '#EA580C' },
+      { sku: 'DS-L5', name: 'Dish Liquid 500ml', stock: 60, cap: 300, color: '#EA580C' },
+      { sku: 'DS-L1', name: 'Dish Liquid 1L', stock: 190, cap: 300, color: '#EA580C' },
+      { sku: 'NL-100', name: 'Neel Liquid 100ml', stock: 1200, cap: 1500, color: '#2563EB' },
+      { sku: 'NL-250', name: 'Neel Liquid 250ml', stock: 15, cap: 200, color: '#2563EB' },
+      { sku: 'NP-50', name: 'Neel Powder 50g', stock: 800, cap: 1000, color: '#2563EB' },
+    ];
+
+    function stockLabel(stock, cap) {
+      const pct = stock / cap;
+      if (pct < 0.15) return ['Critical', 'text-red-500', 'bg-red-400'];
+      if (pct < 0.35) return ['Low', 'text-amber-500', 'bg-amber-400'];
+      return ['Good', 'text-emerald-500', 'bg-emerald-400'];
+    }
+
+    document.getElementById('inv-tbody').innerHTML = inventory.map(item => {
+      const pct = (item.stock / item.cap * 100).toFixed(0);
+      const [label, textCls, barCls] = stockLabel(item.stock, item.cap);
+      return `
+        <tr class="t-row border-b border-slate-50">
+          <td class="px-2 py-2 text-[10px] font-semibold" style="color:${item.color}">${item.sku}</td>
+          <td class="px-2 py-2 text-xs text-charcoal">${item.name}</td>
+          <td class="px-2 py-2 text-xs text-slate-400 text-right">${item.stock}/${item.cap}</td>
+          <td class="px-2 py-2"><div class="stock-bar-bg"><div class="stock-bar ${barCls}" style="width:0%;" data-w="${pct}%"></div></div></td>
+          <td class="px-2 py-2 text-[10px] text-right font-semibold ${textCls}">${label}</td>
+        </tr>`;
+    }).join('');
+
+    // Animate bars
+    setTimeout(() => {
+      document.querySelectorAll('.stock-bar').forEach(bar => {
+        gsap.to(bar, { width: bar.dataset.w, duration: 0.8, ease: 'power2.out', delay: Math.random() * 0.3 });
+      });
+    }, 400);
+
+    // ─── TOP PRODUCTS ───
+    const topProducts = [
+      { name: 'Taizab Acid 1L', revenue: 'Rs. 248k', pct: 92, color: '#D97706', bg: '#FEF3C7' },
+      { name: 'Sweep Floor 1L', revenue: 'Rs. 186k', pct: 78, color: '#16A34A', bg: '#DCFCE7' },
+      { name: 'Clothes Soap 4-Pk', revenue: 'Rs. 142k', pct: 65, color: '#7C3AED', bg: '#EDE9FE' },
+      { name: 'Neel Liquid 250ml', revenue: 'Rs. 98k', pct: 52, color: '#2563EB', bg: '#DBEAFE' },
+      { name: 'Bleach 1L', revenue: 'Rs. 76k', pct: 41, color: '#0891B2', bg: '#CFFAFE' },
+    ];
+
+    document.getElementById('top-products').innerHTML = topProducts.map((p, i) => `
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 text-[10px] font-bold" style="background:${p.bg}; color:${p.color}">0${i+1}</div>
+        <div class="flex-1 min-w-0">
+          <p class="text-xs font-semibold text-charcoal truncate">${p.name}</p>
+          <div class="w-full h-1 bg-slate-100 rounded-full mt-1.5">
+            <div class="h-full rounded-full top-bar" style="background:${p.color}; width:0%;" data-w="${p.pct}%"></div>
+          </div>
+        </div>
+        <span class="text-[11px] text-slate-400 font-semibold flex-shrink-0">${p.revenue}</span>
+      </div>
+    `).join('');
+
+    setTimeout(() => {
+      document.querySelectorAll('.top-bar').forEach(bar => {
+        gsap.to(bar, { width: bar.dataset.w, duration: 1, ease: 'power2.out', delay: 0.5 });
+      });
+    }, 200);
+  </script>
+</body>
+</html>

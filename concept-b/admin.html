@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Terminal — PUREX Household</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            px: { blue: '#4d9ed5', black: '#0a0a0a', white: '#f5f5f0', accent: '#ff3d00', green: '#00e676', amber: '#ffc107', red: '#ff1744' },
+          },
+          fontFamily: {
+            mono: ['"JetBrains Mono"', 'monospace'],
+            display: ['"Space Grotesk"', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    ::selection { background: #4d9ed5; color: #0a0a0a; }
+    body { background: #0a0a0a; color: #f5f5f0; font-family: 'JetBrains Mono', monospace; overflow-x: hidden; cursor: crosshair; font-size: 12px; }
+    a, button { cursor: crosshair; }
+
+    .b-border { border: 1px solid rgba(245,245,240,0.1); }
+    .b-border-b { border-bottom: 1px solid rgba(245,245,240,0.1); }
+    .b-border-t { border-top: 1px solid rgba(245,245,240,0.1); }
+    .b-border-r { border-right: 1px solid rgba(245,245,240,0.1); }
+    .b-border-l { border-left: 1px solid rgba(245,245,240,0.1); }
+    .b-solid { border: 1px solid rgba(245,245,240,0.25); }
+
+    /* Terminal-green accent for active states */
+    .status-live { color: #00e676; }
+    .status-warn { color: #ffc107; }
+    .status-crit { color: #ff1744; }
+
+    .cmd-input {
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #f5f5f0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      width: 100%;
+      caret-color: #4d9ed5;
+    }
+
+    /* Scanline effect */
+    .scanline {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      pointer-events: none; z-index: 9999;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent, transparent 2px,
+        rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px
+      );
+    }
+
+    /* Blink cursor */
+    .blink { animation: blink 1s step-end infinite; }
+    @keyframes blink { 50% { opacity: 0; } }
+
+    /* Row hover in terminal style */
+    .t-row { transition: background 0.05s; }
+    .t-row:hover { background: rgba(77,158,213,0.08); }
+
+    .pos-key {
+      transition: all 0.05s;
+    }
+    .pos-key:hover {
+      background: #4d9ed5 !important;
+      color: #0a0a0a !important;
+    }
+    .pos-key:active {
+      transform: translate(1px, 1px);
+    }
+
+    /* Dense utility: minimal spacing */
+    .dense-cell { padding: 6px 10px; }
+  </style>
+</head>
+<body>
+  <div class="scanline"></div>
+
+  <!-- ═══════ TERMINAL LAYOUT ═══════ -->
+  <div class="min-h-screen flex flex-col">
+
+    <!-- ─── TOP BAR ─── -->
+    <header class="b-border-b flex items-center justify-between px-4 py-2 shrink-0">
+      <div class="flex items-center gap-4">
+        <a href="../index.html" class="text-[10px] text-px-white/30 hover:text-px-white tracking-wider transition-colors duration-75">[&larr; ALL CONCEPTS]</a>
+        <span class="text-[10px] text-px-white/20">|</span>
+        <a href="index.html" class="flex items-center gap-2">
+          <svg width="18" height="18" viewBox="0 0 100 100">
+            <path d="M25 20 L25 80 L40 80 L40 55 L55 55 L70 35 L70 20 L55 20 L55 35 L40 35 L40 20 Z" fill="#f5f5f0"/>
+            <path d="M55 45 L55 55 L45 55 L65 80 L80 80 L60 55 L70 55 L70 45 Z" fill="#4d9ed5"/>
+          </svg>
+          <span class="font-display text-xs font-bold tracking-wider">PUREX</span>
+        </a>
+        <span class="text-[10px] text-px-white/20">|</span>
+        <span class="text-[10px] text-px-white/40 tracking-wider">ADMIN TERMINAL v2.1</span>
+      </div>
+      <div class="flex items-center gap-4">
+        <span class="text-[10px] text-px-green tracking-wider flex items-center gap-1.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-px-green inline-block"></span> SYSTEM ONLINE
+        </span>
+        <span class="text-[10px] text-px-white/20" id="clock">00:00:00</span>
+        <a href="shop.html" class="text-[10px] text-px-white/30 hover:text-px-white tracking-wider transition-colors duration-75">[SHOP]</a>
+        <a href="index.html" class="text-[10px] text-px-white/30 hover:text-px-white tracking-wider transition-colors duration-75">[EXIT]</a>
+      </div>
+    </header>
+
+    <!-- ─── BREADCRUMB / STATUS LINE ─── -->
+    <div class="b-border-b px-4 py-1.5 flex items-center justify-between bg-px-blue/[0.03]">
+      <div class="flex items-center gap-2 text-[10px]">
+        <span class="text-px-blue">root</span>
+        <span class="text-px-white/20">/</span>
+        <span class="text-px-white/40">dashboard</span>
+        <span class="text-px-white/20">/</span>
+        <span class="text-px-white/60">overview</span>
+      </div>
+      <div class="flex items-center gap-4 text-[10px]">
+        <span class="text-px-white/30">USER: <span class="text-px-white/60">s.bhatti</span></span>
+        <span class="text-px-white/30">ROLE: <span class="text-px-blue">CEO</span></span>
+      </div>
+    </div>
+
+    <!-- ─── MAIN GRID ─── -->
+    <div class="flex-1 flex flex-col lg:flex-row">
+
+      <!-- ════ LEFT: POS + ORDERS ════ -->
+      <div class="lg:w-[55%] flex flex-col b-border-r">
+
+        <!-- ── KPI ROW (solid dividers, no cards) ── -->
+        <div class="b-border-b flex">
+          <div class="flex-1 p-4 b-border-r">
+            <span class="text-[9px] tracking-[0.2em] uppercase text-px-white/25">Revenue</span>
+            <p class="font-display text-2xl font-bold mt-1 kpi" data-val="2450000" data-prefix="Rs.">Rs.0</p>
+            <span class="text-[9px] text-px-green mt-1 inline-block">+12.5%</span>
+          </div>
+          <div class="flex-1 p-4 b-border-r">
+            <span class="text-[9px] tracking-[0.2em] uppercase text-px-white/25">Orders</span>
+            <p class="font-display text-2xl font-bold mt-1 kpi" data-val="47">0</p>
+            <span class="text-[9px] text-px-blue mt-1 inline-block">12 pending</span>
+          </div>
+          <div class="flex-1 p-4 b-border-r">
+            <span class="text-[9px] tracking-[0.2em] uppercase text-px-white/25">Profit</span>
+            <p class="font-display text-2xl font-bold mt-1 kpi" data-val="580000" data-prefix="Rs.">Rs.0</p>
+            <span class="text-[9px] text-px-green mt-1 inline-block">+8.3%</span>
+          </div>
+          <div class="flex-1 p-4">
+            <span class="text-[9px] tracking-[0.2em] uppercase text-px-white/25">SKUs</span>
+            <p class="font-display text-2xl font-bold mt-1 kpi" data-val="20">0</p>
+            <span class="text-[9px] text-px-amber mt-1 inline-block">3 low</span>
+          </div>
+        </div>
+
+        <!-- ── POS TERMINAL ── -->
+        <div class="b-border-b p-4 flex-shrink-0">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-[10px] tracking-[0.2em] uppercase text-px-blue font-medium">// POS TERMINAL</span>
+            <span class="text-[9px] text-px-white/20" id="pos-session">SESSION #0041</span>
+          </div>
+          <div class="grid grid-cols-4 sm:grid-cols-6 gap-1 mb-3" id="pos-keys"></div>
+          <div class="b-solid p-3 flex items-center justify-between">
+            <div>
+              <span class="text-[9px] text-px-white/30 tracking-wider">TOTAL:</span>
+              <span class="font-display text-xl font-bold text-px-blue ml-2" id="pos-total">Rs.0.00</span>
+              <span class="text-[9px] text-px-white/20 ml-2" id="pos-items-count">0 items</span>
+            </div>
+            <div class="flex gap-2">
+              <button class="text-[9px] tracking-wider uppercase px-3 py-1.5 b-solid text-px-white/40 hover:text-px-white hover:border-px-white/40 transition-colors duration-75" onclick="clearPOS()">CLEAR</button>
+              <button class="text-[9px] tracking-wider uppercase px-4 py-1.5 bg-px-blue text-px-black font-bold hover:bg-px-white transition-colors duration-75 active:translate-x-px active:translate-y-px" onclick="checkoutPOS()">PAY →</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── RECENT ORDERS ── -->
+        <div class="flex-1 overflow-hidden flex flex-col">
+          <div class="px-4 py-3 b-border-b flex items-center justify-between">
+            <span class="text-[10px] tracking-[0.2em] uppercase text-px-blue font-medium">// RECENT ORDERS</span>
+            <span class="text-[9px] text-px-white/20">LAST 24H</span>
+          </div>
+          <div class="flex-1 overflow-y-auto">
+            <table class="w-full">
+              <thead class="sticky top-0 bg-px-black">
+                <tr class="text-[9px] tracking-[0.15em] uppercase text-px-white/20 b-border-b">
+                  <th class="text-left dense-cell font-normal">ID</th>
+                  <th class="text-left dense-cell font-normal">Customer</th>
+                  <th class="text-left dense-cell font-normal hidden md:table-cell">Product</th>
+                  <th class="text-right dense-cell font-normal">Amount</th>
+                  <th class="text-right dense-cell font-normal">Status</th>
+                </tr>
+              </thead>
+              <tbody id="orders-table"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════ RIGHT: INVENTORY + ACTIVITY ════ -->
+      <div class="lg:w-[45%] flex flex-col">
+
+        <!-- ── INVENTORY (max 20 SKUs) ── -->
+        <div class="flex-1 overflow-hidden flex flex-col">
+          <div class="px-4 py-3 b-border-b flex items-center justify-between">
+            <span class="text-[10px] tracking-[0.2em] uppercase text-px-blue font-medium">// INVENTORY [20 SKUs]</span>
+            <div class="flex gap-3 text-[9px]">
+              <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 bg-px-green inline-block"></span> OK</span>
+              <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 bg-px-amber inline-block"></span> LOW</span>
+              <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 bg-px-red inline-block"></span> CRIT</span>
+            </div>
+          </div>
+          <div class="flex-1 overflow-y-auto">
+            <table class="w-full">
+              <thead class="sticky top-0 bg-px-black">
+                <tr class="text-[9px] tracking-[0.15em] uppercase text-px-white/20 b-border-b">
+                  <th class="text-left dense-cell font-normal">SKU</th>
+                  <th class="text-left dense-cell font-normal">Product</th>
+                  <th class="text-right dense-cell font-normal">Stock</th>
+                  <th class="text-right dense-cell font-normal">Cap</th>
+                  <th class="text-center dense-cell font-normal">Level</th>
+                  <th class="text-right dense-cell font-normal">Status</th>
+                </tr>
+              </thead>
+              <tbody id="inventory-table"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ── DIVIDER ── -->
+        <div class="b-border-t b-border-b px-4 py-1.5 bg-px-blue/[0.03]">
+          <span class="text-[9px] tracking-[0.3em] uppercase text-px-white/15">─── PROFIT MARGINS ───</span>
+        </div>
+
+        <!-- ── PROFIT MARGINS ── -->
+        <div class="p-4" id="margins-section">
+          <div class="grid grid-cols-2 gap-3 mb-4">
+            <div class="b-solid p-3">
+              <span class="text-[9px] tracking-wider uppercase text-px-white/25">Gross Margin</span>
+              <p class="font-display text-xl font-bold text-px-green mt-1">42.3%</p>
+              <div class="w-full h-1 bg-px-white/5 mt-2"><div class="h-full bg-px-green margin-bar" style="width: 0%;" data-w="42.3%"></div></div>
+            </div>
+            <div class="b-solid p-3">
+              <span class="text-[9px] tracking-wider uppercase text-px-white/25">Net Margin</span>
+              <p class="font-display text-xl font-bold text-px-blue mt-1">23.6%</p>
+              <div class="w-full h-1 bg-px-white/5 mt-2"><div class="h-full bg-px-blue margin-bar" style="width: 0%;" data-w="23.6%"></div></div>
+            </div>
+          </div>
+          <div class="grid grid-cols-4 gap-2">
+            <div class="text-center p-2 b-solid">
+              <span class="text-[9px] text-px-white/25 block">Cleaning</span>
+              <span class="font-display text-sm font-bold text-px-green block mt-1">48%</span>
+            </div>
+            <div class="text-center p-2 b-solid">
+              <span class="text-[9px] text-px-white/25 block">Soap</span>
+              <span class="font-display text-sm font-bold text-px-blue block mt-1">38%</span>
+            </div>
+            <div class="text-center p-2 b-solid">
+              <span class="text-[9px] text-px-white/25 block">Whitener</span>
+              <span class="font-display text-sm font-bold text-px-green block mt-1">52%</span>
+            </div>
+            <div class="text-center p-2 b-solid">
+              <span class="text-[9px] text-px-white/25 block">Bleach</span>
+              <span class="font-display text-sm font-bold text-px-amber block mt-1">35%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── DIVIDER ── -->
+        <div class="b-border-t b-border-b px-4 py-1.5 bg-px-blue/[0.03]">
+          <span class="text-[9px] tracking-[0.3em] uppercase text-px-white/15">─── ACTIVITY LOG ───</span>
+        </div>
+
+        <!-- ── ACTIVITY LOG (terminal style) ── -->
+        <div class="flex-shrink-0 max-h-[200px] overflow-y-auto p-4 font-mono text-[10px] space-y-1" id="activity-log">
+        </div>
+
+        <!-- ── COMMAND LINE ── -->
+        <div class="b-border-t px-4 py-2.5 flex items-center gap-2 shrink-0">
+          <span class="text-px-blue text-[10px]">purex@admin:~$</span>
+          <input type="text" class="cmd-input text-[10px]" placeholder="type a command..." id="cmd-input" />
+          <span class="blink text-px-blue">_</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ─── CLOCK ───
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('clock').textContent =
+        now.toTimeString().split(' ')[0];
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // ─── KPI ANIMATION ───
+    document.querySelectorAll('.kpi').forEach(el => {
+      const target = parseInt(el.dataset.val);
+      const prefix = el.dataset.prefix || '';
+      gsap.to({ v: 0 }, {
+        v: target, duration: 1.5, delay: 0.2, ease: 'power2.out',
+        onUpdate: function() {
+          el.textContent = prefix + Math.round(this.targets()[0].v).toLocaleString();
+        }
+      });
+    });
+
+    // ─── MARGIN BARS ───
+    setTimeout(() => {
+      document.querySelectorAll('.margin-bar').forEach(bar => {
+        gsap.to(bar, { width: bar.dataset.w, duration: 1, ease: 'power2.out' });
+      });
+    }, 500);
+
+    // ─── POS TERMINAL ───
+    const posProducts = [
+      { code: 'TZB', name: 'Taizab 500ml', price: 120 },
+      { code: 'TZ1', name: 'Taizab 1L', price: 200 },
+      { code: 'SWF', name: 'Sweep Flr 1L', price: 270 },
+      { code: 'SWT', name: 'Sweep WC', price: 160 },
+      { code: 'BLC', name: 'Bleach 1L', price: 160 },
+      { code: 'CSB', name: 'Clothes Soap', price: 55 },
+      { code: 'BSR', name: 'Bath Rose', price: 60 },
+      { code: 'BSN', name: 'Bath Neem', price: 55 },
+      { code: 'DSB', name: 'Dish Bar', price: 45 },
+      { code: 'DSL', name: 'Dish Liq 500ml', price: 130 },
+      { code: 'NEL', name: 'Neel 250ml', price: 65 },
+      { code: 'NEP', name: 'Neel Powder', price: 20 },
+    ];
+
+    let posCart = {};
+
+    document.getElementById('pos-keys').innerHTML = posProducts.map((p, i) => `
+      <button class="pos-key b-solid p-2 text-center" onclick="posAdd(${i}, this)">
+        <span class="text-[10px] font-bold block text-px-white">${p.code}</span>
+        <span class="text-[8px] text-px-white/30 block">${p.name}</span>
+        <span class="text-[9px] text-px-blue block mt-0.5">Rs.${p.price}</span>
+      </button>
+    `).join('');
+
+    function posAdd(idx, btn) {
+      const p = posProducts[idx];
+      posCart[p.code] = (posCart[p.code] || 0) + 1;
+      updatePOS();
+      // Hard snap feedback
+      gsap.fromTo(btn, { scale: 0.88 }, { scale: 1, duration: 0.25, ease: 'elastic.out(1.5, 0.5)' });
+    }
+
+    function updatePOS() {
+      let total = 0, count = 0;
+      Object.entries(posCart).forEach(([code, qty]) => {
+        const p = posProducts.find(x => x.code === code);
+        total += p.price * qty;
+        count += qty;
+      });
+      const tax = total * 0.15;
+      document.getElementById('pos-total').textContent = 'Rs.' + (total + tax).toFixed(2);
+      document.getElementById('pos-items-count').textContent = count + ' items';
+    }
+
+    function clearPOS() { posCart = {}; updatePOS(); }
+    function checkoutPOS() {
+      if (Object.keys(posCart).length === 0) return;
+      const totalEl = document.getElementById('pos-total');
+      gsap.fromTo(totalEl, { color: '#00e676' }, { color: '#4d9ed5', duration: 1 });
+      addLogEntry('PAYMENT', 'Transaction processed: ' + totalEl.textContent, 'green');
+      posCart = {};
+      updatePOS();
+    }
+
+    // ─── ORDERS ───
+    const orders = [
+      { id: 'PX-7842', customer: 'Al-Madina General Store', product: 'Taizab Acid 1L x100', amount: 'Rs.20,000', status: 'done' },
+      { id: 'PX-7841', customer: 'Karachi Super Mart', product: 'Sweep Floor 1L x80', amount: 'Rs.21,600', status: 'proc' },
+      { id: 'PX-7840', customer: 'Islamabad Wholesale', product: 'Clothes Soap 4Pk x50', amount: 'Rs.10,000', status: 'done' },
+      { id: 'PX-7839', customer: 'Faisalabad Traders', product: 'Neel Liquid 250ml x200', amount: 'Rs.13,000', status: 'ship' },
+      { id: 'PX-7838', customer: 'Multan Kiryana Store', product: 'Bath Soap Rose x300', amount: 'Rs.18,000', status: 'wait' },
+      { id: 'PX-7837', customer: 'Peshawar Distributor', product: 'Bleach 1L x120', amount: 'Rs.19,200', status: 'done' },
+      { id: 'PX-7836', customer: 'Quetta Wholesale', product: 'Dish Soap Liq 1L x60', amount: 'Rs.13,800', status: 'proc' },
+      { id: 'PX-7835', customer: 'Sialkot Mart', product: 'Taizab Lemon x150', amount: 'Rs.21,000', status: 'done' },
+    ];
+
+    const statusMap = { done: ['DONE', 'text-px-green'], proc: ['PROC', 'text-px-blue'], ship: ['SHIP', 'text-px-amber'], wait: ['WAIT', 'text-px-white/30'] };
+
+    document.getElementById('orders-table').innerHTML = orders.map(o => {
+      const [label, cls] = statusMap[o.status];
+      return `
+        <tr class="t-row b-border-b">
+          <td class="dense-cell text-px-blue text-[10px]">${o.id}</td>
+          <td class="dense-cell text-[10px] text-px-white/70">${o.customer}</td>
+          <td class="dense-cell text-[10px] text-px-white/30 hidden md:table-cell">${o.product}</td>
+          <td class="dense-cell text-[10px] text-right text-px-white/70">${o.amount}</td>
+          <td class="dense-cell text-[10px] text-right"><span class="${cls} font-medium">[${label}]</span></td>
+        </tr>`;
+    }).join('');
+
+    // ─── INVENTORY (20 SKUs) ───
+    const inventory = [
+      { sku: 'PX-TZB-500', name: 'Taizab Acid 500ml', stock: 850, cap: 1000 },
+      { sku: 'PX-TZB-1K', name: 'Taizab Acid 1L', stock: 620, cap: 800 },
+      { sku: 'PX-TZB-L5', name: 'Taizab Lemon 500ml', stock: 80, cap: 500 },
+      { sku: 'PX-SWP-F5', name: 'Sweep Floor 500ml', stock: 410, cap: 500 },
+      { sku: 'PX-SWP-F1', name: 'Sweep Floor 1L', stock: 45, cap: 400 },
+      { sku: 'PX-SWP-T5', name: 'Sweep Toilet 500ml', stock: 310, cap: 400 },
+      { sku: 'PX-BLC-500', name: 'Bleach 500ml', stock: 180, cap: 300 },
+      { sku: 'PX-BLC-1K', name: 'Bleach 1L', stock: 25, cap: 300 },
+      { sku: 'PX-CS-130', name: 'Clothes Soap 130g', stock: 900, cap: 1000 },
+      { sku: 'PX-CS-230', name: 'Clothes Soap 230g', stock: 520, cap: 600 },
+      { sku: 'PX-CS-4PK', name: 'Clothes Soap 4-Pk', stock: 150, cap: 400 },
+      { sku: 'PX-BS-R', name: 'Bath Soap Rose', stock: 700, cap: 800 },
+      { sku: 'PX-BS-N', name: 'Bath Soap Neem', stock: 340, cap: 500 },
+      { sku: 'PX-BS-3PK', name: 'Bath Soap 3-Pack', stock: 200, cap: 300 },
+      { sku: 'PX-DS-200', name: 'Dish Soap Bar', stock: 450, cap: 500 },
+      { sku: 'PX-DS-L5', name: 'Dish Soap Liq 500ml', stock: 60, cap: 300 },
+      { sku: 'PX-DS-L1', name: 'Dish Soap Liq 1L', stock: 190, cap: 300 },
+      { sku: 'PX-NL-100', name: 'Neel Liquid 100ml', stock: 1200, cap: 1500 },
+      { sku: 'PX-NL-250', name: 'Neel Liquid 250ml', stock: 15, cap: 200 },
+      { sku: 'PX-NP-50', name: 'Neel Powder 50g', stock: 800, cap: 1000 },
+    ];
+
+    function stockStatus(stock, cap) {
+      const pct = stock / cap;
+      if (pct < 0.15) return ['CRIT', 'text-px-red', 'bg-px-red'];
+      if (pct < 0.35) return ['LOW', 'text-px-amber', 'bg-px-amber'];
+      return ['OK', 'text-px-green', 'bg-px-green'];
+    }
+
+    document.getElementById('inventory-table').innerHTML = inventory.map(item => {
+      const pct = ((item.stock / item.cap) * 100).toFixed(0);
+      const [label, textCls, bgCls] = stockStatus(item.stock, item.cap);
+      return `
+        <tr class="t-row b-border-b">
+          <td class="dense-cell text-[10px] text-px-blue">${item.sku}</td>
+          <td class="dense-cell text-[10px] text-px-white/70">${item.name}</td>
+          <td class="dense-cell text-[10px] text-right text-px-white/50">${item.stock}</td>
+          <td class="dense-cell text-[10px] text-right text-px-white/20">${item.cap}</td>
+          <td class="dense-cell">
+            <div class="w-full h-1 bg-px-white/5"><div class="h-full ${bgCls} inv-bar" style="width:0%;" data-w="${pct}%"></div></div>
+          </td>
+          <td class="dense-cell text-[10px] text-right font-medium ${textCls}">[${label}]</td>
+        </tr>`;
+    }).join('');
+
+    // Animate inventory bars
+    setTimeout(() => {
+      document.querySelectorAll('.inv-bar').forEach(bar => {
+        gsap.to(bar, { width: bar.dataset.w, duration: 0.6, ease: 'power2.out', delay: Math.random() * 0.3 });
+      });
+    }, 300);
+
+    // ─── ACTIVITY LOG ───
+    const logEntries = [
+      { type: 'ORDER', msg: 'PX-7842 placed by Al-Madina General Store', color: 'blue' },
+      { type: 'SHIP', msg: 'PX-7839 dispatched to Faisalabad via TCS', color: 'amber' },
+      { type: 'ALERT', msg: 'Low stock: Taizab Lemon 500ml (80 units)', color: 'red' },
+      { type: 'AUTH', msg: 'User s.bhatti authenticated', color: 'green' },
+      { type: 'PAYMENT', msg: 'Received Rs.19,200 from Peshawar Dist.', color: 'green' },
+      { type: 'BATCH', msg: 'New batch Neel Liquid 250ml ready', color: 'blue' },
+      { type: 'ALERT', msg: 'Critical stock: Bleach 1L (25 units)', color: 'red' },
+      { type: 'SYSTEM', msg: 'Daily backup completed successfully', color: 'green' },
+    ];
+
+    const colorMap = { blue: 'text-px-blue', amber: 'text-px-amber', red: 'text-px-red', green: 'text-px-green' };
+
+    function renderLog() {
+      const el = document.getElementById('activity-log');
+      el.innerHTML = logEntries.map(e => {
+        const now = new Date();
+        const ts = now.toTimeString().split(' ')[0];
+        return `<div class="flex gap-2"><span class="text-px-white/15 shrink-0">${ts}</span><span class="${colorMap[e.color]} shrink-0">[${e.type}]</span><span class="text-px-white/50">${e.msg}</span></div>`;
+      }).join('');
+    }
+    renderLog();
+
+    function addLogEntry(type, msg, color) {
+      const now = new Date();
+      const ts = now.toTimeString().split(' ')[0];
+      logEntries.unshift({ type, msg, color });
+      if (logEntries.length > 20) logEntries.pop();
+      renderLog();
+    }
+
+    // ─── COMMAND INPUT ───
+    document.getElementById('cmd-input').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        const cmd = this.value.trim();
+        if (!cmd) return;
+        this.value = '';
+
+        if (cmd === 'help') {
+          addLogEntry('SYSTEM', 'Commands: help, clear, status, inventory, orders', 'blue');
+        } else if (cmd === 'clear') {
+          logEntries.length = 0;
+          renderLog();
+        } else if (cmd === 'status') {
+          addLogEntry('SYSTEM', 'All systems operational. 20 SKUs tracked. 47 active orders.', 'green');
+        } else if (cmd === 'inventory') {
+          const crit = inventory.filter(i => stockStatus(i.stock, i.cap)[0] === 'CRIT');
+          addLogEntry('SYSTEM', `${crit.length} critical items: ${crit.map(i => i.name).join(', ')}`, 'amber');
+        } else if (cmd === 'orders') {
+          addLogEntry('SYSTEM', `${orders.length} recent orders displayed. 12 pending processing.`, 'blue');
+        } else {
+          addLogEntry('ERROR', `Unknown command: "${cmd}". Type "help" for options.`, 'red');
+        }
+      }
+    });
+
+    // ─── STAGGER ENTRANCE ───
+    gsap.from('.t-row', { opacity: 0, x: -5, duration: 0.2, stagger: 0.02, delay: 0.3 });
+    gsap.from('.pos-key', { opacity: 0, scale: 0.8, duration: 0.2, stagger: 0.03, delay: 0.2 });
+  </script>
+</body>
+</html>

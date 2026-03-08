@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PUREX — Design Concepts</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #0A0A0F; color: #F5F5F0; font-family: 'Inter', system-ui, sans-serif; min-height: 100vh; overflow-x: hidden; }
+    ::selection { background: #4d9ed5; color: white; }
+
+    .concept-card {
+      position: relative;
+      border-radius: 24px;
+      overflow: hidden;
+      transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.5s ease;
+      cursor: pointer;
+    }
+    .concept-card:hover {
+      transform: translateY(-8px) scale(1.01);
+      box-shadow: 0 32px 64px -16px rgba(0,0,0,0.5);
+    }
+    .concept-card .overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(180deg, transparent 30%, rgba(0,0,0,0.85) 100%);
+      transition: opacity 0.3s ease;
+    }
+    .concept-card:hover .overlay { opacity: 0.9; }
+    .concept-card .content {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      padding: 32px;
+      transform: translateY(8px);
+      transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .concept-card:hover .content { transform: translateY(0); }
+    .concept-card .arrow {
+      opacity: 0; transform: translateX(-8px);
+      transition: all 0.3s ease 0.1s;
+    }
+    .concept-card:hover .arrow { opacity: 1; transform: translateX(0); }
+
+    .dot-grid {
+      background-image: radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 32px 32px;
+    }
+
+    .reveal { opacity: 0; transform: translateY(24px); }
+
+    .page-link { transition: all 0.15s ease; }
+    .page-link:hover { background: rgba(255,255,255,0.06); }
+  </style>
+</head>
+<body class="dot-grid">
+
+  <!-- ─── HEADER ─── -->
+  <header class="pt-16 pb-8 px-6 text-center">
+    <div class="reveal">
+      <div class="inline-flex items-center gap-3 mb-8">
+        <div class="w-10 h-10 rounded-xl bg-[#4d9ed5] flex items-center justify-center">
+          <svg width="22" height="22" viewBox="0 0 100 100">
+            <path d="M25 20 L25 80 L40 80 L40 55 L55 55 L70 35 L70 20 L55 20 L55 35 L40 35 L40 20 Z" fill="white"/>
+            <path d="M55 45 L55 55 L45 55 L65 80 L80 80 L60 55 L70 55 L70 45 Z" fill="white" opacity="0.7"/>
+          </svg>
+        </div>
+        <span style="font-family:'Plus Jakarta Sans',sans-serif;" class="text-xl font-extrabold tracking-tight">PUREX</span>
+      </div>
+    </div>
+    <h1 class="reveal text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1] mb-4" style="font-family:'Plus Jakarta Sans',sans-serif;">
+      Design Concepts
+    </h1>
+    <p class="reveal text-lg text-white/40 max-w-xl mx-auto leading-relaxed">
+      Three distinct frontend prototypes for the Purex Household POS & E-Commerce system. Each concept includes a Landing Page, Shop, and Admin Dashboard.
+    </p>
+  </header>
+
+  <!-- ─── CONCEPTS GRID ─── -->
+  <section class="max-w-6xl mx-auto px-6 py-12">
+    <div class="grid md:grid-cols-3 gap-6">
+
+      <!-- ── CONCEPT A ── -->
+      <a href="concept-a/index.html" class="concept-card aspect-[3/4] reveal" id="card-a">
+        <div class="absolute inset-0 bg-gradient-to-br from-[#0a0e17] via-[#0f1a2e] to-[#0a0e17]">
+          <!-- Glass circles decoration -->
+          <div class="absolute top-1/4 left-1/4 w-48 h-48 rounded-full bg-[#4d9ed5]/10 blur-3xl"></div>
+          <div class="absolute bottom-1/4 right-1/4 w-32 h-32 rounded-full bg-[#4d9ed5]/5 blur-2xl"></div>
+          <!-- Fake glassmorphism card preview -->
+          <div class="absolute top-12 left-6 right-6">
+            <div class="rounded-xl p-4 border border-white/[0.08]" style="background: rgba(255,255,255,0.04); backdrop-filter: blur(20px);">
+              <div class="flex gap-2 mb-3">
+                <div class="w-2 h-2 rounded-full bg-[#4d9ed5]/50"></div>
+                <div class="w-2 h-2 rounded-full bg-white/10"></div>
+                <div class="w-2 h-2 rounded-full bg-white/10"></div>
+              </div>
+              <div class="h-2 w-3/4 bg-white/10 rounded mb-2"></div>
+              <div class="h-2 w-1/2 bg-[#4d9ed5]/20 rounded mb-4"></div>
+              <div class="grid grid-cols-3 gap-1.5">
+                <div class="h-12 rounded-lg bg-white/[0.03] border border-white/[0.06]"></div>
+                <div class="h-12 rounded-lg bg-white/[0.03] border border-white/[0.06]"></div>
+                <div class="h-12 rounded-lg bg-white/[0.03] border border-white/[0.06]"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="overlay"></div>
+        <div class="content">
+          <span class="text-[10px] font-semibold tracking-[0.2em] text-[#4d9ed5] uppercase mb-2 block">Concept A</span>
+          <h2 class="text-2xl font-bold mb-2" style="font-family:'Plus Jakarta Sans',sans-serif;">Premium Dark &amp; Glassmorphism</h2>
+          <p class="text-sm text-white/40 mb-4 leading-relaxed">Scrollytelling hero, frosted glass panels, floating flask SVG. Dark blue/black with subtle glows and grain texture.</p>
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-semibold text-[#4d9ed5]">Explore Concept</span>
+            <span class="arrow text-[#4d9ed5]">→</span>
+          </div>
+        </div>
+      </a>
+
+      <!-- ── CONCEPT B ── -->
+      <a href="concept-b/index.html" class="concept-card aspect-[3/4] reveal" id="card-b">
+        <div class="absolute inset-0 bg-[#f5f5f0]">
+          <!-- Brutalist grid lines -->
+          <div class="absolute inset-0">
+            <div class="absolute top-0 bottom-0 left-1/3 w-[2px] bg-[#0a0a0a]/10"></div>
+            <div class="absolute top-0 bottom-0 left-2/3 w-[2px] bg-[#0a0a0a]/10"></div>
+            <div class="absolute left-0 right-0 top-1/3 h-[2px] bg-[#0a0a0a]/10"></div>
+            <div class="absolute left-0 right-0 top-2/3 h-[2px] bg-[#0a0a0a]/10"></div>
+          </div>
+          <!-- Fake brutalist card preview -->
+          <div class="absolute top-12 left-6 right-6">
+            <div class="border-2 border-[#0a0a0a] p-4 bg-white">
+              <div class="flex gap-0 mb-3">
+                <div class="border-2 border-[#0a0a0a] px-2 py-0.5 text-[8px] font-bold text-[#0a0a0a]">SYS</div>
+                <div class="border-2 border-l-0 border-[#0a0a0a] px-2 py-0.5 text-[8px] text-[#0a0a0a]/30">LOG</div>
+                <div class="border-2 border-l-0 border-[#0a0a0a] px-2 py-0.5 text-[8px] text-[#0a0a0a]/30">CMD</div>
+              </div>
+              <div class="h-2 w-2/3 bg-[#0a0a0a] mb-2"></div>
+              <div class="h-2 w-1/3 bg-[#4d9ed5] mb-4"></div>
+              <div class="grid grid-cols-3 gap-0">
+                <div class="h-10 border-2 border-[#0a0a0a]"></div>
+                <div class="h-10 border-2 border-l-0 border-[#0a0a0a]"></div>
+                <div class="h-10 border-2 border-l-0 border-[#0a0a0a] bg-[#0a0a0a]"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="overlay" style="background: linear-gradient(180deg, transparent 30%, rgba(10,10,10,0.9) 100%);"></div>
+        <div class="content">
+          <span class="text-[10px] font-semibold tracking-[0.2em] text-[#4d9ed5] uppercase mb-2 block">Concept B</span>
+          <h2 class="text-2xl font-bold mb-2" style="font-family:'Plus Jakarta Sans',sans-serif;">Kinetic Neo-Brutalism</h2>
+          <p class="text-sm text-white/40 mb-4 leading-relaxed">Logo deconstruction, sharp borders, hard inversions, command-line terminal. JetBrains Mono, crosshair cursor, zero gradients.</p>
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-semibold text-[#4d9ed5]">Explore Concept</span>
+            <span class="arrow text-[#4d9ed5]">→</span>
+          </div>
+        </div>
+      </a>
+
+      <!-- ── CONCEPT C ── -->
+      <a href="concept-c/index.html" class="concept-card aspect-[3/4] reveal" id="card-c">
+        <div class="absolute inset-0 bg-[#F8FAFC]">
+          <!-- Dot pattern -->
+          <div class="absolute inset-0" style="background-image: radial-gradient(circle, #e2e8f0 1px, transparent 1px); background-size: 20px 20px;"></div>
+          <!-- Fake clean card preview -->
+          <div class="absolute top-12 left-6 right-6">
+            <div class="rounded-2xl p-4 bg-white border border-[#E2E8F0] shadow-sm">
+              <div class="flex gap-2 mb-3">
+                <div class="w-6 h-6 rounded-lg bg-[#FEF3C7]"></div>
+                <div class="w-6 h-6 rounded-lg bg-[#DCFCE7]"></div>
+                <div class="w-6 h-6 rounded-lg bg-[#DBEAFE]"></div>
+                <div class="w-6 h-6 rounded-lg bg-[#EDE9FE]"></div>
+              </div>
+              <div class="h-2 w-3/4 bg-[#1E293B] rounded-full mb-2"></div>
+              <div class="h-2 w-1/2 bg-[#E2E8F0] rounded-full mb-4"></div>
+              <div class="grid grid-cols-2 gap-2">
+                <div class="h-14 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]"></div>
+                <div class="h-14 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="overlay" style="background: linear-gradient(180deg, transparent 30%, rgba(10,10,10,0.9) 100%);"></div>
+        <div class="content">
+          <span class="text-[10px] font-semibold tracking-[0.2em] text-[#4d9ed5] uppercase mb-2 block">Concept C</span>
+          <h2 class="text-2xl font-bold mb-2" style="font-family:'Plus Jakarta Sans',sans-serif;">Ultra-Clean Utility</h2>
+          <p class="text-sm text-white/40 mb-4 leading-relaxed">Clinical whites, category color-coding, large tap-friendly POS. Digital pharmacy meets premium FMCG distribution.</p>
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-semibold text-[#4d9ed5]">Explore Concept</span>
+            <span class="arrow text-[#4d9ed5]">→</span>
+          </div>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <!-- ─── QUICK LINKS ─── -->
+  <section class="max-w-6xl mx-auto px-6 pb-12">
+    <div class="reveal rounded-2xl border border-white/[0.06] overflow-hidden" style="background: rgba(255,255,255,0.02);">
+      <div class="px-6 py-4 border-b border-white/[0.06]">
+        <h3 class="text-sm font-semibold text-white/60">Quick Navigation — All Pages</h3>
+      </div>
+      <div class="grid md:grid-cols-3 divide-x divide-white/[0.06]">
+        <!-- Concept A -->
+        <div class="p-5">
+          <p class="text-[10px] tracking-[0.2em] text-[#4d9ed5] font-semibold uppercase mb-3">Concept A — Dark Glassmorphism</p>
+          <div class="space-y-1">
+            <a href="concept-a/index.html" class="page-link flex items-center justify-between px-3 py-2 rounded-lg">
+              <span class="text-sm text-white/70">Landing Page</span>
+              <span class="text-[10px] text-white/20">→</span>
+            </a>
+            <a href="concept-a/shop.html" class="page-link flex items-center justify-between px-3 py-2 rounded-lg">
+              <span class="text-sm text-white/70">Shop</span>
+              <span class="text-[10px] text-white/20">→</span>
+            </a>
+            <a href="concept-a/admin.html" class="page-link flex items-center justify-between px-3 py-2 rounded-lg">
+              <span class="text-sm text-white/70">Admin Dashboard</span>
+              <span class="text-[10px] text-white/20">→</span>
+            </a>
+          </div>
+        </div>
+        <!-- Concept B -->
+        <div class="p-5">
+          <p class="text-[10px] tracking-[0.2em] text-[#4d9ed5] font-semibold uppercase mb-3">Concept B — Neo-Brutalism</p>
+          <div class="space-y-1">
+            <a href="concept-b/index.html" class="page-link flex items-center justify-between px-3 py-2 rounded-lg">
+              <span class="text-sm text-white/70">Landing Page</span>
+              <span class="text-[10px] text-white/20">→</span>
+            </a>
+            <a href="concept-b/shop.html" class="page-link flex items-center justify-between px-3 py-2 rounded-lg">
+              <span class="text-sm text-white/70">Shop</span>
+              <span class="text-[10px] text-white/20">→</span>
+            </a>
+            <a href="concept-b/admin.html" class="page-link flex items-center justify-between px-3 py-2 rounded-lg">
+              <span class="text-sm text-white/70">Admin Terminal</span>
+              <span class="text-[10px] text-white/20">→</span>
+            </a>
+          </div>
+        </div>
+        <!-- Concept C -->
+        <div class="p-5">
+          <p class="text-[10px] tracking-[0.2em] text-[#4d9ed5] font-semibold uppercase mb-3">Concept C — Ultra-Clean Utility</p>
+          <div class="space-y-1">
+            <a href="concept-c/index.html" class="page-link flex items-center justify-between px-3 py-2 rounded-lg">
+              <span class="text-sm text-white/70">Landing Page</span>
+              <span class="text-[10px] text-white/20">→</span>
+            </a>
+            <a href="concept-c/shop.html" class="page-link flex items-center justify-between px-3 py-2 rounded-lg">
+              <span class="text-sm text-white/70">Shop</span>
+              <span class="text-[10px] text-white/20">→</span>
+            </a>
+            <a href="concept-c/admin.html" class="page-link flex items-center justify-between px-3 py-2 rounded-lg">
+              <span class="text-sm text-white/70">Admin Dashboard</span>
+              <span class="text-[10px] text-white/20">→</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── FOOTER ─── -->
+  <footer class="border-t border-white/[0.04] py-8 px-6 text-center">
+    <p class="text-xs text-white/15">&copy; 2026 Purex Chemicals — Design Prototypes</p>
+  </footer>
+
+  <script>
+    gsap.to('.reveal', {
+      opacity: 1, y: 0, duration: 0.7, stagger: 0.1, ease: 'power3.out', delay: 0.2
+    });
+  </script>
+</body>
+</html>
