@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/png" href="../assets/purex_icon.png">
+  <title>Checkout — PUREX Chemicals</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            purex: { blue: '#4d9ed5', dark: '#181818', light: '#f7f7f7' },
+          },
+          fontFamily: {
+            heading: ['"Plus Jakarta Sans"', '"Poppins"', 'sans-serif'],
+            body: ['"Inter"', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #0a0e17; color: #f7f7f7; font-family: 'Inter', sans-serif; overflow-x: hidden; min-height: 100vh; }
+    .glass { background: rgba(77, 158, 213, 0.05); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.08); }
+    .glass-strong { background: rgba(255,255,255,0.04); backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px); border: 1px solid rgba(255,255,255,0.1); }
+    .glass-card { background: rgba(255,255,255,0.03); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border: 1px solid rgba(255,255,255,0.07); }
+    .grain { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; opacity: 0.03; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E"); }
+    .text-gradient { background: linear-gradient(135deg, #4d9ed5, #7bb8e0, #4d9ed5); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+    /* Progress bar */
+    .step-pill { transition: all 0.4s ease; }
+    .step-pill.active { background: rgba(77,158,213,0.15); border-color: rgba(77,158,213,0.4); color: #4d9ed5; }
+    .step-pill.completed { background: rgba(77,158,213,0.25); border-color: rgba(77,158,213,0.5); color: #4d9ed5; }
+    .step-connector { transition: background 0.5s ease; }
+    .step-connector.active { background: linear-gradient(90deg, #4d9ed5, rgba(77,158,213,0.3)); }
+    .step-connector.completed { background: #4d9ed5; }
+
+    /* Form inputs */
+    .form-input {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 12px 16px;
+      color: #f7f7f7;
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      width: 100%;
+      transition: all 0.3s ease;
+      outline: none;
+    }
+    .form-input:focus {
+      border-color: rgba(77,158,213,0.5);
+      background: rgba(77,158,213,0.05);
+      box-shadow: 0 0 20px rgba(77,158,213,0.08);
+    }
+    .form-input::placeholder { color: rgba(255,255,255,0.2); }
+    .form-input.error { border-color: rgba(239,68,68,0.5); background: rgba(239,68,68,0.05); }
+    .form-label { font-size: 12px; color: rgba(255,255,255,0.5); letter-spacing: 0.05em; margin-bottom: 6px; display: block; font-weight: 400; }
+    .form-label .required { color: #4d9ed5; }
+    .error-text { font-size: 11px; color: #ef4444; margin-top: 4px; display: none; }
+    .error-text.show { display: block; }
+
+    select.form-input { appearance: none; background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='rgba(255,255,255,0.3)' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 16px center; padding-right: 40px; cursor: pointer; }
+    select.form-input option { background: #0f1420; color: #f7f7f7; }
+
+    /* Buttons */
+    .btn-primary { background: #4d9ed5; color: white; padding: 14px 32px; border-radius: 50px; font-size: 13px; letter-spacing: 0.08em; font-weight: 500; border: none; cursor: pointer; transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 8px; }
+    .btn-primary:hover { background: #3a8cc3; transform: translateY(-1px); box-shadow: 0 8px 30px rgba(77,158,213,0.3); }
+    .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+    .btn-secondary { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.6); padding: 14px 32px; border-radius: 50px; font-size: 13px; letter-spacing: 0.08em; font-weight: 400; border: 1px solid rgba(255,255,255,0.08); cursor: pointer; transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 8px; }
+    .btn-secondary:hover { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.8); }
+    .btn-whatsapp { background: #25D366; color: white; padding: 14px 32px; border-radius: 50px; font-size: 13px; letter-spacing: 0.05em; font-weight: 500; border: none; cursor: pointer; transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 10px; text-decoration: none; }
+    .btn-whatsapp:hover { background: #1ebe5a; transform: translateY(-1px); box-shadow: 0 8px 30px rgba(37,211,102,0.3); }
+
+    /* Step sections */
+    .step-section { display: none; }
+    .step-section.active { display: block; }
+
+    /* Cart item row */
+    .cart-row { transition: all 0.3s ease; }
+    .cart-row:hover { background: rgba(255,255,255,0.02); }
+
+    /* Quantity controls */
+    .qty-btn { width: 28px; height: 28px; border-radius: 8px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.5); cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+    .qty-btn:hover { background: rgba(77,158,213,0.15); color: #4d9ed5; border-color: rgba(77,158,213,0.3); }
+
+    /* Checkmark animation */
+    .checkmark-circle { stroke-dasharray: 166; stroke-dashoffset: 166; stroke-width: 2; stroke-miterlimit: 10; stroke: #4d9ed5; fill: none; }
+    .checkmark-check { transform-origin: 50% 50%; stroke-dasharray: 48; stroke-dashoffset: 48; stroke: #4d9ed5; }
+
+    /* Ambient glow */
+    .ambient-glow {
+      position: fixed;
+      width: 600px;
+      height: 600px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(77,158,213,0.06) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="grain"></div>
+  <div class="ambient-glow" style="top: -200px; right: -200px;"></div>
+  <div class="ambient-glow" style="bottom: -300px; left: -200px; opacity: 0.5;"></div>
+
+  <!-- ─── NAVBAR ─── -->
+  <nav class="fixed top-0 w-full z-50 glass-strong" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <a href="index.html" class="flex items-center gap-3 group">
+        <img src="../assets/purex_icon.png" alt="Purex" class="w-9 h-9 object-contain transition-transform duration-300 group-hover:scale-110">
+        <div class="flex items-baseline">
+          <span class="font-heading text-base font-light tracking-[0.3em] text-white">PURE</span>
+          <span class="font-heading text-xl font-light text-purex-blue">X</span>
+        </div>
+      </a>
+      <a href="shop.html" class="flex items-center gap-2 text-sm font-light tracking-wider text-white/60 hover:text-white transition">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 2L4 8l6 6"/></svg>
+        Back to Shop
+      </a>
+    </div>
+  </nav>
+
+  <!-- ─── MAIN CONTENT ─── -->
+  <main class="pt-28 pb-32 px-6 relative z-10">
+    <div class="max-w-3xl mx-auto">
+
+      <!-- ─── PROGRESS BAR ─── -->
+      <div class="flex items-center justify-center gap-0 mb-12" id="progress-bar">
+        <!-- Step 1 -->
+        <button onclick="goToStep(1)" class="step-pill glass px-5 py-2.5 rounded-full text-xs tracking-wider flex items-center gap-2 border border-white/10 active" data-step="1">
+          <span class="w-5 h-5 rounded-full bg-purex-blue/20 flex items-center justify-center text-[10px] font-medium step-num">1</span>
+          <span class="hidden sm:inline">Order Review</span>
+        </button>
+        <div class="step-connector w-8 sm:w-16 h-px bg-white/10" data-connector="1"></div>
+        <!-- Step 2 -->
+        <button onclick="goToStep(2)" class="step-pill glass px-5 py-2.5 rounded-full text-xs tracking-wider flex items-center gap-2 border border-white/10 text-white/30" data-step="2">
+          <span class="w-5 h-5 rounded-full bg-white/5 flex items-center justify-center text-[10px] font-medium step-num">2</span>
+          <span class="hidden sm:inline">Details</span>
+        </button>
+        <div class="step-connector w-8 sm:w-16 h-px bg-white/10" data-connector="2"></div>
+        <!-- Step 3 -->
+        <button class="step-pill glass px-5 py-2.5 rounded-full text-xs tracking-wider flex items-center gap-2 border border-white/10 text-white/30 cursor-default" data-step="3">
+          <span class="w-5 h-5 rounded-full bg-white/5 flex items-center justify-center text-[10px] font-medium step-num">3</span>
+          <span class="hidden sm:inline">Confirmation</span>
+        </button>
+      </div>
+
+      <!-- ═══════════════════════════════════════════ -->
+      <!-- STEP 1: ORDER REVIEW                        -->
+      <!-- ═══════════════════════════════════════════ -->
+      <section id="step-1" class="step-section active">
+        <div class="glass-card rounded-2xl p-6 sm:p-8">
+          <div class="flex items-center justify-between mb-6">
+            <div>
+              <h2 class="font-heading text-xl font-light text-white">Order Review</h2>
+              <p class="text-xs text-white/30 mt-1">Review your items before checkout</p>
+            </div>
+            <a href="shop.html" class="text-xs text-purex-blue/70 hover:text-purex-blue transition flex items-center gap-1.5">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 1v12M1 7h12"/></svg>
+              Edit Cart
+            </a>
+          </div>
+
+          <!-- Empty Cart State -->
+          <div id="empty-cart" class="hidden text-center py-16">
+            <svg width="64" height="64" fill="none" stroke="currentColor" stroke-width="1" class="mx-auto text-white/10 mb-6">
+              <path d="M8 8h8l2.4 12h32.2l6.4-24H18.4M22 52a4 4 0 100-8 4 4 0 000 8zM46 52a4 4 0 100-8 4 4 0 000 8z" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <h3 class="font-heading text-lg font-light text-white/40 mb-2">Your cart is empty</h3>
+            <p class="text-xs text-white/20 mb-6">Add some products to get started</p>
+            <a href="shop.html" class="btn-primary inline-flex">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 2L4 8l6 6"/></svg>
+              Browse Products
+            </a>
+          </div>
+
+          <!-- Cart Items -->
+          <div id="cart-items-list" class="space-y-3 mb-6"></div>
+
+          <!-- Subtotal -->
+          <div id="cart-subtotal-section" class="border-t border-white/5 pt-5 mt-2">
+            <div class="flex justify-between items-center">
+              <span class="text-sm text-white/40">Subtotal</span>
+              <span id="subtotal-amount" class="font-heading text-xl font-light text-purex-blue">Rs.0</span>
+            </div>
+            <p class="text-[10px] text-white/20 mt-2">Delivery charges will be confirmed via WhatsApp</p>
+          </div>
+
+          <!-- Continue Button -->
+          <div id="step1-actions" class="mt-8 flex justify-end">
+            <button onclick="goToStep(2)" class="btn-primary" id="continue-to-step2">
+              Continue
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2l6 6-6 6"/></svg>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════ -->
+      <!-- STEP 2: CUSTOMER DETAILS                    -->
+      <!-- ═══════════════════════════════════════════ -->
+      <section id="step-2" class="step-section">
+        <div class="glass-card rounded-2xl p-6 sm:p-8">
+          <div class="mb-6">
+            <h2 class="font-heading text-xl font-light text-white">Customer Details</h2>
+            <p class="text-xs text-white/30 mt-1">Tell us where to deliver your order</p>
+          </div>
+
+          <form id="customer-form" class="space-y-5" novalidate>
+            <!-- Full Name -->
+            <div>
+              <label class="form-label">Full Name <span class="required">*</span></label>
+              <input type="text" id="field-name" class="form-input" placeholder="e.g., Ahmed Khan" autocomplete="name" required>
+              <p class="error-text" id="error-name">Please enter your full name</p>
+            </div>
+
+            <!-- Phone -->
+            <div>
+              <label class="form-label">Phone Number <span class="required">*</span></label>
+              <input type="tel" id="field-phone" class="form-input" placeholder="+92 3XX XXXXXXX" autocomplete="tel" required>
+              <p class="error-text" id="error-phone">Enter a valid Pakistani phone number (+92 XXX XXXXXXX)</p>
+            </div>
+
+            <!-- City -->
+            <div>
+              <label class="form-label">City <span class="required">*</span></label>
+              <select id="field-city" class="form-input" required>
+                <option value="" disabled selected>Select your city</option>
+                <option value="Karachi">Karachi</option>
+                <option value="Lahore">Lahore</option>
+                <option value="Islamabad">Islamabad</option>
+                <option value="Rawalpindi">Rawalpindi</option>
+                <option value="Faisalabad">Faisalabad</option>
+                <option value="Multan">Multan</option>
+                <option value="Peshawar">Peshawar</option>
+                <option value="Quetta">Quetta</option>
+                <option value="Sialkot">Sialkot</option>
+                <option value="Hyderabad">Hyderabad</option>
+                <option value="Gujranwala">Gujranwala</option>
+                <option value="Other">Other</option>
+              </select>
+              <p class="error-text" id="error-city">Please select your city</p>
+            </div>
+
+            <!-- Address -->
+            <div>
+              <label class="form-label">Full Address <span class="required">*</span></label>
+              <textarea id="field-address" class="form-input" rows="3" placeholder="House #, Street, Block, Area..." required></textarea>
+              <p class="error-text" id="error-address">Please enter your delivery address</p>
+            </div>
+
+            <!-- Email (optional) -->
+            <div>
+              <label class="form-label">Email <span class="text-white/20">(optional)</span></label>
+              <input type="email" id="field-email" class="form-input" placeholder="you@email.com" autocomplete="email">
+            </div>
+
+            <!-- Order Notes (optional) -->
+            <div>
+              <label class="form-label">Order Notes <span class="text-white/20">(optional)</span></label>
+              <textarea id="field-notes" class="form-input" rows="2" placeholder="Any special instructions..."></textarea>
+            </div>
+          </form>
+
+          <!-- Actions -->
+          <div class="mt-8 flex flex-col sm:flex-row gap-3 sm:justify-between">
+            <button onclick="goToStep(1)" class="btn-secondary">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 2L4 8l6 6"/></svg>
+              Back
+            </button>
+            <button onclick="placeOrder()" class="btn-primary" id="place-order-btn">
+              Place Order
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 8h12M10 4l4 4-4 4"/></svg>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════ -->
+      <!-- STEP 3: ORDER CONFIRMATION                  -->
+      <!-- ═══════════════════════════════════════════ -->
+      <section id="step-3" class="step-section">
+        <div class="glass-card rounded-2xl p-6 sm:p-8 text-center">
+          <!-- Checkmark Animation -->
+          <div class="mb-6 flex justify-center">
+            <svg id="checkmark-svg" width="80" height="80" viewBox="0 0 52 52" class="opacity-0">
+              <circle class="checkmark-circle" cx="26" cy="26" r="25" fill="none"/>
+              <path class="checkmark-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <h2 class="font-heading text-2xl font-light text-white mb-1">Order Placed Successfully!</h2>
+          <p id="order-number-display" class="text-sm text-purex-blue tracking-wider mb-8">PX-XXXXXXXX-XXXX</p>
+
+          <!-- Order Summary Card -->
+          <div class="glass rounded-xl p-5 text-left mb-6 max-w-md mx-auto">
+            <h4 class="font-heading text-xs tracking-widest text-white/40 uppercase mb-4">Order Summary</h4>
+            <div id="confirmation-items" class="space-y-2 mb-4"></div>
+            <div class="border-t border-white/5 pt-3 flex justify-between">
+              <span class="text-sm text-white/40">Subtotal</span>
+              <span id="confirmation-total" class="text-sm text-purex-blue font-heading">Rs.0</span>
+            </div>
+          </div>
+
+          <!-- Customer Details Card -->
+          <div class="glass rounded-xl p-5 text-left mb-8 max-w-md mx-auto">
+            <h4 class="font-heading text-xs tracking-widest text-white/40 uppercase mb-4">Delivery Details</h4>
+            <div id="confirmation-customer" class="space-y-2 text-sm"></div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex flex-col sm:flex-row gap-3 justify-center max-w-md mx-auto">
+            <a id="whatsapp-order-link" href="#" target="_blank" class="btn-whatsapp flex-1 justify-center">
+              <svg width="18" height="18" fill="white" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+              Send Order via WhatsApp
+            </a>
+            <a href="shop.html" class="btn-secondary flex-1 justify-center">
+              Continue Shopping
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2l6 6-6 6"/></svg>
+            </a>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- ─── FOOTER ─── -->
+  <footer class="border-t border-white/5 py-12 px-6">
+    <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+      <div class="flex items-center gap-3">
+        <img src="../assets/purex_logo.png" alt="Purex Chemicals" class="h-10 object-contain">
+      </div>
+      <div class="flex items-center gap-5">
+        <a href="#" target="_blank" rel="noopener" class="text-white/30 hover:text-[#1877F2] transition-colors duration-300" title="Facebook">
+          <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+        </a>
+        <a href="#" target="_blank" rel="noopener" class="text-white/30 hover:text-[#E4405F] transition-colors duration-300" title="Instagram">
+          <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C16.67.014 16.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+        </a>
+        <a href="#" target="_blank" rel="noopener" class="text-white/30 hover:text-white transition-colors duration-300" title="TikTok">
+          <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>
+        </a>
+        <a href="https://wa.me/923400145796" target="_blank" rel="noopener" class="text-white/30 hover:text-[#25D366] transition-colors duration-300" title="WhatsApp">
+          <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        </a>
+        <span class="w-px h-4 bg-white/10"></span>
+        <p class="text-xs text-white/20">&copy; 2026 Purex Chemicals</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ─── FLOATING WHATSAPP WIDGET ─── -->
+  <a id="wa-float" href="https://wa.me/923400145796?text=Hello%20Purex!%20I'm%20interested%20in%20your%20products." target="_blank" rel="noopener"
+     class="fixed bottom-6 right-6 z-50 group">
+    <div class="relative w-16 h-16 rounded-full flex items-center justify-center"
+         style="background: rgba(37,211,102,0.15); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(37,211,102,0.25);">
+      <div id="wa-ping" class="absolute inset-0 rounded-full" style="background: rgba(37,211,102,0.2);"></div>
+      <svg width="30" height="30" fill="#25D366" viewBox="0 0 24 24" class="relative z-10 group-hover:scale-110 transition-transform duration-300">
+        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+      </svg>
+    </div>
+    <span class="absolute -top-8 right-0 bg-white text-gray-800 text-xs font-medium px-3 py-1 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap pointer-events-none">Chat with us</span>
+  </a>
+
+  <script>
+    // ═══════════════════════════════════════════════
+    // STATE
+    // ═══════════════════════════════════════════════
+    let cart = [];
+    let currentStep = 1;
+    let orderData = {};
+
+    // ═══════════════════════════════════════════════
+    // INIT — Load cart from localStorage
+    // ═══════════════════════════════════════════════
+    function init() {
+      try {
+        const saved = localStorage.getItem('purex_cart');
+        if (saved) {
+          cart = JSON.parse(saved);
+        }
+      } catch (e) {
+        cart = [];
+      }
+      renderStep1();
+      updateProgress();
+
+      // Entry animation
+      gsap.from('.glass-card', { opacity: 0, y: 30, duration: 0.6, ease: 'power3.out' });
+      gsap.from('#progress-bar', { opacity: 0, y: -20, duration: 0.5, ease: 'power3.out', delay: 0.2 });
+    }
+
+    // ═══════════════════════════════════════════════
+    // STEP 1: ORDER REVIEW
+    // ═══════════════════════════════════════════════
+    function renderStep1() {
+      const listEl = document.getElementById('cart-items-list');
+      const emptyEl = document.getElementById('empty-cart');
+      const subtotalSection = document.getElementById('cart-subtotal-section');
+      const actionsEl = document.getElementById('step1-actions');
+
+      if (!cart || cart.length === 0) {
+        listEl.innerHTML = '';
+        emptyEl.classList.remove('hidden');
+        subtotalSection.style.display = 'none';
+        actionsEl.style.display = 'none';
+        return;
+      }
+
+      emptyEl.classList.add('hidden');
+      subtotalSection.style.display = '';
+      actionsEl.style.display = '';
+
+      listEl.innerHTML = cart.map((item, idx) => `
+        <div class="cart-row flex items-center gap-4 rounded-xl p-3 border-b border-white/[0.03]">
+          <div class="w-10 h-10 rounded-lg glass flex items-center justify-center flex-shrink-0">
+            <svg width="16" height="20" viewBox="0 0 80 100" class="opacity-50">
+              <rect x="20" y="0" width="40" height="8" rx="3" fill="${item.color || '#4d9ed5'}" opacity="0.5"/>
+              <path d="M22 8 L22 35 L5 70 Q0 82 10 90 L70 90 Q80 82 75 70 L58 35 L58 8" fill="none" stroke="${item.color || '#4d9ed5'}" stroke-width="2" opacity="0.4"/>
+            </svg>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm text-white font-light truncate">${item.name}</p>
+            <p class="text-[11px] text-white/30">${item.volume || ''} ${item.purity ? '· ' + item.purity : ''}</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button class="qty-btn" onclick="updateQty(${idx}, -1)">−</button>
+            <span class="text-sm text-white/80 w-6 text-center font-light">${item.qty}</span>
+            <button class="qty-btn" onclick="updateQty(${idx}, 1)">+</button>
+          </div>
+          <div class="text-right min-w-[80px]">
+            <p class="text-sm text-purex-blue font-heading">Rs.${(item.price * item.qty).toLocaleString()}</p>
+            <p class="text-[10px] text-white/20">Rs.${item.price} each</p>
+          </div>
+          <button onclick="removeItem(${idx})" class="text-white/15 hover:text-red-400 transition p-1 flex-shrink-0" title="Remove">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3l8 8M11 3l-8 8"/></svg>
+          </button>
+        </div>
+      `).join('');
+
+      const subtotal = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+      document.getElementById('subtotal-amount').textContent = 'Rs.' + subtotal.toLocaleString();
+    }
+
+    function updateQty(index, delta) {
+      cart[index].qty += delta;
+      if (cart[index].qty <= 0) {
+        cart.splice(index, 1);
+      }
+      saveCart();
+      renderStep1();
+    }
+
+    function removeItem(index) {
+      cart.splice(index, 1);
+      saveCart();
+      renderStep1();
+    }
+
+    function saveCart() {
+      localStorage.setItem('purex_cart', JSON.stringify(cart));
+    }
+
+    // ═══════════════════════════════════════════════
+    // STEP NAVIGATION
+    // ═══════════════════════════════════════════════
+    function goToStep(step) {
+      // Prevent going forward to step 3 via progress clicks
+      if (step === 3) return;
+      // Prevent going to step 2 if cart is empty
+      if (step === 2 && (!cart || cart.length === 0)) return;
+      // Prevent going backwards from step 3
+      if (currentStep === 3) return;
+
+      const oldSection = document.getElementById('step-' + currentStep);
+      const newSection = document.getElementById('step-' + step);
+      const direction = step > currentStep ? 1 : -1;
+
+      // Animate out
+      gsap.to(oldSection, {
+        opacity: 0,
+        x: -60 * direction,
+        duration: 0.3,
+        ease: 'power2.in',
+        onComplete: () => {
+          oldSection.classList.remove('active');
+          newSection.classList.add('active');
+
+          // Animate in
+          gsap.fromTo(newSection,
+            { opacity: 0, x: 60 * direction },
+            { opacity: 1, x: 0, duration: 0.4, ease: 'power3.out' }
+          );
+        }
+      });
+
+      currentStep = step;
+      updateProgress();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function updateProgress() {
+      document.querySelectorAll('.step-pill').forEach(pill => {
+        const s = parseInt(pill.dataset.step);
+        pill.classList.remove('active', 'completed');
+        if (s === currentStep) pill.classList.add('active');
+        else if (s < currentStep) pill.classList.add('completed');
+      });
+      document.querySelectorAll('.step-connector').forEach(conn => {
+        const c = parseInt(conn.dataset.connector);
+        conn.classList.remove('active', 'completed');
+        if (c < currentStep) conn.classList.add('completed');
+        else if (c === currentStep - 1) conn.classList.add('active');
+      });
+    }
+
+    // ═══════════════════════════════════════════════
+    // STEP 2: FORM VALIDATION & ORDER PLACEMENT
+    // ═══════════════════════════════════════════════
+    function validateForm() {
+      let valid = true;
+
+      // Reset all errors
+      document.querySelectorAll('.form-input').forEach(el => el.classList.remove('error'));
+      document.querySelectorAll('.error-text').forEach(el => el.classList.remove('show'));
+
+      // Name
+      const name = document.getElementById('field-name').value.trim();
+      if (!name) {
+        document.getElementById('field-name').classList.add('error');
+        document.getElementById('error-name').classList.add('show');
+        valid = false;
+      }
+
+      // Phone — Pakistani format
+      const phone = document.getElementById('field-phone').value.trim();
+      const phoneRegex = /^(\+92|0)?[\s-]?3\d{2}[\s-]?\d{7}$/;
+      if (!phone || !phoneRegex.test(phone.replace(/[\s-]/g, ''))) {
+        document.getElementById('field-phone').classList.add('error');
+        document.getElementById('error-phone').classList.add('show');
+        valid = false;
+      }
+
+      // City
+      const city = document.getElementById('field-city').value;
+      if (!city) {
+        document.getElementById('field-city').classList.add('error');
+        document.getElementById('error-city').classList.add('show');
+        valid = false;
+      }
+
+      // Address
+      const address = document.getElementById('field-address').value.trim();
+      if (!address) {
+        document.getElementById('field-address').classList.add('error');
+        document.getElementById('error-address').classList.add('show');
+        valid = false;
+      }
+
+      return valid;
+    }
+
+    function formatPhone(phone) {
+      // Normalize to +92 format
+      let cleaned = phone.replace(/[\s-]/g, '');
+      if (cleaned.startsWith('0')) cleaned = '+92' + cleaned.substring(1);
+      else if (cleaned.startsWith('92')) cleaned = '+' + cleaned;
+      else if (!cleaned.startsWith('+92')) cleaned = '+92' + cleaned;
+      // Format: +92 3XX XXXXXXX
+      return cleaned.replace(/^(\+92)(\d{3})(\d{7})$/, '$1 $2 $3');
+    }
+
+    function placeOrder() {
+      if (!validateForm()) {
+        // Shake the button for feedback
+        gsap.to('#place-order-btn', { x: -8, duration: 0.08, yoyo: true, repeat: 5, ease: 'power2.inOut' });
+        return;
+      }
+
+      // Collect form data
+      const name = document.getElementById('field-name').value.trim();
+      const phone = formatPhone(document.getElementById('field-phone').value.trim());
+      const city = document.getElementById('field-city').value;
+      const address = document.getElementById('field-address').value.trim();
+      const email = document.getElementById('field-email').value.trim();
+      const notes = document.getElementById('field-notes').value.trim();
+
+      // Generate order number
+      const now = new Date();
+      const datePart = now.getFullYear().toString() +
+        String(now.getMonth() + 1).padStart(2, '0') +
+        String(now.getDate()).padStart(2, '0');
+      const timePart = String(now.getHours()).padStart(2, '0') +
+        String(now.getMinutes()).padStart(2, '0');
+      const orderNumber = 'PX-' + datePart + '-' + timePart;
+
+      const subtotal = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+
+      orderData = {
+        orderNumber,
+        items: [...cart],
+        subtotal,
+        customer: { name, phone, city, address, email, notes },
+        timestamp: now.toISOString()
+      };
+
+      // Save order to localStorage
+      try {
+        const orders = JSON.parse(localStorage.getItem('purex_orders') || '[]');
+        orders.push(orderData);
+        localStorage.setItem('purex_orders', JSON.stringify(orders));
+      } catch (e) { /* silent */ }
+
+      // Clear cart
+      localStorage.removeItem('purex_cart');
+
+      // Render Step 3
+      renderStep3();
+
+      // Navigate to Step 3
+      const oldSection = document.getElementById('step-2');
+      const newSection = document.getElementById('step-3');
+
+      gsap.to(oldSection, {
+        opacity: 0,
+        x: -60,
+        duration: 0.3,
+        ease: 'power2.in',
+        onComplete: () => {
+          oldSection.classList.remove('active');
+          newSection.classList.add('active');
+          gsap.fromTo(newSection,
+            { opacity: 0, x: 60 },
+            { opacity: 1, x: 0, duration: 0.4, ease: 'power3.out', onComplete: animateCheckmark }
+          );
+        }
+      });
+
+      currentStep = 3;
+      updateProgress();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ═══════════════════════════════════════════════
+    // STEP 3: CONFIRMATION
+    // ═══════════════════════════════════════════════
+    function renderStep3() {
+      const { orderNumber, items, subtotal, customer } = orderData;
+
+      // Order number
+      document.getElementById('order-number-display').textContent = orderNumber;
+
+      // Items
+      document.getElementById('confirmation-items').innerHTML = items.map(item => `
+        <div class="flex justify-between text-sm">
+          <span class="text-white/60">${item.name} ${item.volume ? '(' + item.volume + ')' : ''} <span class="text-white/30">&times;${item.qty}</span></span>
+          <span class="text-white/80">Rs.${(item.price * item.qty).toLocaleString()}</span>
+        </div>
+      `).join('');
+
+      // Total
+      document.getElementById('confirmation-total').textContent = 'Rs.' + subtotal.toLocaleString();
+
+      // Customer details
+      document.getElementById('confirmation-customer').innerHTML = `
+        <div class="flex justify-between"><span class="text-white/40">Name</span><span class="text-white/80">${customer.name}</span></div>
+        <div class="flex justify-between"><span class="text-white/40">Phone</span><span class="text-white/80">${customer.phone}</span></div>
+        <div class="flex justify-between"><span class="text-white/40">City</span><span class="text-white/80">${customer.city}</span></div>
+        <div class="flex justify-between"><span class="text-white/40">Address</span><span class="text-white/80 text-right max-w-[200px]">${customer.address}</span></div>
+        ${customer.email ? `<div class="flex justify-between"><span class="text-white/40">Email</span><span class="text-white/80">${customer.email}</span></div>` : ''}
+        ${customer.notes ? `<div class="flex justify-between"><span class="text-white/40">Notes</span><span class="text-white/80 text-right max-w-[200px]">${customer.notes}</span></div>` : ''}
+      `;
+
+      // WhatsApp link
+      let whatsappText = `*New Order ${orderNumber}*\n\n`;
+      whatsappText += `*Items:*\n`;
+      items.forEach(item => {
+        whatsappText += `- ${item.name} ${item.volume ? '(' + item.volume + ')' : ''} x${item.qty} = Rs.${(item.price * item.qty).toLocaleString()}\n`;
+      });
+      whatsappText += `\n*Subtotal: Rs.${subtotal.toLocaleString()}*\n\n`;
+      whatsappText += `*Customer:* ${customer.name}\n`;
+      whatsappText += `*Phone:* ${customer.phone}\n`;
+      whatsappText += `*City:* ${customer.city}\n`;
+      whatsappText += `*Address:* ${customer.address}\n`;
+      if (customer.email) whatsappText += `*Email:* ${customer.email}\n`;
+      if (customer.notes) whatsappText += `\n*Notes:* ${customer.notes}\n`;
+
+      document.getElementById('whatsapp-order-link').href =
+        'https://wa.me/923400145796?text=' + encodeURIComponent(whatsappText);
+    }
+
+    function animateCheckmark() {
+      const svg = document.getElementById('checkmark-svg');
+      const circle = svg.querySelector('.checkmark-circle');
+      const check = svg.querySelector('.checkmark-check');
+
+      gsap.to(svg, { opacity: 1, duration: 0.3 });
+
+      // Animate circle
+      gsap.to(circle, {
+        strokeDashoffset: 0,
+        duration: 0.6,
+        ease: 'power2.out',
+        delay: 0.2
+      });
+
+      // Animate checkmark
+      gsap.to(check, {
+        strokeDashoffset: 0,
+        duration: 0.4,
+        ease: 'power2.out',
+        delay: 0.7
+      });
+
+      // Pulse glow
+      gsap.fromTo(svg, {
+        filter: 'drop-shadow(0 0 0px rgba(77,158,213,0))'
+      }, {
+        filter: 'drop-shadow(0 0 20px rgba(77,158,213,0.5))',
+        duration: 0.5,
+        delay: 1,
+        yoyo: true,
+        repeat: 1,
+        ease: 'power2.inOut'
+      });
+
+      // Scale bounce
+      gsap.fromTo(svg, { scale: 0.8 }, {
+        scale: 1,
+        duration: 0.5,
+        delay: 0.1,
+        ease: 'back.out(1.7)'
+      });
+    }
+
+    // ═══════════════════════════════════════════════
+    // REAL-TIME VALIDATION UX
+    // ═══════════════════════════════════════════════
+    document.querySelectorAll('.form-input').forEach(input => {
+      input.addEventListener('input', () => {
+        input.classList.remove('error');
+        const errorEl = input.parentElement.querySelector('.error-text');
+        if (errorEl) errorEl.classList.remove('show');
+      });
+    });
+
+    // Phone auto-format hint
+    document.getElementById('field-phone').addEventListener('input', function() {
+      let val = this.value.replace(/[^\d+\s-]/g, '');
+      this.value = val;
+    });
+
+    // ═══════════════════════════════════════════════
+    // INIT
+    // ═══════════════════════════════════════════════
+    init();
+
+    // WhatsApp pulse animation
+    gsap.to('#wa-ping', { scale: 1.5, opacity: 0, duration: 1.5, repeat: -1, ease: 'power2.out' });
+  </script>
+</body>
+</html>

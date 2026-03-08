@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard — PUREX POS</title>
+  <title>Admin Panel — Purex CMS</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -11,10 +11,9 @@
         extend: {
           colors: {
             brand: '#4d9ed5',
-            taizab: '#D97706',
-            sweep: '#16A34A',
-            neel: '#2563EB',
+            cleaning: '#D97706',
             soap: '#7C3AED',
+            whitener: '#2563EB',
             bleach: '#0891B2',
             charcoal: '#1E293B',
           },
@@ -33,7 +32,6 @@
     ::selection { background: #4d9ed5; color: white; }
     body { background: #F1F5F9; color: #1E293B; font-family: 'Inter', system-ui, sans-serif; overflow-x: hidden; }
 
-    /* ── BENTO CARD ── */
     .bento {
       background: white;
       border: 1px solid #E2E8F0;
@@ -43,444 +41,988 @@
     }
     .bento:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.06); border-color: #CBD5E1; }
 
-    /* ── POS KEY (large, tap-friendly) ── */
-    .pos-key {
-      background: white;
-      border: 1px solid #E2E8F0;
-      border-radius: 12px;
-      padding: 12px 8px;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.1s ease;
-      min-height: 72px;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      user-select: none;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .pos-key:hover { border-color: #94A3B8; background: #F8FAFC; }
-    .pos-key:active { transform: scale(0.95); background: #F1F5F9; }
-    .pos-key .key-dot { width: 6px; height: 6px; border-radius: 50%; margin-bottom: 6px; }
-
-    /* ── TABLE ── */
     .t-row { transition: background 0.1s; }
-    .t-row:hover { background: #F8FAFC; }
+    .t-row:nth-child(even) { background: #F8FAFC; }
+    .t-row:hover { background: #F1F5F9; }
+    .t-row.unpublished { opacity: 0.55; }
 
-    /* Status pills */
-    .pill-done { background: #DCFCE7; color: #166534; }
-    .pill-proc { background: #DBEAFE; color: #1E40AF; }
-    .pill-ship { background: #FEF3C7; color: #92400E; }
-    .pill-wait { background: #F1F5F9; color: #64748B; }
+    .stock-bar-bg { background: #F1F5F9; height: 8px; border-radius: 4px; }
+    .stock-bar { height: 8px; border-radius: 4px; transition: width 0.8s ease; }
 
-    /* ── SIDEBAR ── */
-    .sidebar-link { transition: all 0.1s; border-radius: 10px; }
-    .sidebar-link:hover { background: #F1F5F9; }
-    .sidebar-link.active { background: #EFF6FF; color: #2563EB; }
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(15,23,42,0.4); backdrop-filter: blur(4px);
+      z-index: 100; display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity 0.2s;
+    }
+    .modal-overlay.active { opacity: 1; pointer-events: all; }
+    .modal-box {
+      background: white; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+      width: 90%; max-width: 520px; max-height: 90vh; overflow-y: auto;
+      transform: translateY(20px) scale(0.97); transition: transform 0.25s ease;
+    }
+    .modal-overlay.active .modal-box { transform: translateY(0) scale(1); }
 
-    /* ── INVENTORY BAR ── */
-    .stock-bar-bg { background: #F1F5F9; height: 4px; border-radius: 2px; }
-    .stock-bar { height: 4px; border-radius: 2px; transition: width 0.8s ease; }
+    .toggle-track {
+      width: 40px; height: 22px; border-radius: 11px; background: #CBD5E1;
+      position: relative; cursor: pointer; transition: background 0.2s;
+    }
+    .toggle-track.active { background: #22C55E; }
+    .toggle-thumb {
+      width: 18px; height: 18px; border-radius: 50%; background: white;
+      position: absolute; top: 2px; left: 2px; transition: left 0.2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    }
+    .toggle-track.active .toggle-thumb { left: 20px; }
+
+    .filter-pill {
+      padding: 6px 14px; border-radius: 10px; font-size: 12px; font-weight: 600;
+      cursor: pointer; border: 1.5px solid #E2E8F0; background: white; color: #64748B;
+      transition: all 0.15s;
+    }
+    .filter-pill:hover { border-color: #94A3B8; }
+    .filter-pill.active { color: white; border-color: transparent; }
+
+    .nav-link { position: relative; padding: 6px 0; }
+    .nav-link.active::after {
+      content: ''; position: absolute; bottom: -2px; left: 0; right: 0;
+      height: 2px; background: #4d9ed5; border-radius: 1px;
+    }
+
+    /* Sales chart bars */
+    .chart-bar {
+      border-radius: 6px 6px 0 0;
+      transition: height 0.8s cubic-bezier(0.34,1.56,0.64,1);
+      position: relative;
+      min-width: 32px;
+    }
+    .chart-bar:hover { filter: brightness(1.1); }
+    .chart-bar-label {
+      position: absolute; top: -22px; left: 50%; transform: translateX(-50%);
+      font-size: 10px; font-weight: 600; color: #64748B; white-space: nowrap;
+      opacity: 0; transition: opacity 0.2s;
+    }
+    .chart-bar:hover .chart-bar-label { opacity: 1; }
+
+    /* Category margin bars */
+    .margin-bar {
+      height: 10px; border-radius: 5px;
+      transition: width 0.8s ease;
+    }
+
+    /* Publish toggle in table */
+    .pub-toggle {
+      width: 36px; height: 20px; border-radius: 10px; background: #CBD5E1;
+      position: relative; cursor: pointer; transition: background 0.2s; display: inline-block;
+    }
+    .pub-toggle.on { background: #22C55E; }
+    .pub-toggle .pub-dot {
+      width: 16px; height: 16px; border-radius: 50%; background: white;
+      position: absolute; top: 2px; left: 2px; transition: left 0.2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    }
+    .pub-toggle.on .pub-dot { left: 18px; }
+
+    .draft-badge {
+      display: inline-block; font-size: 9px; font-weight: 700; padding: 2px 6px;
+      border-radius: 6px; background: #F1F5F9; color: #94A3B8; margin-left: 6px;
+      letter-spacing: 0.5px; text-transform: uppercase;
+    }
+
+    @media (max-width: 768px) {
+      .product-table-wrap { overflow-x: auto; }
+    }
   </style>
 </head>
 <body>
 
-  <div class="flex min-h-screen">
-
-    <!-- ═══ SIDEBAR ═══ -->
-    <aside class="hidden lg:flex flex-col w-60 bg-white border-r border-slate-200 fixed h-full z-40">
-      <div class="px-5 pt-4 pb-1">
-        <a href="../index.html" class="text-[11px] text-slate-400 hover:text-slate-600 transition font-medium">&larr; All Concepts</a>
-      </div>
-      <div class="p-5 pt-2 border-b border-slate-100">
+  <!-- TOP NAVBAR -->
+  <nav class="sticky top-0 z-50 bg-white/90 backdrop-blur-xl border-b border-slate-200">
+    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-6">
         <a href="index.html" class="flex items-center gap-2.5">
           <div class="w-8 h-8 rounded-lg bg-brand flex items-center justify-center">
             <svg width="18" height="18" viewBox="0 0 100 100"><path d="M25 20 L25 80 L40 80 L40 55 L55 55 L70 35 L70 20 L55 20 L55 35 L40 35 L40 20 Z" fill="white"/><path d="M55 45 L55 55 L45 55 L65 80 L80 80 L60 55 L70 55 L70 45 Z" fill="white" opacity="0.7"/></svg>
           </div>
-          <div>
-            <span class="font-display font-bold text-charcoal text-sm">Purex</span>
-            <p class="text-[10px] text-slate-400 -mt-0.5">Admin Dashboard</p>
-          </div>
+          <span class="font-display font-bold text-charcoal text-base">Purex</span>
         </a>
+        <div class="hidden sm:flex items-center gap-5 text-sm font-medium text-slate-400">
+          <a href="#" class="nav-link active text-charcoal">Dashboard</a>
+          <a href="index.html" class="nav-link hover:text-charcoal transition">Landing</a>
+          <a href="shop.html" class="nav-link hover:text-charcoal transition">Shop</a>
+        </div>
       </div>
+      <a href="../index.html" class="text-xs text-slate-400 hover:text-charcoal transition font-medium">&larr; All Concepts</a>
+    </div>
+  </nav>
 
-      <nav class="flex-1 p-3 space-y-0.5">
-        <a href="#" class="sidebar-link active flex items-center gap-3 px-3 py-2.5 text-sm font-medium">
-          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="6" height="6" rx="1.5"/><rect x="10" y="2" width="6" height="6" rx="1.5"/><rect x="2" y="10" width="6" height="6" rx="1.5"/><rect x="10" y="10" width="6" height="6" rx="1.5"/></svg>
-          Overview
-        </a>
-        <a href="#" class="sidebar-link flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-400">
-          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4h10v12H4z"/><path d="M7 4V2h4v2M7 9h4"/></svg>
-          Inventory
-        </a>
-        <a href="#" class="sidebar-link flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-400">
-          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3h12v4H3z"/><path d="M3 11h12v4H3z"/></svg>
-          Orders
-        </a>
-        <a href="#" class="sidebar-link flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-400">
-          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="9" cy="6" r="4"/><path d="M2 16c0-3.3 3.1-6 7-6s7 2.7 7 6"/></svg>
-          Customers
-        </a>
-      </nav>
+  <!-- MAIN CONTENT -->
+  <div class="max-w-[1400px] mx-auto px-4 sm:px-6 py-6 space-y-5">
 
-      <div class="p-4 border-t border-slate-100">
-        <div class="flex items-center gap-3 px-2">
-          <div class="w-8 h-8 rounded-full bg-brand/10 flex items-center justify-center text-xs font-bold text-brand">SB</div>
-          <div>
-            <p class="text-xs font-semibold text-charcoal">Suleman Bhatti</p>
-            <p class="text-[10px] text-slate-400">CEO</p>
+    <!-- KPI CARDS -->
+    <div class="grid grid-cols-2 xl:grid-cols-4 gap-4" id="kpi-row">
+      <div class="bento p-5 border-l-4 border-l-cleaning">
+        <span class="text-[11px] text-slate-400 font-semibold tracking-wide">TOTAL PRODUCTS</span>
+        <p class="font-display text-2xl font-extrabold text-charcoal mt-2 kpi" data-val="20">0</p>
+      </div>
+      <div class="bento p-5 border-l-4 border-l-whitener">
+        <span class="text-[11px] text-slate-400 font-semibold tracking-wide">MONTHLY VISITORS</span>
+        <p class="font-display text-2xl font-extrabold text-charcoal mt-2 kpi" data-val="12400" data-sep="true">0</p>
+      </div>
+      <div class="bento p-5 border-l-4 border-l-soap">
+        <span class="text-[11px] text-slate-400 font-semibold tracking-wide">ONLINE ORDERS</span>
+        <p class="font-display text-2xl font-extrabold text-charcoal mt-2 kpi" data-val="342">0</p>
+      </div>
+      <div class="bento p-5 border-l-4 border-l-bleach">
+        <span class="text-[11px] text-slate-400 font-semibold tracking-wide">REVENUE</span>
+        <p class="font-display text-2xl font-extrabold text-charcoal mt-2 kpi" data-val="2450000" data-pre="Rs. ">Rs. 0</p>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- SALES DASHBOARD SECTION                     -->
+    <!-- ═══════════════════════════════════════════ -->
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
+
+      <!-- Sales Summary Cards -->
+      <div class="bento p-6">
+        <h3 class="font-display text-base font-bold text-charcoal mb-1">Sales Overview</h3>
+        <p class="text-xs text-slate-400 mb-5">Revenue summary</p>
+        <div class="space-y-4">
+          <div class="bg-slate-50 rounded-xl p-4 border border-slate-100">
+            <span class="text-[11px] text-slate-400 font-semibold tracking-wide">TODAY'S SALES</span>
+            <p class="font-display text-xl font-extrabold text-charcoal mt-1 sales-kpi" data-val="18500" data-pre="Rs. ">Rs. 0</p>
+          </div>
+          <div class="bg-slate-50 rounded-xl p-4 border border-slate-100">
+            <span class="text-[11px] text-slate-400 font-semibold tracking-wide">THIS WEEK</span>
+            <p class="font-display text-xl font-extrabold text-charcoal mt-1 sales-kpi" data-val="124000" data-pre="Rs. ">Rs. 0</p>
+          </div>
+          <div class="bg-slate-50 rounded-xl p-4 border border-slate-100">
+            <span class="text-[11px] text-slate-400 font-semibold tracking-wide">THIS MONTH</span>
+            <p class="font-display text-xl font-extrabold text-charcoal mt-1 sales-kpi" data-val="485000" data-pre="Rs. ">Rs. 0</p>
           </div>
         </div>
       </div>
-    </aside>
 
-    <!-- ═══ MAIN ═══ -->
-    <main class="flex-1 lg:ml-60">
+      <!-- Weekly Sales Bar Chart -->
+      <div class="bento p-6">
+        <h3 class="font-display text-base font-bold text-charcoal mb-1">Weekly Sales</h3>
+        <p class="text-xs text-slate-400 mb-5">Last 7 days revenue</p>
+        <div class="flex items-end justify-between gap-2 h-48 px-2" id="weekly-chart">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
 
-      <!-- ── TOP BAR ── -->
-      <header class="sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-slate-100 px-6 h-16 flex items-center justify-between">
+      <!-- Sales by Category -->
+      <div class="bento p-6">
+        <h3 class="font-display text-base font-bold text-charcoal mb-1">Sales by Category</h3>
+        <p class="text-xs text-slate-400 mb-5">Revenue breakdown</p>
+        <div class="space-y-4" id="category-sales">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- PROFIT MARGINS SECTION                      -->
+    <!-- ═══════════════════════════════════════════ -->
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
+
+      <!-- Profit Summary Card -->
+      <div class="bento p-6">
+        <h3 class="font-display text-base font-bold text-charcoal mb-1">Profit Summary</h3>
+        <p class="text-xs text-slate-400 mb-5">Overall financial health</p>
+        <div class="space-y-4">
+          <div class="flex items-center justify-between bg-emerald-50 rounded-xl p-4 border border-emerald-100">
+            <span class="text-xs font-semibold text-emerald-700">Overall Margin</span>
+            <span class="font-display text-xl font-extrabold text-emerald-700">44%</span>
+          </div>
+          <div class="flex items-center justify-between bg-slate-50 rounded-xl p-4 border border-slate-100">
+            <span class="text-xs font-semibold text-slate-500">COGS</span>
+            <span class="font-display text-base font-bold text-charcoal">Rs. 1,372,000</span>
+          </div>
+          <div class="flex items-center justify-between bg-slate-50 rounded-xl p-4 border border-slate-100">
+            <span class="text-xs font-semibold text-slate-500">Gross Profit</span>
+            <span class="font-display text-base font-bold text-charcoal">Rs. 1,078,000</span>
+          </div>
+          <div class="flex items-center justify-between bg-amber-50 rounded-xl p-4 border border-amber-100">
+            <span class="text-xs font-semibold text-amber-700">Most Profitable</span>
+            <span class="font-display text-sm font-bold text-amber-700">Cleaning (52%)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Margin by Category -->
+      <div class="bento p-6">
+        <h3 class="font-display text-base font-bold text-charcoal mb-1">Margins by Category</h3>
+        <p class="text-xs text-slate-400 mb-5">Profit margin comparison</p>
+        <div class="space-y-5" id="margin-bars">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+
+      <!-- Sales by Product (Units Sold) -->
+      <div class="bento p-6">
+        <h3 class="font-display text-base font-bold text-charcoal mb-1">Sales by Product</h3>
+        <p class="text-xs text-slate-400 mb-5">Units sold (top products)</p>
+        <div class="space-y-4" id="units-sold">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ROW: PRODUCT MANAGEMENT + RECENT ORDERS -->
+    <div class="grid grid-cols-1 xl:grid-cols-12 gap-5">
+
+      <!-- PRODUCT MANAGEMENT -->
+      <div class="xl:col-span-8 bento p-6">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-5">
+          <div>
+            <h3 class="font-display text-base font-bold text-charcoal">Product Management</h3>
+            <p class="text-xs text-slate-400 mt-0.5">Manage your product catalog</p>
+          </div>
+          <button onclick="openModal()" class="bg-brand hover:bg-brand/90 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition active:scale-[0.97] flex items-center gap-2">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="3" x2="8" y2="13"/><line x1="3" y1="8" x2="13" y2="8"/></svg>
+            Add Product
+          </button>
+        </div>
+
+        <!-- Search + Filters -->
+        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-4">
+          <div class="relative flex-1 w-full sm:w-auto">
+            <svg class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="7" cy="7" r="5"/><line x1="11" y1="11" x2="14" y2="14"/></svg>
+            <input id="search-input" type="text" placeholder="Search products..." class="w-full pl-9 pr-4 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand transition" oninput="renderProducts()" />
+          </div>
+          <div class="flex flex-wrap gap-2" id="filter-pills">
+            <button class="filter-pill active" data-cat="All" onclick="setFilter('All', this)">All</button>
+            <button class="filter-pill" data-cat="Cleaning" onclick="setFilter('Cleaning', this)" style="--ac:#D97706">Cleaning</button>
+            <button class="filter-pill" data-cat="Soap" onclick="setFilter('Soap', this)" style="--ac:#7C3AED">Soap</button>
+            <button class="filter-pill" data-cat="Whitener" onclick="setFilter('Whitener', this)" style="--ac:#2563EB">Whitener</button>
+            <button class="filter-pill" data-cat="Bleach" onclick="setFilter('Bleach', this)" style="--ac:#0891B2">Bleach</button>
+          </div>
+        </div>
+
+        <!-- Table -->
+        <div class="product-table-wrap">
+          <table class="w-full min-w-[820px]">
+            <thead>
+              <tr class="text-[11px] text-slate-400 font-semibold tracking-wide border-b border-slate-100">
+                <th class="text-left px-3 pb-3">Product Name</th>
+                <th class="text-left px-3 pb-3">Category</th>
+                <th class="text-right px-3 pb-3">Price</th>
+                <th class="text-right px-3 pb-3">Cost</th>
+                <th class="text-right px-3 pb-3">Margin %</th>
+                <th class="text-right px-3 pb-3">Stock</th>
+                <th class="text-center px-3 pb-3">Published</th>
+                <th class="text-right px-3 pb-3">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="products-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- RECENT ORDERS -->
+      <div class="xl:col-span-4 bento p-6 flex flex-col">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-display text-base font-bold text-charcoal">Recent Orders</h3>
+          <span class="text-[10px] text-slate-300 font-medium">8 orders</span>
+        </div>
+        <div class="flex-1 space-y-3 overflow-y-auto" id="orders-list"></div>
+      </div>
+    </div>
+
+    <!-- INVENTORY OVERVIEW -->
+    <div class="bento p-6">
+      <div class="flex items-center justify-between mb-5">
         <div>
-          <h1 class="font-display text-lg font-bold text-charcoal">Dashboard</h1>
-          <p class="text-[11px] text-slate-400 -mt-0.5">Welcome back, Suleman</p>
+          <h3 class="font-display text-base font-bold text-charcoal">Inventory Overview</h3>
+          <p class="text-xs text-slate-400 mt-0.5">Stock levels across all products</p>
         </div>
-        <div class="flex items-center gap-3">
-          <a href="index.html" class="text-xs text-slate-400 hover:text-charcoal transition font-medium">View Site →</a>
+        <div class="flex items-center gap-4 text-[11px] font-medium text-slate-400">
+          <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span> &gt;50%</span>
+          <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span> 20-50%</span>
+          <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-red-400"></span> &lt;20%</span>
         </div>
-      </header>
-
-      <!-- ── CONTENT ── -->
-      <div class="p-6 space-y-5">
-
-        <!-- ── ROW 1: KPIs ── -->
-        <div class="grid grid-cols-2 xl:grid-cols-4 gap-4">
-          <div class="bento p-5">
-            <div class="flex items-center justify-between mb-3">
-              <span class="text-[11px] text-slate-400 font-semibold tracking-wide">REVENUE</span>
-              <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600">+12.5%</span>
-            </div>
-            <p class="font-display text-2xl font-extrabold text-charcoal kpi" data-val="2450000" data-pre="Rs. ">Rs. 0</p>
-          </div>
-          <div class="bento p-5">
-            <div class="flex items-center justify-between mb-3">
-              <span class="text-[11px] text-slate-400 font-semibold tracking-wide">ORDERS</span>
-              <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-600">12 pending</span>
-            </div>
-            <p class="font-display text-2xl font-extrabold text-charcoal kpi" data-val="47">0</p>
-          </div>
-          <div class="bento p-5">
-            <div class="flex items-center justify-between mb-3">
-              <span class="text-[11px] text-slate-400 font-semibold tracking-wide">PROFIT</span>
-              <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600">+8.3%</span>
-            </div>
-            <p class="font-display text-2xl font-extrabold text-charcoal kpi" data-val="580000" data-pre="Rs. ">Rs. 0</p>
-          </div>
-          <div class="bento p-5">
-            <div class="flex items-center justify-between mb-3">
-              <span class="text-[11px] text-slate-400 font-semibold tracking-wide">ACTIVE SKUs</span>
-              <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-600">3 low</span>
-            </div>
-            <p class="font-display text-2xl font-extrabold text-charcoal kpi" data-val="20">0</p>
-          </div>
-        </div>
-
-        <!-- ── ROW 2: POS + RECENT ORDERS ── -->
-        <div class="grid grid-cols-1 xl:grid-cols-5 gap-5">
-
-          <!-- POS TERMINAL (3-col span) -->
-          <div class="xl:col-span-3 bento p-6">
-            <div class="flex items-center justify-between mb-4">
-              <div>
-                <h3 class="font-display text-sm font-bold text-charcoal">Quick POS</h3>
-                <p class="text-[10px] text-slate-400 mt-0.5">Tap product → Complete sale</p>
-              </div>
-              <span class="text-[10px] text-slate-300 font-medium">SESSION #0041</span>
-            </div>
-
-            <!-- ── POS GRID (large, tap-friendly) ── -->
-            <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 mb-5" id="pos-grid"></div>
-
-            <!-- ── POS RECEIPT ── -->
-            <div class="bg-slate-50 rounded-xl border border-slate-100 p-4">
-              <div id="pos-receipt" class="space-y-1.5 mb-3 min-h-[40px]">
-                <p class="text-[11px] text-slate-300 text-center py-2">No items yet</p>
-              </div>
-              <div class="border-t border-dashed border-slate-200 pt-3">
-                <div class="flex justify-between text-xs text-slate-400 mb-1">
-                  <span>Subtotal</span><span id="pos-sub">Rs. 0</span>
-                </div>
-                <div class="flex justify-between text-xs text-slate-400 mb-2">
-                  <span>Tax (0%)</span><span>Rs. 0</span>
-                </div>
-                <div class="flex justify-between items-center">
-                  <span class="text-sm font-semibold text-charcoal">Total</span>
-                  <span id="pos-total" class="font-display text-xl font-extrabold text-charcoal">Rs. 0</span>
-                </div>
-              </div>
-              <div class="flex gap-2 mt-4">
-                <button class="flex-1 bg-slate-200 text-charcoal py-3 rounded-xl text-xs font-semibold hover:bg-slate-300 transition active:scale-[0.97]" onclick="clearPOS()">Clear</button>
-                <button class="flex-[2] bg-charcoal text-white py-3 rounded-xl text-sm font-semibold hover:bg-slate-700 transition active:scale-[0.97]" onclick="completeSale()" id="sale-btn">Complete Sale</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- RECENT ORDERS (2-col span) -->
-          <div class="xl:col-span-2 bento p-6 flex flex-col">
-            <div class="flex items-center justify-between mb-4">
-              <h3 class="font-display text-sm font-bold text-charcoal">Recent Orders</h3>
-              <span class="text-[10px] text-slate-300 font-medium">Last 24h</span>
-            </div>
-            <div class="flex-1 overflow-y-auto -mx-2">
-              <table class="w-full">
-                <thead>
-                  <tr class="text-[10px] text-slate-400 font-semibold tracking-wide">
-                    <th class="text-left px-2 pb-2">ID</th>
-                    <th class="text-left px-2 pb-2">Customer</th>
-                    <th class="text-right px-2 pb-2">Amount</th>
-                    <th class="text-right px-2 pb-2">Status</th>
-                  </tr>
-                </thead>
-                <tbody id="orders-tbody"></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        <!-- ── ROW 3: INVENTORY + TOP PRODUCTS ── -->
-        <div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
-
-          <!-- INVENTORY (2 col) -->
-          <div class="xl:col-span-2 bento p-6">
-            <div class="flex items-center justify-between mb-4">
-              <div>
-                <h3 class="font-display text-sm font-bold text-charcoal">Inventory Status</h3>
-                <p class="text-[10px] text-slate-400 mt-0.5">20 SKUs tracked</p>
-              </div>
-              <div class="flex items-center gap-3 text-[10px] font-medium">
-                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-400"></span> Good</span>
-                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-400"></span> Low</span>
-                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-red-400"></span> Critical</span>
-              </div>
-            </div>
-            <div class="overflow-y-auto max-h-[420px] -mx-1">
-              <table class="w-full">
-                <thead class="sticky top-0 bg-white">
-                  <tr class="text-[10px] text-slate-400 font-semibold tracking-wide">
-                    <th class="text-left px-2 pb-2">SKU</th>
-                    <th class="text-left px-2 pb-2">Product</th>
-                    <th class="text-right px-2 pb-2">Stock</th>
-                    <th class="px-2 pb-2 w-24">Level</th>
-                    <th class="text-right px-2 pb-2">Status</th>
-                  </tr>
-                </thead>
-                <tbody id="inv-tbody"></tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- TOP PRODUCTS (1 col) -->
-          <div class="bento p-6">
-            <h3 class="font-display text-sm font-bold text-charcoal mb-1">Top Products</h3>
-            <p class="text-[10px] text-slate-400 mb-5">By revenue this month</p>
-            <div class="space-y-4" id="top-products"></div>
-          </div>
-        </div>
-
       </div>
-    </main>
+      <div class="space-y-4" id="inventory-bars"></div>
+    </div>
+
+    <!-- BOTTOM ROW -->
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-5">
+
+      <!-- TOP 5 PRODUCTS -->
+      <div class="bento p-6">
+        <h3 class="font-display text-base font-bold text-charcoal mb-1">Top 5 Products</h3>
+        <p class="text-xs text-slate-400 mb-5">By estimated monthly revenue</p>
+        <div class="space-y-4" id="top-products"></div>
+      </div>
+
+      <!-- CATEGORY DISTRIBUTION -->
+      <div class="bento p-6">
+        <h3 class="font-display text-base font-bold text-charcoal mb-1">Category Distribution</h3>
+        <p class="text-xs text-slate-400 mb-5">Product count per category</p>
+        <div id="category-dist"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- PRODUCT MODAL -->
+  <div class="modal-overlay" id="product-modal">
+    <div class="modal-box p-6">
+      <div class="flex items-center justify-between mb-5">
+        <h3 class="font-display text-lg font-bold text-charcoal" id="modal-title">Add Product</h3>
+        <button onclick="closeModal()" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 transition text-slate-400">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="4" x2="14" y2="14"/><line x1="14" y1="4" x2="4" y2="14"/></svg>
+        </button>
+      </div>
+      <form id="product-form" onsubmit="saveProduct(event)" class="space-y-4">
+        <input type="hidden" id="edit-id" value="" />
+        <div>
+          <label class="text-xs font-semibold text-slate-500 mb-1.5 block">Product Name</label>
+          <input type="text" id="f-name" required class="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand transition" placeholder="e.g. Taizab Cleaning Acid 500ml" />
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="text-xs font-semibold text-slate-500 mb-1.5 block">Category</label>
+            <select id="f-category" required class="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand transition bg-white">
+              <option value="Cleaning">Cleaning</option>
+              <option value="Soap">Soap</option>
+              <option value="Whitener">Whitener</option>
+              <option value="Bleach">Bleach</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-xs font-semibold text-slate-500 mb-1.5 block">Price (Rs.)</label>
+            <input type="number" id="f-price" required min="1" class="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand transition" placeholder="0" />
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="text-xs font-semibold text-slate-500 mb-1.5 block">Cost (Rs.)</label>
+            <input type="number" id="f-cost" required min="0" class="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand transition" placeholder="0" />
+          </div>
+          <div>
+            <label class="text-xs font-semibold text-slate-500 mb-1.5 block">Stock Quantity</label>
+            <input type="number" id="f-stock" required min="0" class="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand transition" placeholder="0" />
+          </div>
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-slate-500 mb-1.5 block">Description</label>
+          <textarea id="f-desc" rows="3" class="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand transition resize-none" placeholder="Brief product description..."></textarea>
+        </div>
+        <div class="flex items-center justify-between">
+          <label class="text-xs font-semibold text-slate-500">Published</label>
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-slate-400" id="status-label">Published</span>
+            <div class="toggle-track active" id="f-status" onclick="toggleStatus()">
+              <div class="toggle-thumb"></div>
+            </div>
+          </div>
+        </div>
+        <div class="flex gap-3 pt-2">
+          <button type="button" onclick="closeModal()" class="flex-1 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-500 hover:bg-slate-50 transition">Cancel</button>
+          <button type="submit" class="flex-[2] py-2.5 rounded-xl bg-brand text-white text-sm font-semibold hover:bg-brand/90 transition active:scale-[0.97]" id="modal-submit-btn">Add Product</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- CONFIRM DIALOG -->
+  <div class="modal-overlay" id="confirm-modal">
+    <div class="modal-box p-6 max-w-sm text-center">
+      <div class="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4">
+        <svg width="24" height="24" fill="none" stroke="#EF4444" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m2 0v12a2 2 0 01-2 2H8a2 2 0 01-2-2V6h12z"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+      </div>
+      <h3 class="font-display text-lg font-bold text-charcoal mb-1">Delete Product?</h3>
+      <p class="text-sm text-slate-400 mb-5">This action cannot be undone.</p>
+      <div class="flex gap-3">
+        <button onclick="closeConfirm()" class="flex-1 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-500 hover:bg-slate-50 transition">Cancel</button>
+        <button onclick="confirmDelete()" class="flex-1 py-2.5 rounded-xl bg-red-500 text-white text-sm font-semibold hover:bg-red-600 transition">Delete</button>
+      </div>
+    </div>
   </div>
 
   <script>
+    // ─── DATA ───
+    const catColors = {
+      Cleaning: { color: '#D97706', bg: '#FEF3C7', text: 'text-amber-700', bgClass: 'bg-amber-50' },
+      Soap:     { color: '#7C3AED', bg: '#EDE9FE', text: 'text-purple-700', bgClass: 'bg-purple-50' },
+      Whitener: { color: '#2563EB', bg: '#DBEAFE', text: 'text-blue-700', bgClass: 'bg-blue-50' },
+      Bleach:   { color: '#0891B2', bg: '#CFFAFE', text: 'text-cyan-700', bgClass: 'bg-cyan-50' },
+    };
+
+    const catMargins = { Cleaning: 52, Soap: 38, Whitener: 48, Bleach: 35 };
+
+    function getCost(price, category) {
+      const margin = catMargins[category] || 40;
+      return Math.round(price * (1 - margin / 100));
+    }
+
+    let products = [
+      { id: 1, name: 'Taizab Cleaning Acid 500ml', category: 'Cleaning', price: 120, stock: 85, status: 'active', published: true, desc: '' },
+      { id: 2, name: 'Taizab Cleaning Acid 1L', category: 'Cleaning', price: 220, stock: 120, status: 'active', published: true, desc: '' },
+      { id: 3, name: 'Taizab Cleaning Acid 2L', category: 'Cleaning', price: 400, stock: 45, status: 'active', published: true, desc: '' },
+      { id: 4, name: 'Sweep Floor Cleaner 500ml', category: 'Cleaning', price: 95, stock: 60, status: 'active', published: true, desc: '' },
+      { id: 5, name: 'Sweep Floor Cleaner 1L', category: 'Cleaning', price: 180, stock: 90, status: 'active', published: true, desc: '' },
+      { id: 6, name: 'Sweep Floor Cleaner 2L', category: 'Cleaning', price: 340, stock: 30, status: 'active', published: true, desc: '' },
+      { id: 7, name: 'Sweep Toilet Cleaner 500ml', category: 'Cleaning', price: 110, stock: 75, status: 'active', published: true, desc: '' },
+      { id: 8, name: 'Sweep Toilet Cleaner 1L', category: 'Cleaning', price: 200, stock: 55, status: 'active', published: true, desc: '' },
+      { id: 9, name: 'Neel Fabric Whitener 100ml', category: 'Whitener', price: 45, stock: 200, status: 'active', published: true, desc: '' },
+      { id: 10, name: 'Neel Fabric Whitener 250ml', category: 'Whitener', price: 90, stock: 150, status: 'active', published: true, desc: '' },
+      { id: 11, name: 'Neel Fabric Whitener 500ml', category: 'Whitener', price: 160, stock: 95, status: 'active', published: true, desc: '' },
+      { id: 12, name: 'Clothes Soap Bar 200g', category: 'Soap', price: 55, stock: 180, status: 'active', published: true, desc: '' },
+      { id: 13, name: 'Clothes Soap Bar 400g', category: 'Soap', price: 95, stock: 140, status: 'active', published: true, desc: '' },
+      { id: 14, name: 'Bath Soap Bar 100g', category: 'Soap', price: 65, stock: 160, status: 'active', published: true, desc: '' },
+      { id: 15, name: 'Bath Soap Bar 150g', category: 'Soap', price: 90, stock: 130, status: 'active', published: true, desc: '' },
+      { id: 16, name: 'Dish Soap Bar 200g', category: 'Soap', price: 50, stock: 170, status: 'active', published: true, desc: '' },
+      { id: 17, name: 'Dish Soap Liquid 500ml', category: 'Soap', price: 140, stock: 80, status: 'active', published: true, desc: '' },
+      { id: 18, name: 'Bleach 500ml', category: 'Bleach', price: 75, stock: 110, status: 'active', published: true, desc: '' },
+      { id: 19, name: 'Bleach 1L', category: 'Bleach', price: 130, stock: 85, status: 'active', published: true, desc: '' },
+      { id: 20, name: 'Bleach 2L', category: 'Bleach', price: 240, stock: 40, status: 'active', published: true, desc: '' },
+    ];
+
+    // Add cost to each product based on category margin
+    products.forEach(p => { p.cost = getCost(p.price, p.category); });
+
+    let orders = [
+      { id: 'PX-1001', customer: 'Ahmed Khan', city: 'Karachi', items: 3, total: 540, status: 'delivered' },
+      { id: 'PX-1002', customer: 'Fatima Bibi', city: 'Lahore', items: 5, total: 890, status: 'shipped' },
+      { id: 'PX-1003', customer: 'Ali Hassan', city: 'Islamabad', items: 2, total: 310, status: 'pending' },
+      { id: 'PX-1004', customer: 'Sana Malik', city: 'Faisalabad', items: 4, total: 720, status: 'shipped' },
+      { id: 'PX-1005', customer: 'Usman Ghani', city: 'Multan', items: 1, total: 220, status: 'pending' },
+      { id: 'PX-1006', customer: 'Zainab Noor', city: 'Peshawar', items: 6, total: 1150, status: 'delivered' },
+      { id: 'PX-1007', customer: 'Bilal Raza', city: 'Rawalpindi', items: 3, total: 445, status: 'pending' },
+      { id: 'PX-1008', customer: 'Ayesha Tariq', city: 'Sialkot', items: 2, total: 380, status: 'delivered' },
+    ];
+
+    // Sales data
+    const weeklySales = [
+      { day: 'Mon', amount: 15200 },
+      { day: 'Tue', amount: 18900 },
+      { day: 'Wed', amount: 12400 },
+      { day: 'Thu', amount: 22100 },
+      { day: 'Fri', amount: 28500 },
+      { day: 'Sat', amount: 31200 },
+      { day: 'Sun', amount: 16700 },
+    ];
+
+    const categorySales = [
+      { category: 'Cleaning', amount: 198000 },
+      { category: 'Soap', amount: 124000 },
+      { category: 'Whitener', amount: 89000 },
+      { category: 'Bleach', amount: 74000 },
+    ];
+
+    const unitsSold = [
+      { name: 'Taizab 1L', units: 1124 },
+      { name: 'Sweep Floor 1L', units: 892 },
+      { name: 'Clothes Soap 200g', units: 756 },
+      { name: 'Neel 250ml', units: 634 },
+      { name: 'Bleach 1L', units: 589 },
+    ];
+
+    let activeFilter = 'All';
+    let deleteTargetId = null;
+    let nextId = 21;
+
     // ─── KPI COUNTERS ───
     document.querySelectorAll('.kpi').forEach(el => {
       const target = parseInt(el.dataset.val);
       const pre = el.dataset.pre || '';
       gsap.to({ v: 0 }, {
-        v: target, duration: 1.8, delay: 0.2, ease: 'power2.out',
+        v: target, duration: 1.8, delay: 0.3, ease: 'power2.out',
         onUpdate: function() {
           el.textContent = pre + Math.round(this.targets()[0].v).toLocaleString();
         }
       });
     });
 
-    // ─── BENTO STAGGER ───
-    gsap.from('.bento', { opacity: 0, y: 16, duration: 0.4, stagger: 0.06, delay: 0.1, ease: 'power3.out' });
+    // Sales KPI counters
+    document.querySelectorAll('.sales-kpi').forEach(el => {
+      const target = parseInt(el.dataset.val);
+      const pre = el.dataset.pre || '';
+      gsap.to({ v: 0 }, {
+        v: target, duration: 1.8, delay: 0.5, ease: 'power2.out',
+        onUpdate: function() {
+          el.textContent = pre + Math.round(this.targets()[0].v).toLocaleString();
+        }
+      });
+    });
 
-    // ─── POS TERMINAL ───
-    const posItems = [
-      { code: 'TZB', name: 'Taizab 500ml', price: 120, color: '#D97706', bg: '#FEF3C7' },
-      { code: 'TZ1', name: 'Taizab 1L', price: 200, color: '#D97706', bg: '#FEF3C7' },
-      { code: 'TZL', name: 'Taizab Lemon', price: 140, color: '#D97706', bg: '#FEF3C7' },
-      { code: 'SWF', name: 'Sweep Floor', price: 270, color: '#16A34A', bg: '#DCFCE7' },
-      { code: 'SWT', name: 'Sweep WC', price: 160, color: '#16A34A', bg: '#DCFCE7' },
-      { code: 'BLC', name: 'Bleach 1L', price: 160, color: '#0891B2', bg: '#CFFAFE' },
-      { code: 'CSB', name: 'Clothes Soap', price: 55, color: '#7C3AED', bg: '#EDE9FE' },
-      { code: 'CS4', name: 'Clothes 4-Pk', price: 200, color: '#7C3AED', bg: '#EDE9FE' },
-      { code: 'BSR', name: 'Bath Rose', price: 60, color: '#DB2777', bg: '#FCE7F3' },
-      { code: 'BSN', name: 'Bath Neem', price: 55, color: '#16A34A', bg: '#DCFCE7' },
-      { code: 'DSL', name: 'Dish Liquid', price: 130, color: '#EA580C', bg: '#FFF7ED' },
-      { code: 'NEL', name: 'Neel 250ml', price: 65, color: '#2563EB', bg: '#DBEAFE' },
-    ];
+    // ─── GSAP STAGGER ───
+    gsap.from('.bento', { opacity: 0, y: 20, duration: 0.5, stagger: 0.07, delay: 0.1, ease: 'power3.out' });
 
-    let posCart = {};
+    // ─── FILTER PILLS ───
+    function setFilter(cat, btn) {
+      activeFilter = cat;
+      document.querySelectorAll('.filter-pill').forEach(p => {
+        p.classList.remove('active');
+        p.style.background = '';
+        p.style.borderColor = '';
+        p.style.color = '';
+      });
+      btn.classList.add('active');
+      if (cat === 'All') {
+        btn.style.background = '#1E293B';
+        btn.style.color = 'white';
+      } else {
+        const c = catColors[cat];
+        btn.style.background = c.color;
+        btn.style.color = 'white';
+      }
+      renderProducts();
+    }
+    // Init "All" pill
+    document.querySelector('.filter-pill.active').style.background = '#1E293B';
+    document.querySelector('.filter-pill.active').style.color = 'white';
 
-    document.getElementById('pos-grid').innerHTML = posItems.map((p, i) => `
-      <button class="pos-key" onclick="posAdd(${i}, this)">
-        <div class="key-dot" style="background: ${p.color}"></div>
-        <span class="text-xs font-bold text-charcoal">${p.code}</span>
-        <span class="text-[9px] text-slate-400 leading-tight mt-0.5">${p.name}</span>
-        <span class="text-[10px] font-bold mt-1" style="color: ${p.color}">Rs. ${p.price}</span>
-      </button>
-    `).join('');
+    // ─── RENDER WEEKLY CHART ───
+    function renderWeeklyChart() {
+      const maxAmt = Math.max(...weeklySales.map(d => d.amount));
+      const chartEl = document.getElementById('weekly-chart');
+      chartEl.innerHTML = weeklySales.map(d => {
+        const heightPct = (d.amount / maxAmt * 100).toFixed(0);
+        return `
+          <div class="flex flex-col items-center gap-2 flex-1">
+            <div class="w-full flex items-end justify-center" style="height:160px">
+              <div class="chart-bar w-full max-w-[36px] bg-brand" style="height:0%" data-h="${heightPct}%">
+                <span class="chart-bar-label">Rs. ${(d.amount / 1000).toFixed(1)}k</span>
+              </div>
+            </div>
+            <span class="text-[10px] font-semibold text-slate-400">${d.day}</span>
+          </div>`;
+      }).join('');
 
-    function posAdd(idx, btn) {
-      const p = posItems[idx];
-      posCart[p.code] = (posCart[p.code] || 0) + 1;
-      updatePOS();
-      gsap.fromTo(btn, { scale: 0.92 }, { scale: 1, duration: 0.35, ease: 'elastic.out(1.2, 0.4)' });
+      setTimeout(() => {
+        document.querySelectorAll('.chart-bar').forEach((bar, i) => {
+          gsap.to(bar, { height: bar.dataset.h, duration: 0.8, delay: 0.1 + i * 0.08, ease: 'back.out(1.4)' });
+        });
+      }, 200);
     }
 
-    function updatePOS() {
-      let total = 0;
-      const lines = [];
-      Object.entries(posCart).forEach(([code, qty]) => {
-        const p = posItems.find(x => x.code === code);
-        const line = p.price * qty;
-        total += line;
-        lines.push({ name: p.name, qty, price: p.price, line, color: p.color });
+    // ─── RENDER CATEGORY SALES ───
+    function renderCategorySales() {
+      const maxAmt = Math.max(...categorySales.map(c => c.amount));
+      document.getElementById('category-sales').innerHTML = categorySales.map(c => {
+        const cc = catColors[c.category];
+        const pct = (c.amount / maxAmt * 100).toFixed(0);
+        return `
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:${cc.color}"></span>
+                <span class="text-xs font-semibold text-charcoal">${c.category}</span>
+              </div>
+              <span class="text-xs font-bold text-charcoal">Rs. ${(c.amount / 1000).toFixed(0)}k</span>
+            </div>
+            <div class="w-full h-2.5 bg-slate-100 rounded-full">
+              <div class="h-full rounded-full cat-sale-bar" style="background:${cc.color}; width:0%" data-w="${pct}%"></div>
+            </div>
+          </div>`;
+      }).join('');
+
+      setTimeout(() => {
+        document.querySelectorAll('.cat-sale-bar').forEach((bar, i) => {
+          gsap.to(bar, { width: bar.dataset.w, duration: 0.8, delay: 0.3 + i * 0.1, ease: 'power2.out' });
+        });
+      }, 200);
+    }
+
+    // ─── RENDER MARGIN BARS ───
+    function renderMarginBars() {
+      const entries = Object.entries(catMargins).sort((a, b) => b[1] - a[1]);
+      document.getElementById('margin-bars').innerHTML = entries.map(([cat, margin]) => {
+        const cc = catColors[cat];
+        return `
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background:${cc.bg}">
+                  <span class="w-3 h-3 rounded-full" style="background:${cc.color}"></span>
+                </div>
+                <span class="text-sm font-semibold text-charcoal">${cat}</span>
+              </div>
+              <span class="text-sm font-bold" style="color:${cc.color}">${margin}%</span>
+            </div>
+            <div class="w-full h-2.5 bg-slate-100 rounded-full">
+              <div class="margin-bar" style="background:${cc.color}; width:0%" data-w="${margin}%"></div>
+            </div>
+          </div>`;
+      }).join('');
+
+      setTimeout(() => {
+        document.querySelectorAll('.margin-bar').forEach((bar, i) => {
+          gsap.to(bar, { width: bar.dataset.w, duration: 1, delay: 0.4 + i * 0.12, ease: 'power2.out' });
+        });
+      }, 200);
+    }
+
+    // ─── RENDER UNITS SOLD ───
+    function renderUnitsSold() {
+      const maxUnits = Math.max(...unitsSold.map(u => u.units));
+      // Map product names to categories for coloring
+      const unitCatMap = {
+        'Taizab 1L': 'Cleaning',
+        'Sweep Floor 1L': 'Cleaning',
+        'Clothes Soap 200g': 'Soap',
+        'Neel 250ml': 'Whitener',
+        'Bleach 1L': 'Bleach',
+      };
+      document.getElementById('units-sold').innerHTML = unitsSold.map((u, i) => {
+        const cat = unitCatMap[u.name] || 'Cleaning';
+        const cc = catColors[cat];
+        const pct = (u.units / maxUnits * 100).toFixed(0);
+        return `
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 text-[10px] font-bold" style="background:${cc.bg}; color:${cc.color}">0${i + 1}</div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between mb-1">
+                <p class="text-xs font-semibold text-charcoal truncate">${u.name}</p>
+                <span class="text-[11px] font-bold text-slate-500 flex-shrink-0 ml-2">${u.units.toLocaleString()} units</span>
+              </div>
+              <div class="w-full h-1.5 bg-slate-100 rounded-full">
+                <div class="h-full rounded-full unit-bar" style="background:${cc.color}; width:0%;" data-w="${pct}%"></div>
+              </div>
+            </div>
+          </div>`;
+      }).join('');
+
+      setTimeout(() => {
+        document.querySelectorAll('.unit-bar').forEach((bar, i) => {
+          gsap.to(bar, { width: bar.dataset.w, duration: 0.8, delay: 0.4 + i * 0.1, ease: 'power2.out' });
+        });
+      }, 200);
+    }
+
+    // ─── RENDER PRODUCTS TABLE ───
+    function renderProducts() {
+      const search = document.getElementById('search-input').value.toLowerCase();
+      const filtered = products.filter(p => {
+        const matchCat = activeFilter === 'All' || p.category === activeFilter;
+        const matchSearch = p.name.toLowerCase().includes(search);
+        return matchCat && matchSearch;
       });
 
-      const receiptEl = document.getElementById('pos-receipt');
-      if (lines.length === 0) {
-        receiptEl.innerHTML = '<p class="text-[11px] text-slate-300 text-center py-2">No items yet</p>';
-      } else {
-        receiptEl.innerHTML = lines.map(l => `
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <span class="w-1.5 h-1.5 rounded-full" style="background:${l.color}"></span>
-              <span class="text-xs text-charcoal font-medium">${l.name}</span>
-              <span class="text-[10px] text-slate-300">×${l.qty}</span>
-            </div>
-            <span class="text-xs font-semibold text-charcoal">Rs. ${l.line.toLocaleString()}</span>
-          </div>
-        `).join('');
-      }
+      const tbody = document.getElementById('products-tbody');
+      tbody.innerHTML = filtered.map(p => {
+        const cc = catColors[p.category];
+        const isPublished = p.published !== false;
+        const margin = catMargins[p.category] || 40;
+        const cost = p.cost || getCost(p.price, p.category);
+        const marginColor = margin >= 50 ? '#16A34A' : margin >= 40 ? '#D97706' : '#DC2626';
+        return `
+          <tr class="t-row border-b border-slate-50 ${!isPublished ? 'unpublished' : ''}">
+            <td class="px-3 py-3 text-sm font-medium text-charcoal">
+              ${p.name}${!isPublished ? '<span class="draft-badge">Draft</span>' : ''}
+            </td>
+            <td class="px-3 py-3">
+              <span class="text-[11px] font-semibold px-2.5 py-1 rounded-lg" style="background:${cc.bg}; color:${cc.color}">${p.category}</span>
+            </td>
+            <td class="px-3 py-3 text-sm text-right font-semibold text-charcoal">Rs. ${p.price.toLocaleString()}</td>
+            <td class="px-3 py-3 text-sm text-right text-slate-400">Rs. ${cost.toLocaleString()}</td>
+            <td class="px-3 py-3 text-sm text-right font-semibold" style="color:${marginColor}">${margin}%</td>
+            <td class="px-3 py-3 text-sm text-right text-slate-500">${p.stock}</td>
+            <td class="px-3 py-3 text-center">
+              <div class="inline-flex items-center gap-2 cursor-pointer" onclick="togglePublish(${p.id})">
+                <div class="pub-toggle${isPublished ? ' on' : ''}">
+                  <div class="pub-dot"></div>
+                </div>
+              </div>
+            </td>
+            <td class="px-3 py-3 text-right">
+              <div class="flex items-center justify-end gap-1">
+                <button onclick="editProduct(${p.id})" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 transition text-slate-400 hover:text-brand" title="Edit">
+                  <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M11 2l2 2L5 12H3v-2L11 2z"/></svg>
+                </button>
+                <button onclick="deleteProduct(${p.id})" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-50 transition text-slate-400 hover:text-red-500" title="Delete">
+                  <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 4h9M5 4V3a1 1 0 011-1h3a1 1 0 011 1v1m1 0v8a1 1 0 01-1 1H5a1 1 0 01-1-1V4h7z"/><line x1="7" y1="7" x2="7" y2="11"/><line x1="9" y1="7" x2="9" y2="11"/></svg>
+                </button>
+              </div>
+            </td>
+          </tr>`;
+      }).join('');
 
-      document.getElementById('pos-sub').textContent = 'Rs. ' + total.toLocaleString();
-      document.getElementById('pos-total').textContent = 'Rs. ' + total.toLocaleString();
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center py-8 text-sm text-slate-300">No products found</td></tr>';
+      }
     }
 
-    function clearPOS() { posCart = {}; updatePOS(); }
+    function togglePublish(id) {
+      const p = products.find(x => x.id === id);
+      if (p) {
+        p.published = !p.published;
+        p.status = p.published ? 'active' : 'draft';
+        renderProducts();
+      }
+    }
 
-    function completeSale() {
-      if (Object.keys(posCart).length === 0) return;
-      const btn = document.getElementById('sale-btn');
-      gsap.to(btn, { scale: 0.96, duration: 0.08, yoyo: true, repeat: 1, onComplete: () => {
-        gsap.fromTo(btn, { boxShadow: '0 0 0 3px rgba(16,185,129,0.3)' }, { boxShadow: '0 0 0 0px rgba(16,185,129,0)', duration: 1 });
-        posCart = {};
-        updatePOS();
-      }});
+    function toggleProductStatus(id) {
+      togglePublish(id);
+    }
+
+    // ─── MODAL ───
+    let modalStatus = 'active';
+    let modalPublished = true;
+
+    function openModal(editId) {
+      const modal = document.getElementById('product-modal');
+      const form = document.getElementById('product-form');
+      form.reset();
+      document.getElementById('edit-id').value = '';
+      modalStatus = 'active';
+      modalPublished = true;
+      updateToggleUI();
+
+      if (editId) {
+        const p = products.find(x => x.id === editId);
+        if (!p) return;
+        document.getElementById('modal-title').textContent = 'Edit Product';
+        document.getElementById('modal-submit-btn').textContent = 'Save Changes';
+        document.getElementById('edit-id').value = p.id;
+        document.getElementById('f-name').value = p.name;
+        document.getElementById('f-category').value = p.category;
+        document.getElementById('f-price').value = p.price;
+        document.getElementById('f-cost').value = p.cost || getCost(p.price, p.category);
+        document.getElementById('f-stock').value = p.stock;
+        document.getElementById('f-desc').value = p.desc || '';
+        modalPublished = p.published !== false;
+        modalStatus = p.status;
+        updateToggleUI();
+      } else {
+        document.getElementById('modal-title').textContent = 'Add Product';
+        document.getElementById('modal-submit-btn').textContent = 'Add Product';
+      }
+
+      modal.classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('product-modal').classList.remove('active');
+    }
+
+    function toggleStatus() {
+      modalPublished = !modalPublished;
+      modalStatus = modalPublished ? 'active' : 'draft';
+      updateToggleUI();
+    }
+
+    function updateToggleUI() {
+      const track = document.getElementById('f-status');
+      const label = document.getElementById('status-label');
+      if (modalPublished) {
+        track.classList.add('active');
+        label.textContent = 'Published';
+      } else {
+        track.classList.remove('active');
+        label.textContent = 'Unpublished';
+      }
+    }
+
+    function saveProduct(e) {
+      e.preventDefault();
+      const editId = document.getElementById('edit-id').value;
+      const data = {
+        name: document.getElementById('f-name').value.trim(),
+        category: document.getElementById('f-category').value,
+        price: parseInt(document.getElementById('f-price').value),
+        cost: parseInt(document.getElementById('f-cost').value),
+        stock: parseInt(document.getElementById('f-stock').value),
+        desc: document.getElementById('f-desc').value.trim(),
+        status: modalStatus,
+        published: modalPublished,
+      };
+
+      if (editId) {
+        const p = products.find(x => x.id === parseInt(editId));
+        if (p) Object.assign(p, data);
+      } else {
+        data.id = nextId++;
+        products.push(data);
+      }
+
+      closeModal();
+      renderProducts();
+      renderInventory();
+      renderBottomRow();
+    }
+
+    function editProduct(id) { openModal(id); }
+
+    function deleteProduct(id) {
+      deleteTargetId = id;
+      document.getElementById('confirm-modal').classList.add('active');
+    }
+
+    function closeConfirm() {
+      document.getElementById('confirm-modal').classList.remove('active');
+      deleteTargetId = null;
+    }
+
+    function confirmDelete() {
+      if (deleteTargetId !== null) {
+        products = products.filter(p => p.id !== deleteTargetId);
+        renderProducts();
+        renderInventory();
+        renderBottomRow();
+      }
+      closeConfirm();
     }
 
     // ─── ORDERS ───
-    const orders = [
-      { id: 'PX-7842', customer: 'Al-Madina Store', amount: 'Rs. 20,000', status: 'done' },
-      { id: 'PX-7841', customer: 'Karachi Mart', amount: 'Rs. 21,600', status: 'proc' },
-      { id: 'PX-7840', customer: 'ISB Wholesale', amount: 'Rs. 10,000', status: 'done' },
-      { id: 'PX-7839', customer: 'FSD Traders', amount: 'Rs. 13,000', status: 'ship' },
-      { id: 'PX-7838', customer: 'Multan Kiryana', amount: 'Rs. 18,000', status: 'wait' },
-      { id: 'PX-7837', customer: 'Peshawar Dist.', amount: 'Rs. 19,200', status: 'done' },
-      { id: 'PX-7836', customer: 'Quetta Wholesale', amount: 'Rs. 13,800', status: 'proc' },
-      { id: 'PX-7835', customer: 'Sialkot Mart', amount: 'Rs. 21,000', status: 'done' },
-    ];
-    const statusPill = { done: ['Done', 'pill-done'], proc: ['Processing', 'pill-proc'], ship: ['Shipped', 'pill-ship'], wait: ['Pending', 'pill-wait'] };
+    const orderStatusStyles = {
+      pending:   { bg: 'background:#FEF3C7', color: 'color:#92400E', label: 'Pending' },
+      shipped:   { bg: 'background:#DBEAFE', color: 'color:#1E40AF', label: 'Shipped' },
+      delivered: { bg: 'background:#DCFCE7', color: 'color:#166534', label: 'Delivered' },
+    };
 
-    document.getElementById('orders-tbody').innerHTML = orders.map(o => {
-      const [label, cls] = statusPill[o.status];
-      return `
-        <tr class="t-row border-b border-slate-50">
-          <td class="px-2 py-2.5 text-[11px] font-semibold text-brand">${o.id}</td>
-          <td class="px-2 py-2.5 text-xs text-charcoal">${o.customer}</td>
-          <td class="px-2 py-2.5 text-xs text-charcoal text-right font-semibold">${o.amount}</td>
-          <td class="px-2 py-2.5 text-right"><span class="${cls} text-[10px] font-semibold px-2 py-0.5 rounded-full">${label}</span></td>
-        </tr>`;
-    }).join('');
-
-    // ─── INVENTORY (20 SKUs) ───
-    const inventory = [
-      { sku: 'TZB-500', name: 'Taizab Acid 500ml', stock: 850, cap: 1000, color: '#D97706' },
-      { sku: 'TZB-1K', name: 'Taizab Acid 1L', stock: 620, cap: 800, color: '#D97706' },
-      { sku: 'TZB-L5', name: 'Taizab Lemon 500ml', stock: 80, cap: 500, color: '#D97706' },
-      { sku: 'SWP-F5', name: 'Sweep Floor 500ml', stock: 410, cap: 500, color: '#16A34A' },
-      { sku: 'SWP-F1', name: 'Sweep Floor 1L', stock: 45, cap: 400, color: '#16A34A' },
-      { sku: 'SWP-T5', name: 'Sweep Toilet 500ml', stock: 310, cap: 400, color: '#16A34A' },
-      { sku: 'BLC-500', name: 'Bleach 500ml', stock: 180, cap: 300, color: '#0891B2' },
-      { sku: 'BLC-1K', name: 'Bleach 1L', stock: 25, cap: 300, color: '#0891B2' },
-      { sku: 'CS-130', name: 'Clothes Soap 130g', stock: 900, cap: 1000, color: '#7C3AED' },
-      { sku: 'CS-230', name: 'Clothes Soap 230g', stock: 520, cap: 600, color: '#7C3AED' },
-      { sku: 'CS-4PK', name: 'Clothes Soap 4-Pk', stock: 150, cap: 400, color: '#7C3AED' },
-      { sku: 'BS-R', name: 'Bath Soap Rose', stock: 700, cap: 800, color: '#DB2777' },
-      { sku: 'BS-N', name: 'Bath Soap Neem', stock: 340, cap: 500, color: '#16A34A' },
-      { sku: 'BS-3PK', name: 'Bath Soap 3-Pack', stock: 200, cap: 300, color: '#DB2777' },
-      { sku: 'DS-200', name: 'Dish Soap Bar', stock: 450, cap: 500, color: '#EA580C' },
-      { sku: 'DS-L5', name: 'Dish Liquid 500ml', stock: 60, cap: 300, color: '#EA580C' },
-      { sku: 'DS-L1', name: 'Dish Liquid 1L', stock: 190, cap: 300, color: '#EA580C' },
-      { sku: 'NL-100', name: 'Neel Liquid 100ml', stock: 1200, cap: 1500, color: '#2563EB' },
-      { sku: 'NL-250', name: 'Neel Liquid 250ml', stock: 15, cap: 200, color: '#2563EB' },
-      { sku: 'NP-50', name: 'Neel Powder 50g', stock: 800, cap: 1000, color: '#2563EB' },
-    ];
-
-    function stockLabel(stock, cap) {
-      const pct = stock / cap;
-      if (pct < 0.15) return ['Critical', 'text-red-500', 'bg-red-400'];
-      if (pct < 0.35) return ['Low', 'text-amber-500', 'bg-amber-400'];
-      return ['Good', 'text-emerald-500', 'bg-emerald-400'];
+    function renderOrders() {
+      document.getElementById('orders-list').innerHTML = orders.map((o, i) => {
+        const s = orderStatusStyles[o.status];
+        return `
+          <div class="bg-slate-50 rounded-xl p-4 border border-slate-100">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-bold text-brand">${o.id}</span>
+              <select onchange="changeOrderStatus(${i}, this.value)" class="text-[10px] font-semibold px-2 py-1 rounded-lg border-0 cursor-pointer focus:outline-none" style="${s.bg}; ${s.color}">
+                <option value="pending" ${o.status === 'pending' ? 'selected' : ''}>Pending</option>
+                <option value="shipped" ${o.status === 'shipped' ? 'selected' : ''}>Shipped</option>
+                <option value="delivered" ${o.status === 'delivered' ? 'selected' : ''}>Delivered</option>
+              </select>
+            </div>
+            <p class="text-sm font-semibold text-charcoal">${o.customer}</p>
+            <div class="flex items-center justify-between mt-1.5">
+              <span class="text-[11px] text-slate-400">${o.city} &middot; ${o.items} item${o.items > 1 ? 's' : ''}</span>
+              <span class="text-sm font-bold text-charcoal">Rs. ${o.total.toLocaleString()}</span>
+            </div>
+          </div>`;
+      }).join('');
     }
 
-    document.getElementById('inv-tbody').innerHTML = inventory.map(item => {
-      const pct = (item.stock / item.cap * 100).toFixed(0);
-      const [label, textCls, barCls] = stockLabel(item.stock, item.cap);
-      return `
-        <tr class="t-row border-b border-slate-50">
-          <td class="px-2 py-2 text-[10px] font-semibold" style="color:${item.color}">${item.sku}</td>
-          <td class="px-2 py-2 text-xs text-charcoal">${item.name}</td>
-          <td class="px-2 py-2 text-xs text-slate-400 text-right">${item.stock}/${item.cap}</td>
-          <td class="px-2 py-2"><div class="stock-bar-bg"><div class="stock-bar ${barCls}" style="width:0%;" data-w="${pct}%"></div></div></td>
-          <td class="px-2 py-2 text-[10px] text-right font-semibold ${textCls}">${label}</td>
-        </tr>`;
-    }).join('');
+    function changeOrderStatus(idx, value) {
+      orders[idx].status = value;
+      renderOrders();
+    }
 
-    // Animate bars
-    setTimeout(() => {
-      document.querySelectorAll('.stock-bar').forEach(bar => {
-        gsap.to(bar, { width: bar.dataset.w, duration: 0.8, ease: 'power2.out', delay: Math.random() * 0.3 });
+    // ─── INVENTORY BARS ───
+    function renderInventory() {
+      const maxStock = 250;
+      document.getElementById('inventory-bars').innerHTML = products.map(p => {
+        const pct = Math.min((p.stock / maxStock) * 100, 100);
+        const cc = catColors[p.category];
+        let barColor = '#22C55E';
+        if (pct < 20) barColor = '#EF4444';
+        else if (pct < 50) barColor = '#F59E0B';
+        return `
+          <div class="flex items-center gap-4">
+            <div class="w-48 sm:w-56 flex-shrink-0">
+              <p class="text-xs font-medium text-charcoal truncate">${p.name}</p>
+              <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded" style="background:${cc.bg}; color:${cc.color}">${p.category}</span>
+            </div>
+            <div class="flex-1">
+              <div class="stock-bar-bg">
+                <div class="stock-bar inv-bar" style="width:0%; background:${barColor}" data-w="${pct}%"></div>
+              </div>
+            </div>
+            <div class="w-20 text-right flex-shrink-0">
+              <span class="text-xs font-semibold text-charcoal">${p.stock}</span>
+              <span class="text-[10px] text-slate-400"> (${Math.round(pct)}%)</span>
+            </div>
+          </div>`;
+      }).join('');
+
+      // Animate bars
+      setTimeout(() => {
+        document.querySelectorAll('.inv-bar').forEach(bar => {
+          gsap.to(bar, { width: bar.dataset.w, duration: 0.8, ease: 'power2.out', delay: Math.random() * 0.3 });
+        });
+      }, 100);
+    }
+
+    // ─── BOTTOM ROW ───
+    function renderBottomRow() {
+      // Top 5 Products (by price * stock as rough revenue proxy)
+      const sorted = [...products].sort((a, b) => (b.price * b.stock) - (a.price * a.stock)).slice(0, 5);
+      const maxRev = sorted[0] ? sorted[0].price * sorted[0].stock : 1;
+
+      document.getElementById('top-products').innerHTML = sorted.map((p, i) => {
+        const rev = p.price * p.stock;
+        const pct = (rev / maxRev * 100).toFixed(0);
+        const cc = catColors[p.category];
+        return `
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 text-[10px] font-bold" style="background:${cc.bg}; color:${cc.color}">0${i + 1}</div>
+            <div class="flex-1 min-w-0">
+              <p class="text-xs font-semibold text-charcoal truncate">${p.name}</p>
+              <div class="w-full h-1.5 bg-slate-100 rounded-full mt-1.5">
+                <div class="h-full rounded-full top-bar" style="background:${cc.color}; width:0%;" data-w="${pct}%"></div>
+              </div>
+            </div>
+            <span class="text-[11px] text-slate-400 font-semibold flex-shrink-0">Rs. ${(rev / 1000).toFixed(0)}k</span>
+          </div>`;
+      }).join('');
+
+      setTimeout(() => {
+        document.querySelectorAll('.top-bar').forEach(bar => {
+          gsap.to(bar, { width: bar.dataset.w, duration: 1, ease: 'power2.out', delay: 0.3 });
+        });
+      }, 100);
+
+      // Category Distribution
+      const catCounts = {};
+      products.forEach(p => { catCounts[p.category] = (catCounts[p.category] || 0) + 1; });
+      const total = products.length;
+
+      const segments = Object.entries(catCounts).map(([cat, count]) => {
+        const cc = catColors[cat];
+        const pct = ((count / total) * 100).toFixed(1);
+        return { cat, count, pct, color: cc.color, bg: cc.bg };
       });
-    }, 400);
 
-    // ─── TOP PRODUCTS ───
-    const topProducts = [
-      { name: 'Taizab Acid 1L', revenue: 'Rs. 248k', pct: 92, color: '#D97706', bg: '#FEF3C7' },
-      { name: 'Sweep Floor 1L', revenue: 'Rs. 186k', pct: 78, color: '#16A34A', bg: '#DCFCE7' },
-      { name: 'Clothes Soap 4-Pk', revenue: 'Rs. 142k', pct: 65, color: '#7C3AED', bg: '#EDE9FE' },
-      { name: 'Neel Liquid 250ml', revenue: 'Rs. 98k', pct: 52, color: '#2563EB', bg: '#DBEAFE' },
-      { name: 'Bleach 1L', revenue: 'Rs. 76k', pct: 41, color: '#0891B2', bg: '#CFFAFE' },
-    ];
-
-    document.getElementById('top-products').innerHTML = topProducts.map((p, i) => `
-      <div class="flex items-center gap-3">
-        <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 text-[10px] font-bold" style="background:${p.bg}; color:${p.color}">0${i+1}</div>
-        <div class="flex-1 min-w-0">
-          <p class="text-xs font-semibold text-charcoal truncate">${p.name}</p>
-          <div class="w-full h-1 bg-slate-100 rounded-full mt-1.5">
-            <div class="h-full rounded-full top-bar" style="background:${p.color}; width:0%;" data-w="${p.pct}%"></div>
-          </div>
+      document.getElementById('category-dist').innerHTML = `
+        <div class="flex rounded-xl overflow-hidden h-8 mb-5">
+          ${segments.map(s => `<div class="cat-seg" style="width:0%; background:${s.color}" data-w="${s.pct}%" title="${s.cat}: ${s.count}"></div>`).join('')}
         </div>
-        <span class="text-[11px] text-slate-400 font-semibold flex-shrink-0">${p.revenue}</span>
-      </div>
-    `).join('');
+        <div class="grid grid-cols-2 gap-3">
+          ${segments.map(s => `
+            <div class="flex items-center gap-3 p-3 rounded-xl" style="background:${s.bg}">
+              <div class="w-3 h-3 rounded-full flex-shrink-0" style="background:${s.color}"></div>
+              <div>
+                <p class="text-xs font-semibold" style="color:${s.color}">${s.cat}</p>
+                <p class="text-[11px] text-slate-400">${s.count} products &middot; ${s.pct}%</p>
+              </div>
+            </div>
+          `).join('')}
+        </div>`;
 
-    setTimeout(() => {
-      document.querySelectorAll('.top-bar').forEach(bar => {
-        gsap.to(bar, { width: bar.dataset.w, duration: 1, ease: 'power2.out', delay: 0.5 });
-      });
-    }, 200);
+      setTimeout(() => {
+        document.querySelectorAll('.cat-seg').forEach(seg => {
+          gsap.to(seg, { width: seg.dataset.w, duration: 1, ease: 'power2.out', delay: 0.4 });
+        });
+      }, 100);
+    }
+
+    // ─── INIT ───
+    renderProducts();
+    renderOrders();
+    renderInventory();
+    renderBottomRow();
+    renderWeeklyChart();
+    renderCategorySales();
+    renderMarginBars();
+    renderUnitsSold();
+
+    // Close modals on overlay click
+    document.getElementById('product-modal').addEventListener('click', function(e) {
+      if (e.target === this) closeModal();
+    });
+    document.getElementById('confirm-modal').addEventListener('click', function(e) {
+      if (e.target === this) closeConfirm();
+    });
+
+    // ESC key
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') { closeModal(); closeConfirm(); }
+    });
   </script>
 </body>
 </html>

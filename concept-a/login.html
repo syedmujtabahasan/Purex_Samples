@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/png" href="../assets/purex_icon.png">
+  <title>Admin Login — PUREX Chemicals</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            purex: { blue: '#4d9ed5', dark: '#0a0e17', light: '#f7f7f7' },
+          },
+          fontFamily: {
+            heading: ['"Plus Jakarta Sans"', 'sans-serif'],
+            body: ['"Inter"', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0a0e17;
+      color: #f7f7f7;
+      font-family: 'Inter', sans-serif;
+      overflow: hidden;
+      min-height: 100vh;
+    }
+
+    /* Dot grid pattern */
+    .dot-grid {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background-image: radial-gradient(rgba(255,255,255,0.04) 1px, transparent 1px);
+      background-size: 30px 30px;
+      pointer-events: none;
+    }
+
+    /* Grain overlay */
+    .grain {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9999;
+      opacity: 0.03;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    }
+
+    /* Glass card */
+    .glass-card {
+      background: rgba(255, 255, 255, 0.04);
+      backdrop-filter: blur(40px);
+      -webkit-backdrop-filter: blur(40px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* Ambient glow */
+    .ambient-glow {
+      position: fixed;
+      width: 500px;
+      height: 500px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(77, 158, 213, 0.08) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Input styling */
+    .login-input {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      transition: all 0.3s ease;
+    }
+    .login-input:focus {
+      outline: none;
+      border-color: #4d9ed5;
+      box-shadow: 0 0 0 3px rgba(77, 158, 213, 0.1);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    /* Button */
+    .login-btn {
+      background: linear-gradient(135deg, #4d9ed5, #3a8bc2);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .login-btn:hover {
+      box-shadow: 0 8px 30px rgba(77, 158, 213, 0.25);
+      transform: translateY(-1px);
+    }
+    .login-btn:active {
+      transform: translateY(0);
+    }
+    .login-btn::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.1) 50%, transparent 60%);
+      transform: translateX(-100%);
+      transition: transform 0.6s ease;
+    }
+    .login-btn:hover::after {
+      transform: translateX(100%);
+    }
+
+    /* Checkbox */
+    .custom-checkbox {
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.03);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+    .custom-checkbox:checked {
+      background: #4d9ed5;
+      border-color: #4d9ed5;
+    }
+    .custom-checkbox:checked::after {
+      content: '';
+      position: absolute;
+      left: 4.5px;
+      top: 1.5px;
+      width: 5px;
+      height: 9px;
+      border: solid white;
+      border-width: 0 1.5px 1.5px 0;
+      transform: rotate(45deg);
+    }
+
+    /* Password toggle */
+    .pwd-toggle {
+      transition: color 0.2s ease;
+    }
+    .pwd-toggle:hover {
+      color: #4d9ed5;
+    }
+
+    /* Error shake */
+    .shake {
+      animation: none;
+    }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
+  </style>
+</head>
+<body class="flex items-center justify-center min-h-screen">
+  <div class="grain"></div>
+  <div class="dot-grid"></div>
+  <div class="ambient-glow" style="top: -200px; left: -100px;"></div>
+  <div class="ambient-glow" style="bottom: -200px; right: -100px;"></div>
+
+  <!-- Login Card -->
+  <div id="login-card" class="glass-card rounded-3xl p-8 md:p-10 w-full max-w-md mx-4 relative z-10" style="opacity: 0;">
+
+    <!-- Logo -->
+    <div class="text-center mb-8" id="logo-section">
+      <img src="../assets/purex_logo.png" alt="Purex Chemicals" class="h-20 object-contain mx-auto">
+      <p class="text-xs tracking-[0.3em] text-white/30 mt-3 font-heading font-light uppercase">Admin Panel</p>
+    </div>
+
+    <!-- Error Message -->
+    <div id="error-msg" class="hidden mb-5 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-center">
+      <p class="text-xs text-red-400 font-light">Invalid email or password</p>
+    </div>
+
+    <!-- Login Form -->
+    <form id="login-form" class="space-y-5">
+      <!-- Email field -->
+      <div id="field-email" style="opacity: 0;">
+        <label class="block text-[11px] text-white/40 tracking-wider mb-2 font-light">EMAIL / USERNAME</label>
+        <div class="relative">
+          <div class="absolute left-4 top-1/2 -translate-y-1/2 text-white/25">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+              <path d="M3 8l9 6 9-6"/>
+              <rect x="3" y="5" width="18" height="14" rx="2"/>
+            </svg>
+          </div>
+          <input
+            type="text"
+            id="login-email"
+            class="login-input w-full pl-11 pr-4 py-3.5 rounded-xl text-sm text-white/90 font-light placeholder:text-white/20"
+            placeholder="admin@purex.com"
+            autocomplete="username"
+            required
+          />
+        </div>
+      </div>
+
+      <!-- Password field -->
+      <div id="field-password" style="opacity: 0;">
+        <label class="block text-[11px] text-white/40 tracking-wider mb-2 font-light">PASSWORD</label>
+        <div class="relative">
+          <div class="absolute left-4 top-1/2 -translate-y-1/2 text-white/25">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+              <rect x="5" y="11" width="14" height="10" rx="2"/>
+              <path d="M8 11V7a4 4 0 018 0v4"/>
+            </svg>
+          </div>
+          <input
+            type="password"
+            id="login-password"
+            class="login-input w-full pl-11 pr-12 py-3.5 rounded-xl text-sm text-white/90 font-light placeholder:text-white/20"
+            placeholder="Enter password"
+            autocomplete="current-password"
+            required
+          />
+          <button
+            type="button"
+            id="pwd-toggle-btn"
+            class="pwd-toggle absolute right-4 top-1/2 -translate-y-1/2 text-white/25"
+            onclick="togglePassword()"
+            tabindex="-1"
+          >
+            <svg id="eye-open" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+            <svg id="eye-closed" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" class="hidden">
+              <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 01-4.24-4.24"/>
+              <line x1="1" y1="1" x2="23" y2="23"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Remember me -->
+      <div id="field-remember" class="flex items-center gap-3" style="opacity: 0;">
+        <input type="checkbox" id="remember-me" class="custom-checkbox" />
+        <label for="remember-me" class="text-xs text-white/40 font-light cursor-pointer select-none">Remember me</label>
+      </div>
+
+      <!-- Submit button -->
+      <div id="field-button" style="opacity: 0;">
+        <button
+          type="submit"
+          id="login-btn"
+          class="login-btn w-full py-3.5 rounded-xl text-sm font-heading font-medium text-white tracking-wide"
+        >
+          Sign In
+        </button>
+      </div>
+    </form>
+
+    <!-- Footer -->
+    <p id="footer-text" class="text-center text-[10px] text-white/20 mt-8 font-light" style="opacity: 0;">
+      Purex Chemicals &copy; 2026
+    </p>
+  </div>
+
+  <script>
+    // ==================== PASSWORD TOGGLE ====================
+    function togglePassword() {
+      const input = document.getElementById('login-password');
+      const eyeOpen = document.getElementById('eye-open');
+      const eyeClosed = document.getElementById('eye-closed');
+
+      if (input.type === 'password') {
+        input.type = 'text';
+        eyeOpen.classList.add('hidden');
+        eyeClosed.classList.remove('hidden');
+      } else {
+        input.type = 'password';
+        eyeOpen.classList.remove('hidden');
+        eyeClosed.classList.add('hidden');
+      }
+    }
+
+    // ==================== GSAP ENTRANCE ANIMATIONS ====================
+    const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+
+    tl.to('#login-card', { opacity: 1, y: 0, duration: 0.7, delay: 0.2 })
+      .from('#login-card', { y: 30, duration: 0.7 }, '<')
+      .to('#field-email', { opacity: 1, y: 0, duration: 0.5 }, '-=0.3')
+      .from('#field-email', { y: 15, duration: 0.5 }, '<')
+      .to('#field-password', { opacity: 1, y: 0, duration: 0.5 }, '-=0.25')
+      .from('#field-password', { y: 15, duration: 0.5 }, '<')
+      .to('#field-remember', { opacity: 1, y: 0, duration: 0.4 }, '-=0.2')
+      .from('#field-remember', { y: 10, duration: 0.4 }, '<')
+      .to('#field-button', { opacity: 1, y: 0, duration: 0.5 }, '-=0.15')
+      .from('#field-button', { y: 15, duration: 0.5 }, '<')
+      .to('#footer-text', { opacity: 1, duration: 0.4 }, '-=0.2');
+
+    // Subtle button pulse
+    gsap.to('#login-btn', {
+      boxShadow: '0 0 20px rgba(77, 158, 213, 0.15)',
+      repeat: -1,
+      yoyo: true,
+      duration: 2,
+      ease: 'sine.inOut',
+      delay: 1.5
+    });
+
+    // ==================== LOGIN HANDLER ====================
+    document.getElementById('login-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const email = document.getElementById('login-email').value.trim();
+      const password = document.getElementById('login-password').value;
+
+      // Demo credentials
+      if (email === 'admin@purex.com' && password === 'purex2026') {
+        // Success
+        sessionStorage.setItem('purex_admin', 'true');
+
+        // Success animation before redirect
+        gsap.to('#login-card', {
+          scale: 0.95,
+          opacity: 0,
+          duration: 0.4,
+          ease: 'power2.in',
+          onComplete: () => {
+            window.location.href = 'admin.html';
+          }
+        });
+      } else {
+        // Failed - show error with shake
+        const errorMsg = document.getElementById('error-msg');
+        errorMsg.classList.remove('hidden');
+
+        // Shake animation
+        gsap.fromTo('#login-card',
+          { x: 0 },
+          {
+            x: 12,
+            duration: 0.08,
+            repeat: 5,
+            yoyo: true,
+            ease: 'power2.inOut',
+            onComplete: () => {
+              gsap.to('#login-card', { x: 0, duration: 0.1 });
+            }
+          }
+        );
+
+        // Highlight error fields
+        gsap.fromTo('#error-msg', { opacity: 0, y: -5 }, { opacity: 1, y: 0, duration: 0.3 });
+      }
+    });
+
+    // Hide error on input change
+    document.getElementById('login-email').addEventListener('input', hideError);
+    document.getElementById('login-password').addEventListener('input', hideError);
+
+    function hideError() {
+      const errorMsg = document.getElementById('error-msg');
+      if (!errorMsg.classList.contains('hidden')) {
+        gsap.to('#error-msg', {
+          opacity: 0,
+          duration: 0.2,
+          onComplete: () => errorMsg.classList.add('hidden')
+        });
+      }
+    }
+
+    // If already logged in, redirect
+    if (sessionStorage.getItem('purex_admin')) {
+      window.location.href = 'admin.html';
+    }
+  </script>
+</body>
+</html>

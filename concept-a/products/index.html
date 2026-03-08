@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/png" href="../../assets/purex_icon.png">
+  <title id="page-title">Products — PUREX Chemicals</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            purex: { blue: '#4d9ed5', dark: '#181818', light: '#f7f7f7' },
+          },
+          fontFamily: {
+            heading: ['"Plus Jakarta Sans"', '"Poppins"', 'sans-serif'],
+            body: ['"Inter"', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&family=Inter:wght@300;400;500;600&family=Poppins:wght@100;200;300;400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #0a0e17; color: #f7f7f7; font-family: 'Inter', sans-serif; overflow-x: hidden; min-height: 100vh; }
+    .glass { background: rgba(77, 158, 213, 0.05); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.08); }
+    .glass-strong { background: rgba(255,255,255,0.04); backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px); border: 1px solid rgba(255,255,255,0.1); }
+    .glass-card { background: rgba(255,255,255,0.03); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border: 1px solid rgba(255,255,255,0.07); }
+    .grain { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; opacity: 0.03; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E"); }
+    .text-gradient { background: linear-gradient(135deg, #4d9ed5, #7bb8e0, #4d9ed5); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .nav-link { position: relative; }
+    .nav-link::after { content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 1px; background: #4d9ed5; transition: width 0.3s ease; }
+    .nav-link:hover::after { width: 100%; }
+
+    /* Product image placeholder */
+    .product-image-placeholder {
+      background: linear-gradient(135deg, rgba(77,158,213,0.12) 0%, rgba(77,158,213,0.04) 100%);
+      border: 1px solid rgba(77,158,213,0.15);
+      position: relative;
+      overflow: hidden;
+    }
+    .product-image-placeholder::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: conic-gradient(from 0deg, transparent, rgba(77,158,213,0.06), transparent 30%);
+      animation: shimmer 8s linear infinite;
+    }
+    @keyframes shimmer { 100% { transform: rotate(360deg); } }
+
+    /* Product grid card hover */
+    .product-grid-card {
+      transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.4s ease;
+    }
+    .product-grid-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 20px 60px rgba(77,158,213,0.12);
+    }
+
+    /* Category badge colors */
+    .badge-cleaning { background: rgba(77,158,213,0.15); color: #7bb8e0; border: 1px solid rgba(77,158,213,0.25); }
+    .badge-whitener { background: rgba(168,130,255,0.15); color: #c4a8ff; border: 1px solid rgba(168,130,255,0.25); }
+    .badge-soap { background: rgba(72,199,142,0.15); color: #72c78e; border: 1px solid rgba(72,199,142,0.25); }
+    .badge-bleach { background: rgba(255,180,80,0.15); color: #ffb450; border: 1px solid rgba(255,180,80,0.25); }
+
+    /* Stock indicator */
+    .stock-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+    .stock-high { background: #4ade80; box-shadow: 0 0 8px rgba(74,222,128,0.4); }
+    .stock-medium { background: #fbbf24; box-shadow: 0 0 8px rgba(251,191,36,0.4); }
+    .stock-low { background: #f87171; box-shadow: 0 0 8px rgba(248,113,113,0.4); }
+
+    /* Glow orbs */
+    .glow-orb {
+      position: fixed;
+      border-radius: 50%;
+      pointer-events: none;
+      filter: blur(80px);
+      opacity: 0.4;
+    }
+
+    /* Filter buttons */
+    .filter-btn { transition: all 0.3s ease; }
+    .filter-btn.active { background: rgba(77,158,213,0.15); color: #4d9ed5; border-color: rgba(77,158,213,0.3); }
+
+    /* Smooth scroll for grid view */
+    html { scroll-behavior: smooth; }
+
+    /* Order button pulse */
+    @keyframes pulse-ring {
+      0% { box-shadow: 0 0 0 0 rgba(37,211,102,0.4); }
+      70% { box-shadow: 0 0 0 12px rgba(37,211,102,0); }
+      100% { box-shadow: 0 0 0 0 rgba(37,211,102,0); }
+    }
+    .pulse-green { animation: pulse-ring 2s ease-out infinite; }
+  </style>
+</head>
+<body>
+  <div class="grain"></div>
+
+  <!-- Background glow orbs -->
+  <div class="glow-orb" style="width: 400px; height: 400px; background: rgba(77,158,213,0.08); top: -100px; right: -100px;"></div>
+  <div class="glow-orb" style="width: 300px; height: 300px; background: rgba(77,158,213,0.06); bottom: -50px; left: -80px;"></div>
+
+  <!-- ─── NAVBAR ─── -->
+  <nav class="fixed top-0 w-full z-50 glass-strong" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <a href="../shop.html" class="text-[11px] text-white/40 hover:text-white transition tracking-wider flex items-center gap-1">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 2L4 7l6 5"/></svg>
+        Back to Shop
+      </a>
+      <a href="../index.html" class="flex items-center gap-3 group">
+        <img src="../../assets/purex_icon.png" alt="Purex" class="w-9 h-9 object-contain transition-transform duration-300 group-hover:scale-110" onerror="this.style.display='none'">
+        <div class="flex items-baseline">
+          <span class="font-heading text-base font-light tracking-[0.3em] text-white">PURE</span>
+          <span class="font-heading text-xl font-semibold text-purex-blue">X</span>
+        </div>
+      </a>
+      <div class="hidden md:flex items-center gap-8">
+        <a href="../index.html" class="nav-link text-sm font-light tracking-wider text-white/80 hover:text-white transition">Home</a>
+        <a href="../shop.html" class="nav-link text-sm font-light tracking-wider text-white/80 hover:text-white transition">Shop</a>
+      </div>
+      <button id="mobile-toggle" class="md:hidden text-white/80" onclick="document.getElementById('mobile-menu').classList.toggle('hidden')">
+        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+    </div>
+    <div id="mobile-menu" class="hidden md:hidden glass-strong mx-4 mb-2 rounded-2xl p-4">
+      <a href="../index.html" class="block py-2 text-sm text-white/80">Home</a>
+      <a href="../shop.html" class="block py-2 text-sm text-white/80">Shop</a>
+    </div>
+  </nav>
+
+  <!-- ─── MAIN CONTENT (dynamically filled) ─── -->
+  <main id="app" class="pt-24 pb-32 px-6 min-h-screen">
+    <!-- Content injected by JS -->
+  </main>
+
+  <!-- ─── FOOTER ─── -->
+  <footer class="border-t border-white/5 py-8 px-6">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+      <div class="flex items-baseline gap-1">
+        <span class="font-heading text-sm font-light tracking-[0.25em] text-white/40">PURE</span>
+        <span class="font-heading text-base font-semibold text-purex-blue/60">X</span>
+        <span class="text-[10px] text-white/20 ml-2 tracking-widest">CHEMICALS</span>
+      </div>
+      <div class="flex items-center gap-4">
+        <a href="#" target="_blank" rel="noopener" class="text-white/30 hover:text-[#1877F2] transition-colors duration-300" title="Facebook">
+          <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+        </a>
+        <a href="#" target="_blank" rel="noopener" class="text-white/30 hover:text-[#E4405F] transition-colors duration-300" title="Instagram">
+          <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C16.67.014 16.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+        </a>
+        <a href="#" target="_blank" rel="noopener" class="text-white/30 hover:text-white transition-colors duration-300" title="TikTok">
+          <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>
+        </a>
+        <a href="https://wa.me/923400145796" target="_blank" rel="noopener" class="text-white/30 hover:text-[#25D366] transition-colors duration-300" title="WhatsApp">
+          <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        </a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ─── FLOATING WHATSAPP WIDGET ─── -->
+  <a id="wa-float" href="https://wa.me/923400145796?text=Hello%20Purex!%20I'm%20interested%20in%20your%20products." target="_blank" rel="noopener"
+     class="fixed bottom-6 right-6 z-50 group">
+    <div class="relative w-16 h-16 rounded-full flex items-center justify-center"
+         style="background: rgba(37,211,102,0.15); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(37,211,102,0.25);">
+      <div id="wa-ping" class="absolute inset-0 rounded-full" style="background: rgba(37,211,102,0.2);"></div>
+      <svg width="30" height="30" fill="#25D366" viewBox="0 0 24 24" class="relative z-10 group-hover:scale-110 transition-transform duration-300">
+        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+      </svg>
+    </div>
+    <span class="absolute -top-8 right-0 bg-white text-gray-800 text-xs font-medium px-3 py-1 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap pointer-events-none">Chat with us</span>
+  </a>
+
+  <script>
+  // ─── PRODUCT DATA ───
+  const products = [
+    { id: 1, sku: 'PX-TZB-500', name: 'Taizab Cleaning Acid 500ml', category: 'Cleaning', price: 120, stock: 85, desc: 'Powerful cleaning acid for tough stains on tiles, marble, and bathroom surfaces. Effective formula for deep cleaning.' },
+    { id: 2, sku: 'PX-TZB-1L', name: 'Taizab Cleaning Acid 1L', category: 'Cleaning', price: 220, stock: 120, desc: 'Economy size cleaning acid. Ideal for heavy-duty cleaning of floors, drains, and industrial surfaces.' },
+    { id: 3, sku: 'PX-TZB-2L', name: 'Taizab Cleaning Acid 2L', category: 'Cleaning', price: 400, stock: 45, desc: 'Bulk cleaning acid for commercial and industrial use. Maximum value for large-scale cleaning operations.' },
+    { id: 4, sku: 'PX-SWP-F5', name: 'Sweep Floor Cleaner 500ml', category: 'Cleaning', price: 95, stock: 60, desc: 'Fragrant floor cleaner that leaves surfaces sparkling clean. Suitable for all floor types including marble and tiles.' },
+    { id: 5, sku: 'PX-SWP-F1', name: 'Sweep Floor Cleaner 1L', category: 'Cleaning', price: 180, stock: 90, desc: 'Large bottle floor cleaner for daily use. Pleasant fragrance that keeps your home fresh all day.' },
+    { id: 6, sku: 'PX-SWP-F2', name: 'Sweep Floor Cleaner 2L', category: 'Cleaning', price: 340, stock: 30, desc: 'Family-size floor cleaner. Best value for households and offices with large floor areas.' },
+    { id: 7, sku: 'PX-SWP-T5', name: 'Sweep Toilet Cleaner 500ml', category: 'Cleaning', price: 110, stock: 75, desc: 'Specialized toilet bowl cleaner with angled nozzle. Kills 99.9% germs and removes tough stains.' },
+    { id: 8, sku: 'PX-SWP-T1', name: 'Sweep Toilet Cleaner 1L', category: 'Cleaning', price: 200, stock: 55, desc: 'Large toilet cleaner for commercial and household use. Powerful formula for complete toilet hygiene.' },
+    { id: 9, sku: 'PX-NEL-100', name: 'Neel Fabric Whitener 100ml', category: 'Whitener', price: 45, stock: 200, desc: 'Traditional fabric whitener for brilliant white clothes. Trusted formula used in Pakistani households for generations.' },
+    { id: 10, sku: 'PX-NEL-250', name: 'Neel Fabric Whitener 250ml', category: 'Whitener', price: 90, stock: 150, desc: 'Medium bottle fabric whitener. Perfect for regular laundry needs. Restores whiteness to dull fabrics.' },
+    { id: 11, sku: 'PX-NEL-500', name: 'Neel Fabric Whitener 500ml', category: 'Whitener', price: 160, stock: 95, desc: 'Large fabric whitener for bulk laundry. Ideal for laundry businesses and large families.' },
+    { id: 12, sku: 'PX-CSB-200', name: 'Clothes Soap Bar 200g', category: 'Soap', price: 55, stock: 180, desc: 'Premium clothes washing soap bar. Gentle on fabrics, tough on stains. Produces rich lather.' },
+    { id: 13, sku: 'PX-CSB-400', name: 'Clothes Soap Bar 400g', category: 'Soap', price: 95, stock: 140, desc: 'Large clothes soap bar for extended use. Removes grease, dirt, and collar stains effectively.' },
+    { id: 14, sku: 'PX-BSB-100', name: 'Bath Soap Bar 100g', category: 'Soap', price: 65, stock: 160, desc: 'Moisturizing bath soap with gentle fragrance. Suitable for all skin types including sensitive skin.' },
+    { id: 15, sku: 'PX-BSB-150', name: 'Bath Soap Bar 150g', category: 'Soap', price: 90, stock: 130, desc: 'Premium bath soap bar with long-lasting fragrance. Leaves skin soft, clean, and refreshed.' },
+    { id: 16, sku: 'PX-DSB-200', name: 'Dish Soap Bar 200g', category: 'Soap', price: 50, stock: 170, desc: 'Heavy-duty dish washing soap. Cuts through grease and food residue. Safe for all utensils.' },
+    { id: 17, sku: 'PX-DSL-500', name: 'Dish Soap Liquid 500ml', category: 'Soap', price: 140, stock: 80, desc: 'Liquid dish soap with concentrated formula. A small amount goes a long way. Gentle on hands.' },
+    { id: 18, sku: 'PX-BLC-500', name: 'Bleach 500ml', category: 'Bleach', price: 75, stock: 110, desc: 'Multi-purpose bleach for cleaning, whitening, and disinfecting. Essential household cleaning supply.' },
+    { id: 19, sku: 'PX-BLC-1L', name: 'Bleach 1L', category: 'Bleach', price: 130, stock: 85, desc: 'Large bottle bleach for thorough home sanitization. Effective against bacteria, viruses, and mold.' },
+    { id: 20, sku: 'PX-BLC-2L', name: 'Bleach 2L', category: 'Bleach', price: 240, stock: 40, desc: 'Bulk bleach for commercial cleaning. Maximum cleaning and sanitizing power at the best value.' },
+  ];
+
+  // ─── HELPERS ───
+  const categoryIcons = {
+    Cleaning: '<svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" stroke="rgba(77,158,213,0.3)"/><path d="M8 12l2 2 4-4" stroke="#4d9ed5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    Whitener: '<svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="rgba(168,130,255,0.3)"/><path d="M12 6v6l4 2" stroke="#c4a8ff" stroke-width="2" stroke-linecap="round"/></svg>',
+    Soap: '<svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="rgba(72,199,142,0.3)"/><path d="M8 14s1.5 2 4 2 4-2 4-2" stroke="#72c78e" stroke-width="2" stroke-linecap="round"/><circle cx="9" cy="10" r="1" fill="#72c78e"/><circle cx="15" cy="10" r="1" fill="#72c78e"/></svg>',
+    Bleach: '<svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="rgba(255,180,80,0.3)"/><path d="M12 8v4M12 16h.01" stroke="#ffb450" stroke-width="2" stroke-linecap="round"/></svg>',
+  };
+
+  const categoryColors = {
+    Cleaning: { bg: 'rgba(77,158,213,0.12)', text: '#7bb8e0', border: 'rgba(77,158,213,0.2)', accent: '#4d9ed5' },
+    Whitener: { bg: 'rgba(168,130,255,0.12)', text: '#c4a8ff', border: 'rgba(168,130,255,0.2)', accent: '#a882ff' },
+    Soap: { bg: 'rgba(72,199,142,0.12)', text: '#72c78e', border: 'rgba(72,199,142,0.2)', accent: '#48c78e' },
+    Bleach: { bg: 'rgba(255,180,80,0.12)', text: '#ffb450', border: 'rgba(255,180,80,0.2)', accent: '#ffb450' },
+  };
+
+  function getBadgeClass(cat) {
+    return 'badge-' + cat.toLowerCase();
+  }
+
+  function getStockInfo(stock) {
+    if (stock >= 100) return { class: 'stock-high', label: 'In Stock', color: '#4ade80' };
+    if (stock >= 50) return { class: 'stock-medium', label: 'Limited Stock', color: '#fbbf24' };
+    return { class: 'stock-low', label: 'Low Stock', color: '#f87171' };
+  }
+
+  function getWhatsAppURL(product) {
+    const msg = `Hi, I'm interested in ${product.name} (SKU: ${product.sku}). Please share details.`;
+    return `https://wa.me/923400145796?text=${encodeURIComponent(msg)}`;
+  }
+
+  function getSizeFromName(name) {
+    const match = name.match(/(\d+(?:ml|L|g))/i);
+    return match ? match[1] : '';
+  }
+
+  function getProductInitial(product) {
+    // Get a meaningful short label
+    if (product.name.startsWith('Taizab')) return 'TZ';
+    if (product.name.startsWith('Sweep Floor')) return 'SF';
+    if (product.name.startsWith('Sweep Toilet')) return 'ST';
+    if (product.name.startsWith('Neel')) return 'NL';
+    if (product.name.startsWith('Clothes Soap')) return 'CS';
+    if (product.name.startsWith('Bath Soap')) return 'BS';
+    if (product.name.startsWith('Dish Soap Bar')) return 'DS';
+    if (product.name.startsWith('Dish Soap Liquid')) return 'DL';
+    if (product.name.startsWith('Bleach')) return 'BL';
+    return product.name.charAt(0);
+  }
+
+  // ─── URL PARSING ───
+  const params = new URLSearchParams(window.location.search);
+  const paramId = params.get('id');
+  const paramSku = params.get('sku');
+
+  let activeProduct = null;
+  if (paramId) {
+    activeProduct = products.find(p => p.id === parseInt(paramId));
+  } else if (paramSku) {
+    activeProduct = products.find(p => p.sku.toLowerCase() === paramSku.toLowerCase());
+  }
+
+  // ─── RENDER ───
+  const app = document.getElementById('app');
+
+  if (activeProduct) {
+    renderProductDetail(activeProduct);
+    document.getElementById('page-title').textContent = `${activeProduct.name} — PUREX Chemicals`;
+    // Update floating WhatsApp link
+    document.getElementById('wa-float').href = getWhatsAppURL(activeProduct);
+  } else {
+    renderProductGrid();
+  }
+
+  // ─── PRODUCT DETAIL VIEW ───
+  function renderProductDetail(p) {
+    const stockInfo = getStockInfo(p.stock);
+    const colors = categoryColors[p.category];
+    const size = getSizeFromName(p.name);
+    const initial = getProductInitial(p);
+
+    // Find related products (same category, different id)
+    const related = products.filter(r => r.category === p.category && r.id !== p.id).slice(0, 4);
+
+    app.innerHTML = `
+      <div class="max-w-6xl mx-auto">
+        <!-- Breadcrumb -->
+        <div class="flex items-center gap-2 text-xs text-white/30 mb-8 font-light tracking-wider" id="breadcrumb">
+          <a href="../shop.html" class="hover:text-white/60 transition">Shop</a>
+          <span>/</span>
+          <span class="text-white/50">${p.category}</span>
+          <span>/</span>
+          <span class="text-white/70">${p.name}</span>
+        </div>
+
+        <!-- Main product section -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
+
+          <!-- LEFT: Product Image -->
+          <div id="product-image-section">
+            <div class="product-image-placeholder rounded-3xl aspect-square flex flex-col items-center justify-center relative" style="max-height: 520px;">
+              <!-- Decorative ring -->
+              <div class="absolute inset-8 rounded-full border border-white/[0.04]"></div>
+              <div class="absolute inset-16 rounded-full border border-white/[0.03]"></div>
+
+              <!-- Product initial / icon -->
+              <div class="relative z-10 flex flex-col items-center gap-4">
+                <div class="w-28 h-28 rounded-full flex items-center justify-center" style="background: ${colors.bg}; border: 2px solid ${colors.border};">
+                  <span class="font-heading text-4xl font-bold" style="color: ${colors.text};">${initial}</span>
+                </div>
+                <span class="text-sm font-light tracking-widest text-white/30 uppercase">${size}</span>
+              </div>
+
+              <!-- QR Note -->
+              <div class="absolute bottom-6 left-6 right-6 glass rounded-xl px-4 py-3 flex items-center gap-3">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-white/30 flex-shrink-0">
+                  <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/>
+                  <rect x="14" y="14" width="3" height="3"/><rect x="18" y="18" width="3" height="3"/><rect x="14" y="18" width="3" height="3" fill="none"/>
+                </svg>
+                <span class="text-[11px] text-white/30 tracking-wider">Scan QR on packaging to visit this page</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- RIGHT: Product Info -->
+          <div id="product-info-section" class="flex flex-col justify-center">
+            <!-- Category badge -->
+            <div class="mb-4">
+              <span class="${getBadgeClass(p.category)} text-xs font-medium tracking-widest uppercase px-4 py-1.5 rounded-full inline-block">${p.category}</span>
+            </div>
+
+            <!-- Product name -->
+            <h1 class="font-heading text-3xl md:text-4xl lg:text-5xl font-light text-white leading-tight mb-2">${p.name}</h1>
+
+            <!-- SKU -->
+            <p class="text-white/25 text-sm font-light tracking-[0.2em] mb-6">SKU: ${p.sku}</p>
+
+            <!-- Price -->
+            <div class="flex items-baseline gap-2 mb-6">
+              <span class="text-4xl font-heading font-semibold text-gradient">Rs. ${p.price}</span>
+              ${size ? `<span class="text-white/30 text-sm font-light">/ ${size}</span>` : ''}
+            </div>
+
+            <!-- Description -->
+            <div class="glass-card rounded-2xl p-6 mb-6">
+              <p class="text-white/60 font-light leading-relaxed text-[15px]">${p.desc}</p>
+            </div>
+
+            <!-- Size / Variant -->
+            ${size ? `
+            <div class="mb-6">
+              <p class="text-white/30 text-xs tracking-widest uppercase mb-3">Size / Variant</p>
+              <div class="flex gap-2 flex-wrap">
+                ${products.filter(r => {
+                  // Find same product line, different sizes
+                  const baseName = p.name.replace(/\s*\d+(?:ml|L|g)/i, '').trim();
+                  const rBaseName = r.name.replace(/\s*\d+(?:ml|L|g)/i, '').trim();
+                  return baseName === rBaseName;
+                }).map(v => {
+                  const vSize = getSizeFromName(v.name);
+                  const isActive = v.id === p.id;
+                  return `<a href="?id=${v.id}" class="px-4 py-2 rounded-xl text-sm tracking-wider transition-all ${isActive ? 'glass-strong text-purex-blue border border-purex-blue/30' : 'glass text-white/40 hover:text-white/70 hover:border-white/15'}">${vSize}</a>`;
+                }).join('')}
+              </div>
+            </div>` : ''}
+
+            <!-- Stock Status -->
+            <div class="flex items-center gap-3 mb-8">
+              <span class="stock-dot ${stockInfo.class}"></span>
+              <span class="text-sm font-light" style="color: ${stockInfo.color};">${stockInfo.label}</span>
+              <span class="text-white/15 text-xs">(${p.stock} units available)</span>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-col sm:flex-row gap-4">
+              <a href="${getWhatsAppURL(p)}" target="_blank"
+                 class="pulse-green flex items-center justify-center gap-3 bg-[#25d366] hover:bg-[#20bd5a] text-white font-medium tracking-wider text-sm px-8 py-4 rounded-2xl transition-all duration-300 hover:scale-[1.02]">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                </svg>
+                Order on WhatsApp
+              </a>
+              <a href="../shop.html"
+                 class="glass flex items-center justify-center gap-2 text-white/60 hover:text-white font-light tracking-wider text-sm px-8 py-4 rounded-2xl transition-all duration-300 hover:border-white/15">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 2L4 8l6 6"/></svg>
+                Back to Shop
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Related Products -->
+        ${related.length > 0 ? `
+        <div class="mt-24" id="related-section">
+          <p class="font-heading text-sm tracking-[0.4em] text-purex-blue/60 uppercase mb-2">More in ${p.category}</p>
+          <h2 class="font-heading text-2xl font-light text-white mb-8">Related Products</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            ${related.map(r => renderGridCard(r)).join('')}
+          </div>
+        </div>` : ''}
+      </div>
+    `;
+
+    // Animate in
+    requestAnimationFrame(() => {
+      gsap.fromTo('#breadcrumb', { opacity: 0, y: -10 }, { opacity: 1, y: 0, duration: 0.5, delay: 0.1 });
+      gsap.fromTo('#product-image-section', { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.8, delay: 0.2, ease: 'power3.out' });
+      gsap.fromTo('#product-info-section', { opacity: 0, x: 40 }, { opacity: 1, x: 0, duration: 0.8, delay: 0.3, ease: 'power3.out' });
+      if (document.getElementById('related-section')) {
+        gsap.fromTo('#related-section', { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.7, delay: 0.6, ease: 'power3.out' });
+      }
+    });
+  }
+
+  // ─── SINGLE GRID CARD (reused in grid view & related) ───
+  function renderGridCard(p) {
+    const stockInfo = getStockInfo(p.stock);
+    const colors = categoryColors[p.category];
+    const initial = getProductInitial(p);
+    const size = getSizeFromName(p.name);
+
+    return `
+      <a href="?id=${p.id}" class="product-grid-card glass-card rounded-2xl overflow-hidden block group">
+        <!-- Image area -->
+        <div class="product-image-placeholder aspect-[4/3] flex items-center justify-center relative">
+          <div class="w-16 h-16 rounded-full flex items-center justify-center" style="background: ${colors.bg}; border: 1px solid ${colors.border};">
+            <span class="font-heading text-xl font-bold" style="color: ${colors.text};">${initial}</span>
+          </div>
+          ${size ? `<span class="absolute bottom-3 right-3 text-[10px] text-white/25 tracking-widest">${size}</span>` : ''}
+          <span class="absolute top-3 left-3 ${getBadgeClass(p.category)} text-[10px] tracking-widest uppercase px-3 py-1 rounded-full">${p.category}</span>
+        </div>
+        <!-- Info -->
+        <div class="p-5">
+          <h3 class="font-heading text-sm font-medium text-white group-hover:text-purex-blue transition-colors leading-snug mb-1">${p.name}</h3>
+          <p class="text-white/25 text-[10px] tracking-widest mb-3">SKU: ${p.sku}</p>
+          <div class="flex items-center justify-between">
+            <span class="text-lg font-heading font-semibold text-gradient">Rs. ${p.price}</span>
+            <div class="flex items-center gap-1.5">
+              <span class="stock-dot ${stockInfo.class}" style="width:6px;height:6px;"></span>
+              <span class="text-[10px]" style="color: ${stockInfo.color};">${stockInfo.label}</span>
+            </div>
+          </div>
+        </div>
+      </a>
+    `;
+  }
+
+  // ─── PRODUCT GRID VIEW (all products) ───
+  function renderProductGrid() {
+    document.getElementById('page-title').textContent = 'All Products — PUREX Chemicals';
+
+    app.innerHTML = `
+      <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <div class="mb-10" id="grid-header">
+          <p class="font-heading text-sm tracking-[0.4em] text-purex-blue/80 uppercase mb-3">Product Catalog</p>
+          <h1 class="font-heading text-4xl md:text-5xl font-extralight text-white">All <span class="text-gradient">Products</span></h1>
+          <p class="text-white/40 font-light mt-3 max-w-lg">Browse our complete range of household and cleaning essentials. Tap any product for full details.</p>
+
+          <!-- Filters -->
+          <div class="flex flex-wrap gap-3 mt-8" id="filter-bar">
+            <button class="filter-btn glass text-sm px-5 py-2 rounded-full text-white/60 tracking-wider active" data-filter="all">All (${products.length})</button>
+            <button class="filter-btn glass text-sm px-5 py-2 rounded-full text-white/60 tracking-wider" data-filter="Cleaning">Cleaning</button>
+            <button class="filter-btn glass text-sm px-5 py-2 rounded-full text-white/60 tracking-wider" data-filter="Whitener">Whitener</button>
+            <button class="filter-btn glass text-sm px-5 py-2 rounded-full text-white/60 tracking-wider" data-filter="Soap">Soap</button>
+            <button class="filter-btn glass text-sm px-5 py-2 rounded-full text-white/60 tracking-wider" data-filter="Bleach">Bleach</button>
+          </div>
+        </div>
+
+        <!-- Grid -->
+        <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          ${products.map(p => renderGridCard(p)).join('')}
+        </div>
+      </div>
+    `;
+
+    // Filter functionality
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const filter = btn.dataset.filter;
+        const filtered = filter === 'all' ? products : products.filter(p => p.category === filter);
+        const grid = document.getElementById('product-grid');
+
+        // Animate out
+        gsap.to(grid.children, {
+          opacity: 0, y: 20, stagger: 0.02, duration: 0.2,
+          onComplete: () => {
+            grid.innerHTML = filtered.map(p => renderGridCard(p)).join('');
+            gsap.fromTo(grid.children, { opacity: 0, y: 20 }, { opacity: 1, y: 0, stagger: 0.04, duration: 0.4, ease: 'power3.out' });
+          }
+        });
+      });
+    });
+
+    // Animate grid in
+    requestAnimationFrame(() => {
+      gsap.fromTo('#grid-header', { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' });
+      gsap.fromTo('.product-grid-card', { opacity: 0, y: 30 }, { opacity: 1, y: 0, stagger: 0.05, duration: 0.5, delay: 0.2, ease: 'power3.out' });
+    });
+  }
+
+  // WhatsApp pulse animation
+  gsap.to('#wa-ping', { scale: 1.5, opacity: 0, duration: 1.5, repeat: -1, ease: 'power2.out' });
+  </script>
+</body>
+</html>
