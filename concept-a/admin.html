@@ -1775,6 +1775,7 @@
       confirmed: { bg: 'bg-emerald-500/10', text: 'text-emerald-400', dot: 'bg-emerald-400' },
       shipped: { bg: 'bg-purex-blue/10', text: 'text-purex-blue', dot: 'bg-purex-blue' },
       delivered: { bg: 'bg-emerald-500/10', text: 'text-emerald-400', dot: 'bg-emerald-400' },
+      cancelled: { bg: 'bg-red-500/10', text: 'text-red-400', dot: 'bg-red-400' },
     };
 
     let editingOrderIdx = null; // track which order is being edited
@@ -1865,10 +1866,16 @@
                 Invoice PDF
               </button>
             </div>`;
+        } else if (o.status === 'cancelled') {
+          actionsHtml = `
+            <div class="flex items-center gap-2 mt-2">
+              <p class="text-[10px] text-red-400/50 flex-1">✕ Order Cancelled</p>
+              <button onclick="deleteOrder(${idx})" class="text-[10px] px-2 py-1 rounded-lg bg-red-500/10 text-red-400/60 hover:text-red-400 hover:bg-red-500/20 transition font-light">Remove</button>
+            </div>`;
         }
 
         return `
-          <div class="glass rounded-xl p-3 transition hover:border-white/15" id="order-card-${idx}">
+          <div class="glass rounded-xl p-3 transition hover:border-white/15 ${o.status === 'cancelled' ? 'opacity-40' : ''}" id="order-card-${idx}">
             <div class="flex items-center justify-between mb-2">
               <span class="text-xs text-purex-blue font-mono">${o.id}</span>
               <select onchange="changeOrderStatus(${idx}, this.value)" class="text-[10px] px-2 py-0.5 rounded-full ${sc.bg} ${sc.text} bg-transparent border-0 cursor-pointer font-light" style="background-image: none; padding-right: 8px;">
@@ -1876,6 +1883,7 @@
                 <option value="confirmed" ${o.status === 'confirmed' ? 'selected' : ''} class="bg-[#0a0e17]">Confirmed</option>
                 <option value="shipped" ${o.status === 'shipped' ? 'selected' : ''} class="bg-[#0a0e17]">Shipped</option>
                 <option value="delivered" ${o.status === 'delivered' ? 'selected' : ''} class="bg-[#0a0e17]">Delivered</option>
+                <option value="cancelled" ${o.status === 'cancelled' ? 'selected' : ''} class="bg-[#0a0e17]">Cancelled</option>
               </select>
             </div>
             <div class="flex items-center justify-between">
@@ -2033,6 +2041,14 @@
       if (card) {
         gsap.fromTo(card, { borderColor: 'rgba(77,158,213,0.3)' }, { borderColor: 'rgba(255,255,255,0.08)', duration: 1 });
       }
+    }
+
+    function deleteOrder(idx) {
+      if (!confirm('Remove this cancelled order permanently?')) return;
+      orders.splice(idx, 1);
+      saveOrders();
+      renderOrders();
+      updateKPIs();
     }
 
     // ==================== INVOICE PDF ====================
