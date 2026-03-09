@@ -114,6 +114,7 @@
         <button class="filter-btn glass text-sm px-5 py-2 rounded-full text-white/60 tracking-wider" data-filter="Cleaning">Cleaning</button>
         <button class="filter-btn glass text-sm px-5 py-2 rounded-full text-white/60 tracking-wider" data-filter="Soap">Soap</button>
         <button class="filter-btn glass text-sm px-5 py-2 rounded-full text-white/60 tracking-wider" data-filter="Whitener">Whitener</button>
+        <button class="filter-btn glass text-sm px-5 py-2 rounded-full text-white/60 tracking-wider" data-filter="Bleach">Bleach</button>
       </div>
     </div>
   </section>
@@ -185,24 +186,43 @@
     <span class="absolute -top-8 right-0 bg-white text-gray-800 text-xs font-medium px-3 py-1 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap pointer-events-none">Chat with us</span>
   </a>
 
-  <!-- DESCRIPTION MODAL -->
+  <!-- DESCRIPTION + IMAGE MODAL -->
   <div id="desc-modal" class="fixed inset-0 z-[80] flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300" style="background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);">
-    <div id="desc-panel" class="glass-strong rounded-2xl p-6 w-full max-w-md max-h-[70vh] overflow-y-auto transform scale-95 transition-transform duration-300">
+    <div id="desc-panel" class="glass-strong rounded-2xl p-6 w-full max-w-lg max-h-[85vh] overflow-y-auto transform scale-95 transition-transform duration-300">
       <div class="flex items-center justify-between mb-4">
         <h3 id="desc-modal-title" class="font-heading text-base font-light text-white"></h3>
         <button onclick="closeDescModal()" class="p-1 text-white/30 hover:text-white transition">
           <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 5l10 10M15 5L5 15"/></svg>
         </button>
       </div>
+      <div id="desc-modal-img-wrap" class="hidden mb-4 rounded-xl overflow-hidden bg-white/[0.03] cursor-zoom-in" onclick="zoomImage(document.getElementById('desc-modal-img').src)">
+        <img id="desc-modal-img" src="" alt="" class="w-full max-h-64 object-contain mx-auto" onerror="this.parentElement.classList.add('hidden')">
+      </div>
       <p id="desc-modal-body" class="text-sm text-white/60 font-light leading-relaxed"></p>
     </div>
   </div>
 
+  <!-- IMAGE ZOOM MODAL -->
+  <div id="zoom-modal" class="fixed inset-0 z-[90] flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300 cursor-zoom-out" style="background: rgba(0,0,0,0.85);" onclick="closeZoomModal()">
+    <button onclick="closeZoomModal()" class="absolute top-4 right-4 p-2 text-white/50 hover:text-white transition z-10">
+      <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l16 16M22 6L6 22"/></svg>
+    </button>
+    <img id="zoom-img" src="" alt="" class="max-w-[90vw] max-h-[90vh] object-contain rounded-xl" style="transform: scale(0.9); transition: transform 0.3s ease;">
+  </div>
+
   <script>
-    function showDescModal(name, desc) {
+    function showDescModal(name, desc, imgSrc) {
       const modal = document.getElementById('desc-modal');
       document.getElementById('desc-modal-title').textContent = name;
       document.getElementById('desc-modal-body').textContent = desc;
+      const imgWrap = document.getElementById('desc-modal-img-wrap');
+      const img = document.getElementById('desc-modal-img');
+      if (imgSrc) {
+        img.src = imgSrc;
+        imgWrap.classList.remove('hidden');
+      } else {
+        imgWrap.classList.add('hidden');
+      }
       modal.style.opacity = '1';
       modal.style.pointerEvents = 'auto';
       document.getElementById('desc-panel').style.transform = 'scale(1)';
@@ -213,11 +233,28 @@
       modal.style.opacity = '0';
       modal.style.pointerEvents = 'none';
     }
+    function zoomImage(src) {
+      const modal = document.getElementById('zoom-modal');
+      const img = document.getElementById('zoom-img');
+      img.src = src;
+      modal.style.opacity = '1';
+      modal.style.pointerEvents = 'auto';
+      setTimeout(() => { img.style.transform = 'scale(1)'; }, 10);
+    }
+    function closeZoomModal() {
+      const modal = document.getElementById('zoom-modal');
+      document.getElementById('zoom-img').style.transform = 'scale(0.9)';
+      modal.style.opacity = '0';
+      modal.style.pointerEvents = 'none';
+    }
     document.getElementById('desc-modal').addEventListener('click', function(e) {
       if (e.target === this) closeDescModal();
     });
     document.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape' && document.getElementById('desc-modal').style.opacity === '1') closeDescModal();
+      if (e.key === 'Escape') {
+        if (document.getElementById('zoom-modal').style.opacity === '1') closeZoomModal();
+        else if (document.getElementById('desc-modal').style.opacity === '1') closeDescModal();
+      }
     });
   </script>
 
@@ -237,6 +274,29 @@
       { id: 6, name: 'Sweep Toilet Cleaner', category: 'Cleaning', price: 160, buyPrice: 77, stock: 75, status: 'active', sku: 'SWP-T500', volume: '500ml', desc: 'Max power toilet cleaner with angled nozzle for under-rim cleaning.', image: '../assets/products/product_6.png' },
       { id: 7, name: 'Purex Bleach', category: 'Cleaning', price: 90, buyPrice: 43, stock: 110, status: 'active', sku: 'BLC-500', volume: '500ml', desc: 'Active chlorine bleach for whitening and disinfection.', image: '../assets/products/product_7.png' },
       { id: 8, name: 'Purex Bleach', category: 'Cleaning', price: 160, buyPrice: 77, stock: 85, status: 'active', sku: 'BLC-1000', volume: '1 Litre', desc: 'Active chlorine bleach. Large size for household use.', image: '../assets/products/product_8.png' },
+      { id: 9, name: 'Purex Bathroom Spray', category: 'Cleaning', price: 180, buyPrice: 85, stock: 70, status: 'active', sku: 'BTH-500', volume: '500ml', desc: 'Powerful antibacterial bathroom spray. Cuts through soap scum, limescale and grime. Leaves surfaces sparkling clean with a fresh scent.', image: '../assets/products/product_9.jpg' },
+      { id: 10, name: 'Purex Bathroom Spray Compact', category: 'Cleaning', price: 110, buyPrice: 52, stock: 95, status: 'active', sku: 'BTH-250', volume: '250ml', desc: 'Compact trigger spray for quick bathroom touch-ups. Perfect for daily cleaning of mirrors, taps and tiles.', image: '../assets/products/product_10.png' },
+      { id: 11, name: 'Purex Surface Cleaner', category: 'Cleaning', price: 195, buyPrice: 92, stock: 55, status: 'active', sku: 'SRF-500', volume: '500ml', desc: 'All-purpose surface cleaner spray. Safe for countertops, appliances and bathroom fixtures. Streak-free formula for a polished finish.', image: '../assets/products/product_11.jpg' },
+      { id: 12, name: 'Purex Glass Cleaner', category: 'Cleaning', price: 170, buyPrice: 80, stock: 65, status: 'active', sku: 'GLS-500', volume: '500ml', desc: 'Crystal clear glass and mirror cleaner. Ammonia-free formula removes fingerprints, dust and smudges without streaking.', image: '../assets/products/product_12.jpg' },
+      { id: 13, name: 'Purex Bleach Standard', category: 'Bleach', price: 220, buyPrice: 105, stock: 80, status: 'active', sku: 'BLX-1000', volume: '1 Litre', desc: 'Multipurpose household bleach for whitening, disinfecting and stain removal. Kills 99.9% of germs on contact.', image: '../assets/products/product_13.jpg' },
+      { id: 14, name: 'Purex Bleach Gallon', category: 'Bleach', price: 450, buyPrice: 210, stock: 40, status: 'active', sku: 'BLX-3500', volume: '3.5 Litre', desc: 'Family-size bleach jug with easy-grip handle. Ideal for laundry whitening, kitchen sanitizing and bathroom deep cleaning.', image: '../assets/products/product_14.jpg' },
+      { id: 15, name: 'Purex Bleach Industrial', category: 'Bleach', price: 550, buyPrice: 260, stock: 30, status: 'active', sku: 'BLX-5000', volume: '5 Litre', desc: 'Industrial-grade bleach in a heavy-duty jerry can. Designed for commercial kitchens, hospitals and large-scale cleaning operations.', image: '../assets/products/product_15.jpg' },
+      { id: 16, name: 'Purex Bleach Economy', category: 'Bleach', price: 480, buyPrice: 225, stock: 35, status: 'active', sku: 'BLX-4000', volume: '4 Litre', desc: 'Economy-size bleach with ergonomic handle. Great value for regular household use. Active chlorine formula for powerful disinfection.', image: '../assets/products/product_16.jpg' },
+      { id: 17, name: 'Purex Liquid Bleach Blue', category: 'Bleach', price: 520, buyPrice: 245, stock: 25, status: 'active', sku: 'BLX-B5000', volume: '5 Litre', desc: 'Premium blue liquid bleach concentrate. Extra strength formula for tough stains, mold removal and heavy-duty disinfection.', image: '../assets/products/product_17.jpg' },
+      { id: 18, name: 'Purex Coconut Bath Soap', category: 'Soap', price: 75, buyPrice: 35, stock: 150, status: 'active', sku: 'SOP-COC130', volume: '130g', desc: 'Natural coconut oil bath soap. Rich, creamy lather moisturizes skin while gently cleansing. Made with pure coconut extract for soft, supple skin.', image: '../assets/products/product_18.jpg' },
+      { id: 19, name: 'Purex Clothes Soap 3-Pack', category: 'Soap', price: 145, buyPrice: 68, stock: 100, status: 'active', sku: 'SOP-CLT3PK', volume: '3x200g', desc: 'Value pack of three laundry soap bars in assorted colors. Tough on stains, gentle on fabrics. Perfect for hand-washing clothes.', image: '../assets/products/product_19.jpg' },
+      { id: 20, name: 'Purex Classic White Soap', category: 'Soap', price: 55, buyPrice: 25, stock: 200, status: 'active', sku: 'SOP-WHT100', volume: '100g', desc: 'Pure white bath soap with a clean, fresh fragrance. Dermatologically tested for all skin types. Everyday essential for the whole family.', image: '../assets/products/product_20.jpg' },
+      { id: 21, name: 'Purex Laundry Soap Bundle', category: 'Soap', price: 280, buyPrice: 130, stock: 60, status: 'active', sku: 'SOP-BDL5', volume: '5x130g', desc: 'Bulk laundry soap bundle — five bars for maximum savings. Long-lasting formula removes tough stains from collars, cuffs and everyday dirt.', image: '../assets/products/product_21.png' },
+      { id: 22, name: 'Purex Bath Soap Honey', category: 'Soap', price: 65, buyPrice: 30, stock: 180, status: 'active', sku: 'SOP-HNY100', volume: '100g', desc: 'Luxurious honey-infused bath soap. Nourishes and hydrates dry skin with natural honey extracts. Smooth, creamy texture with a warm fragrance.', image: '../assets/products/product_22.webp' },
+      { id: 23, name: 'Purex Spin Mop', category: 'Cleaning', price: 850, buyPrice: 400, stock: 20, status: 'active', sku: 'MOP-SPIN', volume: 'Standard', desc: 'Professional spin mop with 360-degree rotating head. Microfiber strands pick up dust, dirt and spills effortlessly. Stainless steel handle for durability.', image: '../assets/products/product_23.png' },
+      { id: 24, name: 'Purex Cotton Mop', category: 'Cleaning', price: 450, buyPrice: 210, stock: 35, status: 'active', sku: 'MOP-CTN', volume: 'Standard', desc: 'Classic cotton string mop with sturdy aluminum handle. Highly absorbent cotton threads for efficient floor cleaning. Easy to wring and maintain.', image: '../assets/products/product_24.png' },
+      { id: 25, name: 'Purex Heavy Duty Mop', category: 'Cleaning', price: 550, buyPrice: 260, stock: 25, status: 'active', sku: 'MOP-HD', volume: 'Large', desc: 'Extra-thick cotton mop head for heavy-duty floor cleaning. Ideal for large areas, commercial spaces and deep cleaning sessions. Replaceable head.', image: '../assets/products/product_25.jpg' },
+      { id: 26, name: 'Purex Mop Head Refill', category: 'Cleaning', price: 250, buyPrice: 115, stock: 50, status: 'active', sku: 'MOP-REF', volume: 'Standard', desc: 'Replacement mop head made from premium cotton string. Universal fit for most mop handles. Economical and eco-friendly alternative to buying a full mop.', image: '../assets/products/product_26.jpg' },
+      { id: 27, name: 'Purex Cleaning Kit', category: 'Cleaning', price: 1200, buyPrice: 560, stock: 15, status: 'active', sku: 'KIT-FULL', volume: 'Complete Set', desc: 'All-in-one cleaning kit with assorted bottles, sponges, cloths and brushes. Everything you need for a spotless home. Great gift for new homeowners.', image: '../assets/products/product_27.jpg' },
+      { id: 28, name: 'Purex Power Spray', category: 'Cleaning', price: 220, buyPrice: 105, stock: 45, status: 'active', sku: 'PWR-500', volume: '500ml', desc: 'High-pressure action cleaning spray that blasts away grease, grime and stubborn stains. Works on kitchen surfaces, stovetops, tiles and bathroom fixtures.', image: '../assets/products/product_28.jpg' },
+      { id: 29, name: 'Purex Cleaning Bundle', category: 'Cleaning', price: 950, buyPrice: 440, stock: 18, status: 'active', sku: 'KIT-BSKT', volume: 'Basket Set', desc: 'Portable cleaning basket with essential supplies. Includes spray bottles, scrub brush, sponge and microfiber cloth. Organized and ready to use.', image: '../assets/products/product_29.png' },
+      { id: 30, name: 'Purex Liquid Detergent', category: 'Cleaning', price: 320, buyPrice: 150, stock: 55, status: 'active', sku: 'DET-1000', volume: '1 Litre', desc: 'Concentrated liquid laundry detergent. Removes tough stains at low temperatures. Fresh ocean breeze scent keeps clothes smelling great all day.', image: '../assets/products/product_30.jpg' },
+      { id: 31, name: 'Purex Liquid Detergent XL', category: 'Cleaning', price: 550, buyPrice: 255, stock: 30, status: 'active', sku: 'DET-2000', volume: '2 Litre', desc: 'Extra-large liquid detergent for families. Double the cleaning power in an economy bottle. Colour-safe formula protects bright and dark fabrics.', image: '../assets/products/product_31.jpg' },
     ];
 
     // ─── LOAD PRODUCTS FROM LOCALSTORAGE (shared data store) ───
@@ -313,20 +373,23 @@
         ? '<p class="col-span-full text-center text-white/30 text-sm py-20">No products found.</p>'
         : filtered.map(p => `
         <div class="product-card glass-strong rounded-2xl overflow-hidden group${p.onSale ? ' border-red-500/20' : ''}" data-category="${p.category}">
-          <div class="relative h-48 flex items-center justify-center overflow-hidden bg-white/[0.03] rounded-t-2xl">
+          <div class="relative h-48 flex items-center justify-center overflow-hidden bg-white/[0.03] rounded-t-2xl cursor-pointer" onclick="zoomImage('${p.image}')">
             <img src="${p.image}" alt="${p.name}" class="h-40 w-40 object-contain transition-transform duration-500 group-hover:scale-110"
                  onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
             <div class="hidden absolute inset-0 items-center justify-center text-white/20">
               <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1"><rect x="8" y="8" width="32" height="32" rx="4"/><circle cx="18" cy="18" r="3"/><path d="M8 32l8-8 6 6 4-4 14 6"/></svg>
             </div>
+            <div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
+              <svg width="24" height="24" fill="none" stroke="white" stroke-width="1.5" class="drop-shadow"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/><path d="M11 8v6M8 11h6"/></svg>
+            </div>
             ${p.onSale && p.salePrice ? '<span class="absolute top-3 left-3 text-[11px] tracking-wider uppercase px-2.5 py-1 rounded-full bg-red-500/20 text-red-400 border border-red-500/30 font-medium">' + Math.round(((p.price - p.salePrice) / p.price) * 100) + '% OFF</span>' : ''}
-            <span class="absolute top-3 right-3 text-[10px] tracking-widest uppercase px-2 py-1 rounded-full glass text-white/50">${p.category}</span>
+            <span class="absolute top-3 right-3 text-[10px] tracking-widest uppercase px-2.5 py-1 rounded-full text-white font-medium" style="background:rgba(10,14,23,0.7);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.15);">${p.category}</span>
           </div>
           <div class="p-5">
             <h3 class="font-heading text-sm font-light text-white mb-1">${p.name}</h3>
             <div class="mb-3">
               <span class="text-[10px] text-white/30 tracking-wider">SKU: ${p.sku}</span>
-              ${p.desc ? '<p class="text-[10px] text-white/40 mt-1 line-clamp-2 leading-relaxed">' + p.desc.substring(0, 80) + (p.desc.length > 80 ? '... <button onclick="showDescModal(\'' + p.name.replace(/'/g, "\\'") + '\', \'' + p.desc.replace(/'/g, "\\'").replace(/\n/g, ' ') + '\')" class="text-purex-blue hover:underline ml-0.5">Read more</button>' : '') + '</p>' : ''}
+              ${p.desc ? '<p class="text-[10px] text-white/40 mt-1 line-clamp-2 leading-relaxed">' + p.desc.substring(0, 80) + (p.desc.length > 80 ? '... <button onclick="showDescModal(\'' + p.name.replace(/'/g, "\\'") + '\', \'' + p.desc.replace(/'/g, "\\'").replace(/\n/g, ' ') + '\', \'' + (p.image || '').replace(/'/g, "\\'") + '\')" class="text-purex-blue hover:underline ml-0.5">Read more</button>' : '') + '</p>' : ''}
             </div>
             <div class="flex items-center justify-between">
               <div>

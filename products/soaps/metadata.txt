@@ -1,0 +1,4 @@
+Platform: Pinterest
+Title: Search Results Page
+URL: https://www.pinterest.com/search/pins/?q=soap&rs=typed
+

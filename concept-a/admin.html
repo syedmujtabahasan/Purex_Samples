@@ -325,7 +325,7 @@
         </div>
 
         <!-- ==================== PROFIT MARGINS SUMMARY ==================== -->
-        <div id="profit-section" class="grid grid-cols-1 lg:grid-cols-4 gap-3 md:gap-4">
+        <div id="profit-section" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4">
           <div class="bento-card glass-strong rounded-2xl p-4 md:p-5 text-center">
             <div class="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto mb-3">
               <svg width="20" height="20" fill="none" stroke="#34d399" stroke-width="1.5"><path d="M10 2v16M6 6h6a3 3 0 010 6H6"/></svg>
@@ -355,8 +355,16 @@
               <svg width="20" height="20" fill="none" stroke="#4d9ed5" stroke-width="1.5"><path d="M10 2l3 6h5l-4 3 2 6-6-4-6 4 2-6-4-3h5z"/></svg>
             </div>
             <p class="text-[10px] text-white/40 tracking-wider mb-1">MOST PROFITABLE</p>
-            <p id="kpi-most-profitable" class="text-lg font-heading font-light text-purex-blue">--</p>
+            <p id="kpi-most-profitable" class="text-lg font-heading font-light text-purex-blue truncate">--</p>
             <p id="kpi-most-profitable-sub" class="text-[10px] text-white/25 mt-1">--</p>
+          </div>
+          <div class="bento-card glass-strong rounded-2xl p-4 md:p-5 text-center">
+            <div class="w-10 h-10 rounded-full bg-amber-500/10 flex items-center justify-center mx-auto mb-3">
+              <svg width="20" height="20" fill="none" stroke="#fbbf24" stroke-width="1.5"><path d="M3 17l3-6 3 3 5-8"/><circle cx="16" cy="5" r="2"/></svg>
+            </div>
+            <p class="text-[10px] text-white/40 tracking-wider mb-1">MOST SOLD</p>
+            <p id="kpi-most-sold" class="text-lg font-heading font-light text-amber-400 truncate">--</p>
+            <p id="kpi-most-sold-sub" class="text-[10px] text-white/25 mt-1">--</p>
           </div>
         </div>
 
@@ -467,8 +475,8 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3" id="inventory-grid"></div>
         </div>
 
-        <!-- Row 4: Sales by Product + Top Selling + Category Breakdown -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+        <!-- Row 4: Sales by Product + Top Profitable + Top Sold + Category Breakdown -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-6">
 
           <!-- Sales by Product (Units Sold) -->
           <div class="bento-card glass-strong rounded-2xl p-4 md:p-6">
@@ -479,51 +487,21 @@
             </div>
           </div>
 
-          <!-- Top 5 Selling Products -->
+          <!-- Top 5 Most Profitable Products -->
           <div class="bento-card glass-strong rounded-2xl p-4 md:p-6">
-            <h3 class="font-heading text-sm font-light text-white mb-1">Top 5 Selling Products</h3>
-            <p class="text-[10px] text-white/30 mb-5">By revenue this month</p>
-            <div class="space-y-4">
-              <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-lg bg-purex-blue/10 flex items-center justify-center text-[10px] text-purex-blue font-heading">01</div>
-                <div class="flex-1">
-                  <p class="text-xs text-white font-light">Taizab Cleaning Acid 1L</p>
-                  <div class="w-full h-1.5 bg-white/5 rounded-full mt-1.5"><div class="h-full bg-purex-blue rounded-full top-bar" data-width="92%"></div></div>
-                </div>
-                <span class="text-xs text-white/40">Rs.248k</span>
-              </div>
-              <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-[10px] text-emerald-400 font-heading">02</div>
-                <div class="flex-1">
-                  <p class="text-xs text-white font-light">Sweep Floor Cleaner 1L</p>
-                  <div class="w-full h-1.5 bg-white/5 rounded-full mt-1.5"><div class="h-full bg-emerald-400 rounded-full top-bar" data-width="78%"></div></div>
-                </div>
-                <span class="text-xs text-white/40">Rs.186k</span>
-              </div>
-              <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center text-[10px] text-amber-400 font-heading">03</div>
-                <div class="flex-1">
-                  <p class="text-xs text-white font-light">Clothes Soap Bar 400g</p>
-                  <div class="w-full h-1.5 bg-white/5 rounded-full mt-1.5"><div class="h-full bg-amber-400 rounded-full top-bar" data-width="65%"></div></div>
-                </div>
-                <span class="text-xs text-white/40">Rs.142k</span>
-              </div>
-              <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center text-[10px] text-purple-400 font-heading">04</div>
-                <div class="flex-1">
-                  <p class="text-xs text-white font-light">Neel Fabric Whitener 250ml</p>
-                  <div class="w-full h-1.5 bg-white/5 rounded-full mt-1.5"><div class="h-full bg-purple-400 rounded-full top-bar" data-width="52%"></div></div>
-                </div>
-                <span class="text-xs text-white/40">Rs.98k</span>
-              </div>
-              <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-lg bg-rose-500/10 flex items-center justify-center text-[10px] text-rose-400 font-heading">05</div>
-                <div class="flex-1">
-                  <p class="text-xs text-white font-light">Bleach 1L</p>
-                  <div class="w-full h-1.5 bg-white/5 rounded-full mt-1.5"><div class="h-full bg-rose-400 rounded-full top-bar" data-width="41%"></div></div>
-                </div>
-                <span class="text-xs text-white/40">Rs.76k</span>
-              </div>
+            <h3 class="font-heading text-sm font-light text-white mb-1">Top 5 Most Profitable</h3>
+            <p class="text-[10px] text-white/30 mb-5">By total profit potential (margin × stock)</p>
+            <div class="space-y-4" id="top-profitable-list">
+              <!-- Rendered by JS -->
+            </div>
+          </div>
+
+          <!-- Top 5 Most Sold Products -->
+          <div class="bento-card glass-strong rounded-2xl p-4 md:p-6">
+            <h3 class="font-heading text-sm font-light text-white mb-1">Top 5 Most Sold</h3>
+            <p class="text-[10px] text-white/30 mb-5">By estimated units sold</p>
+            <div class="space-y-4" id="top-sold-list">
+              <!-- Rendered by JS -->
             </div>
           </div>
 
@@ -764,6 +742,29 @@
       { id: 6, name: 'Sweep Toilet Cleaner', category: 'Cleaning', price: 160, buyPrice: 77, stock: 75, status: 'active', sku: 'SWP-T500', volume: '500ml', desc: 'Max power toilet cleaner with angled nozzle for under-rim cleaning.', image: '../assets/products/product_6.png' },
       { id: 7, name: 'Purex Bleach', category: 'Cleaning', price: 90, buyPrice: 43, stock: 110, status: 'active', sku: 'BLC-500', volume: '500ml', desc: 'Active chlorine bleach for whitening and disinfection.', image: '../assets/products/product_7.png' },
       { id: 8, name: 'Purex Bleach', category: 'Cleaning', price: 160, buyPrice: 77, stock: 85, status: 'active', sku: 'BLC-1000', volume: '1 Litre', desc: 'Active chlorine bleach. Large size for household use.', image: '../assets/products/product_8.png' },
+      { id: 9, name: 'Purex Bathroom Spray', category: 'Cleaning', price: 180, buyPrice: 85, stock: 70, status: 'active', sku: 'BTH-500', volume: '500ml', desc: 'Powerful antibacterial bathroom spray. Cuts through soap scum, limescale and grime. Leaves surfaces sparkling clean with a fresh scent.', image: '../assets/products/product_9.jpg' },
+      { id: 10, name: 'Purex Bathroom Spray Compact', category: 'Cleaning', price: 110, buyPrice: 52, stock: 95, status: 'active', sku: 'BTH-250', volume: '250ml', desc: 'Compact trigger spray for quick bathroom touch-ups. Perfect for daily cleaning of mirrors, taps and tiles.', image: '../assets/products/product_10.png' },
+      { id: 11, name: 'Purex Surface Cleaner', category: 'Cleaning', price: 195, buyPrice: 92, stock: 55, status: 'active', sku: 'SRF-500', volume: '500ml', desc: 'All-purpose surface cleaner spray. Safe for countertops, appliances and bathroom fixtures. Streak-free formula for a polished finish.', image: '../assets/products/product_11.jpg' },
+      { id: 12, name: 'Purex Glass Cleaner', category: 'Cleaning', price: 170, buyPrice: 80, stock: 65, status: 'active', sku: 'GLS-500', volume: '500ml', desc: 'Crystal clear glass and mirror cleaner. Ammonia-free formula removes fingerprints, dust and smudges without streaking.', image: '../assets/products/product_12.jpg' },
+      { id: 13, name: 'Purex Bleach Standard', category: 'Bleach', price: 220, buyPrice: 105, stock: 80, status: 'active', sku: 'BLX-1000', volume: '1 Litre', desc: 'Multipurpose household bleach for whitening, disinfecting and stain removal. Kills 99.9% of germs on contact.', image: '../assets/products/product_13.jpg' },
+      { id: 14, name: 'Purex Bleach Gallon', category: 'Bleach', price: 450, buyPrice: 210, stock: 40, status: 'active', sku: 'BLX-3500', volume: '3.5 Litre', desc: 'Family-size bleach jug with easy-grip handle. Ideal for laundry whitening, kitchen sanitizing and bathroom deep cleaning.', image: '../assets/products/product_14.jpg' },
+      { id: 15, name: 'Purex Bleach Industrial', category: 'Bleach', price: 550, buyPrice: 260, stock: 30, status: 'active', sku: 'BLX-5000', volume: '5 Litre', desc: 'Industrial-grade bleach in a heavy-duty jerry can. Designed for commercial kitchens, hospitals and large-scale cleaning operations.', image: '../assets/products/product_15.jpg' },
+      { id: 16, name: 'Purex Bleach Economy', category: 'Bleach', price: 480, buyPrice: 225, stock: 35, status: 'active', sku: 'BLX-4000', volume: '4 Litre', desc: 'Economy-size bleach with ergonomic handle. Great value for regular household use. Active chlorine formula for powerful disinfection.', image: '../assets/products/product_16.jpg' },
+      { id: 17, name: 'Purex Liquid Bleach Blue', category: 'Bleach', price: 520, buyPrice: 245, stock: 25, status: 'active', sku: 'BLX-B5000', volume: '5 Litre', desc: 'Premium blue liquid bleach concentrate. Extra strength formula for tough stains, mold removal and heavy-duty disinfection.', image: '../assets/products/product_17.jpg' },
+      { id: 18, name: 'Purex Coconut Bath Soap', category: 'Soap', price: 75, buyPrice: 35, stock: 150, status: 'active', sku: 'SOP-COC130', volume: '130g', desc: 'Natural coconut oil bath soap. Rich, creamy lather moisturizes skin while gently cleansing. Made with pure coconut extract for soft, supple skin.', image: '../assets/products/product_18.jpg' },
+      { id: 19, name: 'Purex Clothes Soap 3-Pack', category: 'Soap', price: 145, buyPrice: 68, stock: 100, status: 'active', sku: 'SOP-CLT3PK', volume: '3x200g', desc: 'Value pack of three laundry soap bars in assorted colors. Tough on stains, gentle on fabrics. Perfect for hand-washing clothes.', image: '../assets/products/product_19.jpg' },
+      { id: 20, name: 'Purex Classic White Soap', category: 'Soap', price: 55, buyPrice: 25, stock: 200, status: 'active', sku: 'SOP-WHT100', volume: '100g', desc: 'Pure white bath soap with a clean, fresh fragrance. Dermatologically tested for all skin types. Everyday essential for the whole family.', image: '../assets/products/product_20.jpg' },
+      { id: 21, name: 'Purex Laundry Soap Bundle', category: 'Soap', price: 280, buyPrice: 130, stock: 60, status: 'active', sku: 'SOP-BDL5', volume: '5x130g', desc: 'Bulk laundry soap bundle — five bars for maximum savings. Long-lasting formula removes tough stains from collars, cuffs and everyday dirt.', image: '../assets/products/product_21.png' },
+      { id: 22, name: 'Purex Bath Soap Honey', category: 'Soap', price: 65, buyPrice: 30, stock: 180, status: 'active', sku: 'SOP-HNY100', volume: '100g', desc: 'Luxurious honey-infused bath soap. Nourishes and hydrates dry skin with natural honey extracts. Smooth, creamy texture with a warm fragrance.', image: '../assets/products/product_22.webp' },
+      { id: 23, name: 'Purex Spin Mop', category: 'Cleaning', price: 850, buyPrice: 400, stock: 20, status: 'active', sku: 'MOP-SPIN', volume: 'Standard', desc: 'Professional spin mop with 360-degree rotating head. Microfiber strands pick up dust, dirt and spills effortlessly. Stainless steel handle for durability.', image: '../assets/products/product_23.png' },
+      { id: 24, name: 'Purex Cotton Mop', category: 'Cleaning', price: 450, buyPrice: 210, stock: 35, status: 'active', sku: 'MOP-CTN', volume: 'Standard', desc: 'Classic cotton string mop with sturdy aluminum handle. Highly absorbent cotton threads for efficient floor cleaning. Easy to wring and maintain.', image: '../assets/products/product_24.png' },
+      { id: 25, name: 'Purex Heavy Duty Mop', category: 'Cleaning', price: 550, buyPrice: 260, stock: 25, status: 'active', sku: 'MOP-HD', volume: 'Large', desc: 'Extra-thick cotton mop head for heavy-duty floor cleaning. Ideal for large areas, commercial spaces and deep cleaning sessions. Replaceable head.', image: '../assets/products/product_25.jpg' },
+      { id: 26, name: 'Purex Mop Head Refill', category: 'Cleaning', price: 250, buyPrice: 115, stock: 50, status: 'active', sku: 'MOP-REF', volume: 'Standard', desc: 'Replacement mop head made from premium cotton string. Universal fit for most mop handles. Economical and eco-friendly alternative to buying a full mop.', image: '../assets/products/product_26.jpg' },
+      { id: 27, name: 'Purex Cleaning Kit', category: 'Cleaning', price: 1200, buyPrice: 560, stock: 15, status: 'active', sku: 'KIT-FULL', volume: 'Complete Set', desc: 'All-in-one cleaning kit with assorted bottles, sponges, cloths and brushes. Everything you need for a spotless home. Great gift for new homeowners.', image: '../assets/products/product_27.jpg' },
+      { id: 28, name: 'Purex Power Spray', category: 'Cleaning', price: 220, buyPrice: 105, stock: 45, status: 'active', sku: 'PWR-500', volume: '500ml', desc: 'High-pressure action cleaning spray that blasts away grease, grime and stubborn stains. Works on kitchen surfaces, stovetops, tiles and bathroom fixtures.', image: '../assets/products/product_28.jpg' },
+      { id: 29, name: 'Purex Cleaning Bundle', category: 'Cleaning', price: 950, buyPrice: 440, stock: 18, status: 'active', sku: 'KIT-BSKT', volume: 'Basket Set', desc: 'Portable cleaning basket with essential supplies. Includes spray bottles, scrub brush, sponge and microfiber cloth. Organized and ready to use.', image: '../assets/products/product_29.png' },
+      { id: 30, name: 'Purex Liquid Detergent', category: 'Cleaning', price: 320, buyPrice: 150, stock: 55, status: 'active', sku: 'DET-1000', volume: '1 Litre', desc: 'Concentrated liquid laundry detergent. Removes tough stains at low temperatures. Fresh ocean breeze scent keeps clothes smelling great all day.', image: '../assets/products/product_30.jpg' },
+      { id: 31, name: 'Purex Liquid Detergent XL', category: 'Cleaning', price: 550, buyPrice: 255, stock: 30, status: 'active', sku: 'DET-2000', volume: '2 Litre', desc: 'Extra-large liquid detergent for families. Double the cleaning power in an economy bottle. Colour-safe formula protects bright and dark fabrics.', image: '../assets/products/product_31.jpg' },
     ];
 
     const DEFAULT_ORDERS = [
@@ -886,20 +887,35 @@
         const grossProfit = products.reduce((sum, p) => sum + ((p.price - (p.buyPrice || 0)) * p.stock), 0);
         document.getElementById('kpi-gross-profit').textContent = 'Rs. ' + grossProfit.toLocaleString();
 
-        // Most profitable category
-        const catMargins = {};
+        // Most profitable product (highest margin per unit * stock = total profit potential)
+        let bestProfitProduct = null, bestProfitVal = 0;
         products.forEach(p => {
-          if (!catMargins[p.category]) catMargins[p.category] = { totalMargin: 0, count: 0 };
-          catMargins[p.category].totalMargin += getProductMargin(p);
-          catMargins[p.category].count++;
+          const unitProfit = p.price - (p.buyPrice || 0);
+          const totalProfit = unitProfit * p.stock;
+          if (totalProfit > bestProfitVal) { bestProfitVal = totalProfit; bestProfitProduct = p; }
         });
-        let bestCat = '', bestMargin = 0;
-        for (const cat in catMargins) {
-          const avg = catMargins[cat].totalMargin / catMargins[cat].count;
-          if (avg > bestMargin) { bestMargin = avg; bestCat = cat; }
+        if (bestProfitProduct) {
+          document.getElementById('kpi-most-profitable').textContent = bestProfitProduct.name;
+          document.getElementById('kpi-most-profitable').title = bestProfitProduct.name;
+          const margin = getProductMargin(bestProfitProduct);
+          document.getElementById('kpi-most-profitable-sub').textContent = margin.toFixed(1) + '% margin · Rs.' + (bestProfitProduct.price - (bestProfitProduct.buyPrice || 0)) + '/unit';
         }
-        document.getElementById('kpi-most-profitable').textContent = bestCat || '--';
-        document.getElementById('kpi-most-profitable-sub').textContent = bestMargin > 0 ? bestMargin.toFixed(1) + '% margin rate' : '--';
+
+        // Most sold product (highest stock sold = lowest current stock relative to category avg, or simply highest revenue potential)
+        // Using simulated sales data: products with lower stock relative to initial = more sold
+        // Approximate: sort by (price * (200 - stock)) as a proxy for revenue from sales
+        let bestSoldProduct = null, bestSoldVal = 0;
+        products.forEach(p => {
+          const estimatedSold = Math.max(0, 200 - p.stock); // approximate units sold
+          const revenue = estimatedSold * p.price;
+          if (revenue > bestSoldVal) { bestSoldVal = revenue; bestSoldProduct = p; estimatedSold_best = estimatedSold; }
+        });
+        if (bestSoldProduct) {
+          const soldUnits = Math.max(0, 200 - bestSoldProduct.stock);
+          document.getElementById('kpi-most-sold').textContent = bestSoldProduct.name;
+          document.getElementById('kpi-most-sold').title = bestSoldProduct.name;
+          document.getElementById('kpi-most-sold-sub').textContent = '~' + soldUnits + ' units · Rs.' + (soldUnits * bestSoldProduct.price).toLocaleString() + ' revenue';
+        }
       }
     }
 
@@ -925,6 +941,61 @@
     // ==================== BENTO CARD STAGGER ====================
 
     gsap.from('.bento-card', { opacity: 0, y: 20, duration: 0.5, stagger: 0.08, delay: 0.1, ease: 'power3.out' });
+
+    // ==================== TOP 5 MOST PROFITABLE & MOST SOLD ====================
+
+    function renderTopLists() {
+      const barColors = ['bg-purex-blue', 'bg-emerald-400', 'bg-amber-400', 'bg-purple-400', 'bg-rose-400'];
+      const dotColors = ['bg-purex-blue/10 text-purex-blue', 'bg-emerald-500/10 text-emerald-400', 'bg-amber-500/10 text-amber-400', 'bg-purple-500/10 text-purple-400', 'bg-rose-500/10 text-rose-400'];
+
+      // Top 5 Most Profitable (by margin × stock)
+      const profitRanked = [...products].map(p => ({
+        ...p,
+        totalProfit: (p.price - (p.buyPrice || 0)) * p.stock,
+        marginPct: p.buyPrice ? ((p.price - p.buyPrice) / p.price * 100) : 0
+      })).sort((a, b) => b.totalProfit - a.totalProfit).slice(0, 5);
+
+      const maxProfit = profitRanked.length > 0 ? profitRanked[0].totalProfit : 1;
+      const profitContainer = document.getElementById('top-profitable-list');
+      if (profitContainer) {
+        profitContainer.innerHTML = profitRanked.map((p, i) => {
+          const pct = Math.round((p.totalProfit / maxProfit) * 100);
+          return `<div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg ${dotColors[i]} flex items-center justify-center text-[10px] font-heading">0${i+1}</div>
+            <div class="flex-1 min-w-0">
+              <p class="text-xs text-white font-light truncate">${p.name} ${p.volume || ''}</p>
+              <div class="w-full h-1.5 bg-white/5 rounded-full mt-1.5"><div class="h-full ${barColors[i]} rounded-full top-bar" data-width="${pct}%"></div></div>
+            </div>
+            <span class="text-xs text-white/40 whitespace-nowrap">Rs.${(p.totalProfit/1000).toFixed(0)}k</span>
+          </div>`;
+        }).join('');
+      }
+
+      // Top 5 Most Sold (by estimated units sold: 200 - current stock)
+      const soldRanked = [...products].map(p => ({
+        ...p,
+        unitsSold: Math.max(0, 200 - p.stock),
+        revenue: Math.max(0, 200 - p.stock) * p.price
+      })).sort((a, b) => b.unitsSold - a.unitsSold).slice(0, 5);
+
+      const maxSold = soldRanked.length > 0 ? soldRanked[0].unitsSold : 1;
+      const soldContainer = document.getElementById('top-sold-list');
+      if (soldContainer) {
+        soldContainer.innerHTML = soldRanked.map((p, i) => {
+          const pct = Math.round((p.unitsSold / maxSold) * 100);
+          return `<div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg ${dotColors[i]} flex items-center justify-center text-[10px] font-heading">0${i+1}</div>
+            <div class="flex-1 min-w-0">
+              <p class="text-xs text-white font-light truncate">${p.name} ${p.volume || ''}</p>
+              <div class="w-full h-1.5 bg-white/5 rounded-full mt-1.5"><div class="h-full ${barColors[i]} rounded-full top-bar" data-width="${pct}%"></div></div>
+            </div>
+            <span class="text-xs text-white/40 whitespace-nowrap">${p.unitsSold} units</span>
+          </div>`;
+        }).join('');
+      }
+    }
+
+    renderTopLists();
 
     // ==================== TOP SELLING BARS ====================
 
@@ -1223,8 +1294,8 @@
     function handleImageUpload(input) {
       const file = input.files[0];
       if (!file) return;
-      if (file.size > 2 * 1024 * 1024) {
-        alert('Image too large. Max 2MB.');
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Image too large. Max 5MB.');
         return;
       }
       const reader = new FileReader();
@@ -1369,8 +1440,24 @@
       updateKPIs();
       renderMarginBars();
 
+      // Show save confirmation tick
+      showSaveConfirmation();
+
       // Show QR Code widget instead of closing modal
       showQRWidget(savedId, data.name);
+    }
+
+    function showSaveConfirmation() {
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.4);backdrop-filter:blur(2px);pointer-events:none;';
+      const tick = document.createElement('div');
+      tick.style.cssText = 'width:80px;height:80px;border-radius:50%;background:rgba(52,211,153,0.15);border:2px solid rgba(52,211,153,0.4);display:flex;align-items:center;justify-content:center;transform:scale(0);';
+      tick.innerHTML = '<svg width="40" height="40" fill="none" stroke="#34d399" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M8 20l8 8 16-18"/></svg>';
+      overlay.appendChild(tick);
+      document.body.appendChild(overlay);
+
+      gsap.to(tick, { scale: 1, duration: 0.4, ease: 'back.out(2)' });
+      gsap.to(overlay, { opacity: 0, duration: 0.4, delay: 1, ease: 'power2.in', onComplete: () => overlay.remove() });
     }
 
     function editProduct(id) {
@@ -1635,17 +1722,20 @@
     }
 
     function exportProductsCSV() {
-      const header = ['SKU', 'Name', 'Category', 'Sell Price', 'Buy Price', 'Margin%', 'Stock', 'Status', 'Image'];
+      const header = ['SKU', 'Name', 'Category', 'Volume', 'Sell Price', 'Buy Price', 'Margin%', 'Stock', 'Status', 'On Sale', 'Sale Price', 'Description'];
       const rows = products.map(p => [
         p.sku || '--',
-        p.name + (p.volume ? ' ' + p.volume : ''),
+        p.name,
         p.category,
+        p.volume || '--',
         p.price,
         p.buyPrice || 0,
         getProductMargin(p) + '%',
         p.stock,
         p.status === 'active' ? 'Published' : 'Draft',
-        p.image || ''
+        p.onSale ? 'Yes' : 'No',
+        p.onSale && p.salePrice ? p.salePrice : '--',
+        p.desc || ''
       ]);
       downloadCSV([header, ...rows], 'purex-products.csv');
     }
