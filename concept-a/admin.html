@@ -279,22 +279,94 @@
             </button>
           </div>
 
-          <!-- Sales KPI Row -->
+          <!-- Sales KPI Row (computed from daily sales log) -->
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
             <div class="glass rounded-xl p-4 text-center">
               <p class="text-[10px] text-white/40 tracking-wider mb-2">TODAY'S SALES</p>
-              <p class="text-xl font-heading font-light text-emerald-400 kpi-number" data-target="18500" data-prefix="Rs. " data-comma="true">Rs. 0</p>
-              <p class="text-[10px] text-emerald-400/60 mt-1">+8.3% vs yesterday</p>
+              <p id="kpi-today-sales" class="text-xl font-heading font-light text-emerald-400">Rs. 0</p>
+              <p id="kpi-today-sub" class="text-[10px] text-emerald-400/60 mt-1">No sales today yet</p>
             </div>
             <div class="glass rounded-xl p-4 text-center">
               <p class="text-[10px] text-white/40 tracking-wider mb-2">THIS WEEK</p>
-              <p class="text-xl font-heading font-light text-purex-blue kpi-number" data-target="124000" data-prefix="Rs. " data-comma="true">Rs. 0</p>
+              <p id="kpi-week-sales" class="text-xl font-heading font-light text-purex-blue">Rs. 0</p>
               <p class="text-[10px] text-purex-blue/60 mt-1">7-day rolling total</p>
             </div>
             <div class="glass rounded-xl p-4 text-center">
               <p class="text-[10px] text-white/40 tracking-wider mb-2">THIS MONTH</p>
-              <p class="text-xl font-heading font-light text-purple-400 kpi-number" data-target="485000" data-prefix="Rs. " data-comma="true">Rs. 0</p>
-              <p class="text-[10px] text-purple-400/60 mt-1">On track for Rs.520k target</p>
+              <p id="kpi-month-sales" class="text-xl font-heading font-light text-purple-400">Rs. 0</p>
+              <p id="kpi-month-sub" class="text-[10px] text-purple-400/60 mt-1">Monthly total</p>
+            </div>
+          </div>
+
+          <!-- Daily Sale Entry -->
+          <div class="glass rounded-xl p-4 mb-6">
+            <div class="flex flex-col md:flex-row md:items-end gap-3">
+              <div class="flex-1">
+                <label class="text-[10px] text-white/40 tracking-wider block mb-1.5">PRODUCT</label>
+                <select id="sale-product" class="w-full glass rounded-xl px-4 py-2.5 text-sm text-white font-light bg-transparent border border-white/10 pr-8">
+                  <option value="" class="bg-[#0a0e17]">Select product...</option>
+                </select>
+              </div>
+              <div style="min-width:80px;">
+                <label class="text-[10px] text-white/40 tracking-wider block mb-1.5">QTY</label>
+                <input id="sale-qty" type="number" min="1" value="1" class="w-full glass rounded-xl px-4 py-2.5 text-sm text-white font-light bg-transparent border border-white/10" />
+              </div>
+              <div style="min-width:130px;">
+                <label class="text-[10px] text-white/40 tracking-wider block mb-1.5">DATE</label>
+                <input id="sale-date" type="date" class="w-full glass rounded-xl px-4 py-2.5 text-sm text-white font-light bg-transparent border border-white/10" />
+              </div>
+              <div style="min-width:110px;">
+                <label class="text-[10px] text-white/40 tracking-wider block mb-1.5">CHANNEL</label>
+                <select id="sale-channel" class="w-full glass rounded-xl px-4 py-2.5 text-sm text-white font-light bg-transparent border border-white/10 pr-8">
+                  <option value="WhatsApp" class="bg-[#0a0e17]">WhatsApp</option>
+                  <option value="Walk-in" class="bg-[#0a0e17]">Walk-in</option>
+                  <option value="Online" class="bg-[#0a0e17]">Online</option>
+                  <option value="Retailer" class="bg-[#0a0e17]">Retailer</option>
+                </select>
+              </div>
+              <button onclick="recordSale()" class="px-6 py-2.5 rounded-xl text-sm font-medium tracking-wider text-white transition-all hover:scale-105" style="background:linear-gradient(135deg,#34d399,#059669);min-width:120px;">
+                + Record Sale
+              </button>
+            </div>
+            <p id="sale-feedback" class="text-[10px] mt-2 text-emerald-400 opacity-0 transition-opacity">Sale recorded!</p>
+          </div>
+
+          <!-- Daily Sales Log Table -->
+          <div class="glass rounded-xl p-4 mb-6">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h4 class="text-xs text-white/50 font-light">Daily Sales Log</h4>
+                <p class="text-[10px] text-white/25 mt-0.5">Record & track every sale manually</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <button onclick="exportDailySalesCSV()" class="btn-export">
+                  <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2v7M3 6l3 3 3-3"/><path d="M2 10v1h8v-1"/></svg>
+                  Export
+                </button>
+                <span id="sales-log-count" class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400">0 entries</span>
+              </div>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left">
+                <thead>
+                  <tr class="text-[10px] text-white/30 tracking-wider border-b border-white/5">
+                    <th class="pb-2 font-light">DATE</th>
+                    <th class="pb-2 font-light">PRODUCT</th>
+                    <th class="pb-2 font-light">QTY</th>
+                    <th class="pb-2 font-light">PRICE</th>
+                    <th class="pb-2 font-light">TOTAL</th>
+                    <th class="pb-2 font-light">CHANNEL</th>
+                    <th class="pb-2 font-light">PROFIT</th>
+                    <th class="pb-2 font-light"></th>
+                  </tr>
+                </thead>
+                <tbody id="sales-log-body" class="text-xs text-white/60">
+                  <!-- Rendered by JS -->
+                </tbody>
+              </table>
+            </div>
+            <div id="no-sales-msg" class="hidden text-center py-8">
+              <p class="text-white/20 text-sm">No sales recorded yet. Use the form above to log a sale.</p>
             </div>
           </div>
 
@@ -588,8 +660,25 @@
             <input id="form-sku" type="text" class="w-full glass rounded-xl px-4 py-2.5 text-sm text-white font-light bg-transparent placeholder:text-white/20 border border-white/10" placeholder="e.g. TZB-500" />
           </div>
           <div>
-            <label class="text-[10px] text-white/40 tracking-wider block mb-1.5">VOLUME</label>
-            <input id="form-volume" type="text" class="w-full glass rounded-xl px-4 py-2.5 text-sm text-white font-light bg-transparent placeholder:text-white/20 border border-white/10" placeholder="e.g. 500ml" />
+            <label class="text-[10px] text-white/40 tracking-wider block mb-1.5">VOLUME / SIZE</label>
+            <div class="flex gap-2">
+              <input id="form-volume-val" type="text" class="flex-1 glass rounded-xl px-4 py-2.5 text-sm text-white font-light bg-transparent placeholder:text-white/20 border border-white/10" placeholder="e.g. 500" />
+              <select id="form-volume-unit" class="glass rounded-xl px-3 py-2.5 text-sm text-white font-light bg-transparent border border-white/10 pr-7" style="min-width: 90px;">
+                <option value="ml" class="bg-[#0a0e17]">ml</option>
+                <option value="Litre" class="bg-[#0a0e17]">Litre</option>
+                <option value="g" class="bg-[#0a0e17]">g</option>
+                <option value="kg" class="bg-[#0a0e17]">kg</option>
+                <option value="oz" class="bg-[#0a0e17]">oz</option>
+                <option value="pcs" class="bg-[#0a0e17]">pcs</option>
+                <option value="units" class="bg-[#0a0e17]">units</option>
+                <option value="pack" class="bg-[#0a0e17]">pack</option>
+                <option value="pair" class="bg-[#0a0e17]">pair</option>
+                <option value="set" class="bg-[#0a0e17]">set</option>
+                <option value="Standard" class="bg-[#0a0e17]">Standard</option>
+                <option value="" class="bg-[#0a0e17]">Custom</option>
+              </select>
+            </div>
+            <input id="form-volume" type="hidden" />
           </div>
         </div>
         <div class="grid grid-cols-2 gap-4">
@@ -1015,10 +1104,7 @@
     }, 600);
 
     // ==================== SALES BAR CHART ====================
-
-    function renderSalesChart() {
-      renderSalesChartWithData(salesRangeData['7d'].data);
-    }
+    // (renderSalesChart defined in daily sales section below)
 
     // ==================== CATEGORY SALES ====================
 
@@ -1317,6 +1403,56 @@
       }
     }
 
+    // Volume field helpers — parse "500ml" into val=500, unit=ml and back
+    const volumeUnits = ['ml', 'Litre', 'g', 'kg', 'oz', 'pcs', 'units', 'pack', 'pair', 'set', 'Standard'];
+
+    function parseVolumeToFields(vol) {
+      const valEl = document.getElementById('form-volume-val');
+      const unitEl = document.getElementById('form-volume-unit');
+      if (!vol) { valEl.value = ''; unitEl.value = 'ml'; return; }
+
+      // Try to match number + unit (e.g. "500ml", "1 Litre", "3.5 Litre", "3x200g", "130g")
+      const match = vol.match(/^([\d.x×]+)\s*(.*)$/i);
+      if (match) {
+        const num = match[1];
+        let unit = match[2].trim();
+        // Find matching unit in dropdown
+        const found = volumeUnits.find(u => u.toLowerCase() === unit.toLowerCase());
+        if (found) {
+          valEl.value = num;
+          unitEl.value = found;
+        } else if (unit) {
+          // Custom unit — put full string in val, set unit to Custom
+          valEl.value = vol;
+          unitEl.value = '';
+        } else {
+          valEl.value = num;
+          unitEl.value = 'ml';
+        }
+      } else {
+        // Non-numeric like "Standard", "Complete Set", "Basket Set"
+        const found = volumeUnits.find(u => u.toLowerCase() === vol.toLowerCase());
+        if (found) {
+          valEl.value = '';
+          unitEl.value = found;
+        } else {
+          valEl.value = vol;
+          unitEl.value = '';
+        }
+      }
+    }
+
+    function getVolumeFromFields() {
+      const val = document.getElementById('form-volume-val').value.trim();
+      const unit = document.getElementById('form-volume-unit').value;
+      if (!val && !unit) return '';
+      if (!val && unit) return unit; // e.g. "Standard"
+      if (val && !unit) return val; // Custom text
+      // Combine: "500ml", "1 Litre", "3x200g"
+      if (unit === 'Litre' || unit === 'Standard') return val + ' ' + unit;
+      return val + unit; // "500ml", "130g", "2kg"
+    }
+
     function openProductModal(editId) {
       const modal = document.getElementById('product-modal');
       modal.classList.remove('hidden');
@@ -1329,7 +1465,7 @@
         document.getElementById('edit-product-id').value = editId;
         document.getElementById('form-name').value = p.name;
         document.getElementById('form-sku').value = p.sku || '';
-        document.getElementById('form-volume').value = p.volume || '';
+        parseVolumeToFields(p.volume || '');
         document.getElementById('form-category').value = p.category;
         document.getElementById('form-price').value = p.price;
         document.getElementById('form-buy-price').value = p.buyPrice || 0;
@@ -1409,7 +1545,7 @@
       const data = {
         name: document.getElementById('form-name').value.trim(),
         sku: document.getElementById('form-sku').value.trim(),
-        volume: document.getElementById('form-volume').value.trim(),
+        volume: getVolumeFromFields(),
         category: document.getElementById('form-category').value,
         price: sellPrice,
         buyPrice: buyPrice,
@@ -1759,51 +1895,248 @@
       downloadCSV([header, ...rows], 'purex-orders.csv');
     }
 
-    // ==================== DATE RANGE SALES ====================
+    // ==================== DAILY SALES LOG ====================
 
-    const salesRangeData = {
-      '7d': {
-        title: 'Last 7 Days Sales',
-        data: [
-          { day: 'Mon', amount: 15200 },
-          { day: 'Tue', amount: 18900 },
-          { day: 'Wed', amount: 12400 },
-          { day: 'Thu', amount: 22100 },
-          { day: 'Fri', amount: 28500 },
-          { day: 'Sat', amount: 31200 },
-          { day: 'Sun', amount: 16700 },
-        ]
-      },
-      '30d': {
-        title: 'Last 30 Days Sales',
-        data: [
-          { day: 'Week 1', label: 'Week 1', amount: 124000 },
-          { day: 'Week 2', label: 'Week 2', amount: 118000 },
-          { day: 'Week 3', label: 'Week 3', amount: 135000 },
-          { day: 'Week 4', label: 'Week 4', amount: 108000 },
-        ]
-      },
-      '90d': {
-        title: 'Last 90 Days Sales',
-        data: [
-          { day: 'Month 1', label: 'Month 1', amount: 485000 },
-          { day: 'Month 2', label: 'Month 2', amount: 512000 },
-          { day: 'Month 3', label: 'Month 3', amount: 498000 },
-        ]
+    function loadDailySales() {
+      try {
+        const stored = localStorage.getItem('purex_daily_sales');
+        if (stored) return JSON.parse(stored);
+      } catch(e) {}
+      return [];
+    }
+
+    function saveDailySales() {
+      localStorage.setItem('purex_daily_sales', JSON.stringify(dailySales));
+    }
+
+    let dailySales = loadDailySales();
+
+    // Populate sale product dropdown
+    function populateSaleProductDropdown() {
+      const sel = document.getElementById('sale-product');
+      const current = sel.value;
+      sel.innerHTML = '<option value="" class="bg-[#0a0e17]">Select product...</option>';
+      products.filter(p => p.status === 'active').forEach(p => {
+        sel.innerHTML += '<option value="' + p.id + '" class="bg-[#0a0e17]">' + p.name + ' (' + (p.volume || p.sku) + ') — Rs.' + p.price + '</option>';
+      });
+      if (current) sel.value = current;
+    }
+
+    // Set default date to today
+    function initSaleForm() {
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('sale-date').value = today;
+      populateSaleProductDropdown();
+    }
+
+    function recordSale() {
+      const productId = parseInt(document.getElementById('sale-product').value);
+      const qty = parseInt(document.getElementById('sale-qty').value) || 1;
+      const date = document.getElementById('sale-date').value;
+      const channel = document.getElementById('sale-channel').value;
+
+      if (!productId || !date) {
+        const fb = document.getElementById('sale-feedback');
+        fb.textContent = 'Please select a product and date.';
+        fb.style.color = '#f87171';
+        fb.style.opacity = '1';
+        setTimeout(() => { fb.style.opacity = '0'; }, 2000);
+        return;
       }
-    };
 
-    let currentSalesData = salesRangeData['7d'].data;
+      const product = products.find(p => p.id === productId);
+      if (!product) return;
+
+      const saleEntry = {
+        id: Date.now(),
+        productId: product.id,
+        productName: product.name,
+        sku: product.sku,
+        volume: product.volume || '',
+        category: product.category,
+        qty: qty,
+        unitPrice: product.onSale && product.salePrice ? product.salePrice : product.price,
+        buyPrice: product.buyPrice || 0,
+        total: qty * (product.onSale && product.salePrice ? product.salePrice : product.price),
+        profit: qty * ((product.onSale && product.salePrice ? product.salePrice : product.price) - (product.buyPrice || 0)),
+        date: date,
+        channel: channel
+      };
+
+      dailySales.unshift(saleEntry);
+      saveDailySales();
+
+      // Reduce stock
+      product.stock = Math.max(0, product.stock - qty);
+      saveProducts();
+
+      // Feedback
+      const fb = document.getElementById('sale-feedback');
+      fb.textContent = 'Sale recorded! ' + product.name + ' x' + qty + ' = Rs.' + saleEntry.total.toLocaleString();
+      fb.style.color = '#34d399';
+      fb.style.opacity = '1';
+      setTimeout(() => { fb.style.opacity = '0'; }, 3000);
+
+      // Reset form
+      document.getElementById('sale-product').value = '';
+      document.getElementById('sale-qty').value = 1;
+
+      // Refresh all views
+      renderDailySalesLog();
+      updateSalesKPIs();
+      renderSalesChart();
+      renderProducts();
+      renderInventory();
+    }
+
+    function deleteSaleEntry(id) {
+      dailySales = dailySales.filter(s => s.id !== id);
+      saveDailySales();
+      renderDailySalesLog();
+      updateSalesKPIs();
+      renderSalesChart();
+    }
+
+    function renderDailySalesLog() {
+      const tbody = document.getElementById('sales-log-body');
+      const noMsg = document.getElementById('no-sales-msg');
+      const countEl = document.getElementById('sales-log-count');
+
+      countEl.textContent = dailySales.length + ' entr' + (dailySales.length === 1 ? 'y' : 'ies');
+
+      if (dailySales.length === 0) {
+        tbody.innerHTML = '';
+        noMsg.classList.remove('hidden');
+        return;
+      }
+
+      noMsg.classList.add('hidden');
+      tbody.innerHTML = dailySales.slice(0, 50).map(s => {
+        const profitColor = s.profit > 0 ? 'text-emerald-400' : 'text-red-400';
+        const channelColors = { WhatsApp: 'text-[#25D366]', 'Walk-in': 'text-purex-blue', Online: 'text-purple-400', Retailer: 'text-amber-400' };
+        return `<tr class="border-b border-white/[0.03] hover:bg-white/[0.02]">
+          <td class="py-2.5 pr-3 text-white/40">${s.date}</td>
+          <td class="py-2.5 pr-3 text-white/70">${s.productName} <span class="text-white/25">${s.volume}</span></td>
+          <td class="py-2.5 pr-3">${s.qty}</td>
+          <td class="py-2.5 pr-3 text-white/40">Rs.${s.unitPrice}</td>
+          <td class="py-2.5 pr-3 text-white font-medium">Rs.${s.total.toLocaleString()}</td>
+          <td class="py-2.5 pr-3 ${channelColors[s.channel] || 'text-white/40'}">${s.channel}</td>
+          <td class="py-2.5 pr-3 ${profitColor}">Rs.${s.profit.toLocaleString()}</td>
+          <td class="py-2.5"><button onclick="deleteSaleEntry(${s.id})" class="text-white/20 hover:text-red-400 transition text-[10px]">✕</button></td>
+        </tr>`;
+      }).join('');
+    }
+
+    function updateSalesKPIs() {
+      const today = new Date().toISOString().split('T')[0];
+      const now = new Date();
+
+      // Today's sales
+      const todaySales = dailySales.filter(s => s.date === today);
+      const todayTotal = todaySales.reduce((sum, s) => sum + s.total, 0);
+      document.getElementById('kpi-today-sales').textContent = 'Rs. ' + todayTotal.toLocaleString();
+
+      // Yesterday comparison
+      const yesterday = new Date(now);
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayStr = yesterday.toISOString().split('T')[0];
+      const yesterdayTotal = dailySales.filter(s => s.date === yesterdayStr).reduce((sum, s) => sum + s.total, 0);
+      if (yesterdayTotal > 0 && todayTotal > 0) {
+        const pctChange = ((todayTotal - yesterdayTotal) / yesterdayTotal * 100).toFixed(1);
+        document.getElementById('kpi-today-sub').textContent = (pctChange >= 0 ? '+' : '') + pctChange + '% vs yesterday';
+      } else if (todaySales.length > 0) {
+        document.getElementById('kpi-today-sub').textContent = todaySales.length + ' sale(s) today';
+      } else {
+        document.getElementById('kpi-today-sub').textContent = 'No sales today yet';
+      }
+
+      // This week (last 7 days)
+      const weekAgo = new Date(now);
+      weekAgo.setDate(weekAgo.getDate() - 7);
+      const weekTotal = dailySales.filter(s => new Date(s.date) >= weekAgo).reduce((sum, s) => sum + s.total, 0);
+      document.getElementById('kpi-week-sales').textContent = 'Rs. ' + weekTotal.toLocaleString();
+
+      // This month
+      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+      const monthSales = dailySales.filter(s => s.date >= monthStart);
+      const monthTotal = monthSales.reduce((sum, s) => sum + s.total, 0);
+      document.getElementById('kpi-month-sales').textContent = 'Rs. ' + monthTotal.toLocaleString();
+      document.getElementById('kpi-month-sub').textContent = monthSales.length + ' sales this month';
+    }
+
+    function exportDailySalesCSV() {
+      const header = ['Date', 'Product', 'SKU', 'Volume', 'Category', 'Qty', 'Unit Price', 'Total', 'Profit', 'Channel'];
+      const rows = dailySales.map(s => [
+        s.date, s.productName, s.sku, s.volume, s.category, s.qty, s.unitPrice, s.total, s.profit, s.channel
+      ]);
+      downloadCSV([header, ...rows], 'purex-daily-sales.csv');
+    }
+
+    // ==================== SALES CHART (from daily sales log) ====================
+
+    let currentSalesRange = '7d';
+
+    function getSalesChartData(range) {
+      const now = new Date();
+      const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+      if (range === '7d') {
+        const data = [];
+        for (let i = 6; i >= 0; i--) {
+          const d = new Date(now);
+          d.setDate(d.getDate() - i);
+          const dateStr = d.toISOString().split('T')[0];
+          const dayTotal = dailySales.filter(s => s.date === dateStr).reduce((sum, s) => sum + s.total, 0);
+          data.push({ day: dayNames[d.getDay()], amount: dayTotal });
+        }
+        return { title: 'Last 7 Days Sales', data };
+      }
+
+      if (range === '30d') {
+        const data = [];
+        for (let w = 3; w >= 0; w--) {
+          const weekEnd = new Date(now);
+          weekEnd.setDate(weekEnd.getDate() - (w * 7));
+          const weekStart = new Date(weekEnd);
+          weekStart.setDate(weekStart.getDate() - 6);
+          const weekTotal = dailySales.filter(s => {
+            const sd = new Date(s.date);
+            return sd >= weekStart && sd <= weekEnd;
+          }).reduce((sum, s) => sum + s.total, 0);
+          data.push({ day: 'Week ' + (4 - w), amount: weekTotal });
+        }
+        return { title: 'Last 30 Days Sales', data };
+      }
+
+      if (range === '90d') {
+        const data = [];
+        for (let m = 2; m >= 0; m--) {
+          const mStart = new Date(now.getFullYear(), now.getMonth() - m, 1);
+          const mEnd = new Date(now.getFullYear(), now.getMonth() - m + 1, 0);
+          const mStartStr = mStart.toISOString().split('T')[0];
+          const mEndStr = mEnd.toISOString().split('T')[0];
+          const monthTotal = dailySales.filter(s => s.date >= mStartStr && s.date <= mEndStr).reduce((sum, s) => sum + s.total, 0);
+          const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+          data.push({ day: monthNames[mStart.getMonth()], amount: monthTotal });
+        }
+        return { title: 'Last 90 Days Sales', data };
+      }
+    }
+
+    let currentSalesData = [];
+
+    function renderSalesChart() {
+      const chartData = getSalesChartData(currentSalesRange);
+      currentSalesData = chartData.data;
+      document.getElementById('sales-chart-title').textContent = chartData.title;
+      renderSalesChartWithData(chartData.data);
+    }
 
     function switchSalesRange(range, btn) {
       document.querySelectorAll('.date-pill').forEach(p => p.classList.remove('active'));
       btn.classList.add('active');
-
-      document.getElementById('sales-chart-title').textContent = salesRangeData[range].title;
-
-      currentSalesData = salesRangeData[range].data;
-
-      renderSalesChartWithData(salesRangeData[range].data);
+      currentSalesRange = range;
+      renderSalesChart();
     }
 
     function renderSalesChartWithData(data) {
@@ -1842,6 +2175,9 @@
     renderProducts();
     renderOrders();
     renderInventory();
+    initSaleForm();
+    renderDailySalesLog();
+    updateSalesKPIs();
     renderSalesChart();
     renderCategorySales();
     renderMarginBars();
