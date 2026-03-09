@@ -279,7 +279,7 @@
               </div>
             </div>
             <p id="kpi-revenue" class="text-xl md:text-2xl font-heading font-light text-white">Rs. 0</p>
-            <p class="text-[10px] text-emerald-400 mt-1">+12.5% growth</p>
+            <p id="kpi-revenue-growth" class="text-[10px] text-emerald-400 mt-1"></p>
           </div>
         </div>
 
@@ -559,9 +559,9 @@
               <p class="text-[10px] text-white/30 mt-0.5">Stock levels for all products</p>
             </div>
             <div class="flex items-center gap-4 text-[10px]">
-              <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-400"></span> Good (&gt;50)</span>
-              <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-400"></span> Low (20-50)</span>
-              <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-red-400"></span> Critical (&lt;20)</span>
+              <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-400"></span> Good (&gt;50%)</span>
+              <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-400"></span> Low (20-50%)</span>
+              <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-red-400"></span> Critical (&lt;20%)</span>
             </div>
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3" id="inventory-grid"></div>
@@ -996,6 +996,54 @@
     <img id="sinv-photo-full-img" src="" alt="Invoice Photo" class="max-w-full max-h-[90vh] rounded-xl object-contain" />
   </div>
 
+  <!-- SUPPLIER HISTORY MODAL -->
+  <div id="supplier-history-modal" class="modal-overlay hidden fixed inset-0 z-50 flex items-center justify-center p-4" style="background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);">
+    <div class="glass-strong rounded-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between mb-5">
+        <div>
+          <h3 id="sh-title" class="font-heading text-sm font-light text-white">Supplier History</h3>
+          <p id="sh-subtitle" class="text-[10px] text-white/30 mt-0.5"></p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="sh-add-invoice-btn" class="text-[10px] px-3 py-1.5 rounded-lg bg-amber-500/15 text-amber-400 hover:bg-amber-500/25 transition font-light">+ Upload Invoice</button>
+          <button onclick="closeSupplierHistory()" class="text-white/30 hover:text-white/60 transition text-lg">&times;</button>
+        </div>
+      </div>
+
+      <!-- Supplier Info Summary -->
+      <div id="sh-info" class="glass rounded-xl p-4 mb-4">
+        <!-- Filled by JS -->
+      </div>
+
+      <!-- Stats Row -->
+      <div id="sh-stats" class="grid grid-cols-3 gap-3 mb-4">
+        <!-- Filled by JS -->
+      </div>
+
+      <!-- Invoice History Table -->
+      <div class="mb-2">
+        <p class="text-[10px] text-white/40 tracking-wider mb-3">SUPPLY HISTORY</p>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-xs">
+          <thead>
+            <tr class="text-white/30 border-b border-white/5">
+              <th class="text-left pb-2 font-light">Invoice #</th>
+              <th class="text-left pb-2 font-light">Date</th>
+              <th class="text-right pb-2 font-light">Amount</th>
+              <th class="text-center pb-2 font-light">Photo</th>
+              <th class="text-center pb-2 font-light">Status</th>
+              <th class="text-left pb-2 font-light">Added By</th>
+              <th class="text-center pb-2 font-light w-20">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="sh-invoices-tbody"></tbody>
+        </table>
+      </div>
+      <p id="sh-no-invoices" class="hidden text-xs text-white/20 text-center py-6">No invoices yet for this supplier. Click "+ Upload Invoice" to add one.</p>
+    </div>
+  </div>
+
   <!-- USER MODAL -->
   <div id="user-modal" class="modal-overlay hidden fixed inset-0 z-50 flex items-center justify-center p-4" style="background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);">
     <div class="glass-strong rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
@@ -1145,7 +1193,7 @@
             <input id="form-price" type="number" required min="1" class="w-full glass rounded-xl px-4 py-2.5 text-sm text-white font-light bg-transparent placeholder:text-white/20 border border-white/10" placeholder="0" oninput="calcMarginPreview()" />
           </div>
         </div>
-        <div class="grid grid-cols-3 gap-4">
+        <div class="grid grid-cols-4 gap-4">
           <div>
             <label class="text-[10px] text-white/40 tracking-wider block mb-1.5">BUY PRICE (Rs.)</label>
             <input id="form-buy-price" type="number" required min="0" class="w-full glass rounded-xl px-4 py-2.5 text-sm text-white font-light bg-transparent placeholder:text-white/20 border border-white/10" placeholder="0" oninput="calcMarginPreview()" />
@@ -1153,6 +1201,10 @@
           <div>
             <label class="text-[10px] text-white/40 tracking-wider block mb-1.5">STOCK QUANTITY</label>
             <input id="form-stock" type="number" required min="0" class="w-full glass rounded-xl px-4 py-2.5 text-sm text-white font-light bg-transparent placeholder:text-white/20 border border-white/10" placeholder="0" />
+          </div>
+          <div>
+            <label class="text-[10px] text-white/40 tracking-wider block mb-1.5">CAPACITY <span id="capacity-lock" class="text-white/20"></span></label>
+            <input id="form-capacity" type="number" required min="1" class="w-full glass rounded-xl px-4 py-2.5 text-sm text-white font-light bg-transparent placeholder:text-white/20 border border-white/10" placeholder="100" />
           </div>
           <div>
             <label class="text-[10px] text-white/40 tracking-wider block mb-1.5">STATUS</label>
@@ -1305,37 +1357,37 @@
     // ==================== DEFAULT DATA ====================
 
     const DEFAULT_PRODUCTS = [
-      { id: 1, name: 'Taizab Cleaning Acid', category: 'Cleaning', price: 120, buyPrice: 58, stock: 85, status: 'active', sku: 'TZB-500', volume: '500ml', desc: 'Extra strong industrial cleaning acid for tough stains and heavy-duty cleaning.', image: '../assets/products/product_1.png' },
-      { id: 2, name: 'Taizab Cleaning Acid', category: 'Cleaning', price: 200, buyPrice: 96, stock: 120, status: 'active', sku: 'TZB-1000', volume: '1 Litre', desc: 'Extra strong industrial cleaning acid. Large size for commercial use.', image: '../assets/products/product_2.png' },
-      { id: 3, name: 'Taizab Lemon Acid', category: 'Cleaning', price: 140, buyPrice: 67, stock: 65, status: 'active', sku: 'TZB-L500', volume: '500ml', desc: 'Lemon-fresh cleaning acid with a pleasant citrus scent.', image: '../assets/products/product_3.png' },
-      { id: 4, name: 'Sweep Floor Cleaner', category: 'Cleaning', price: 150, buyPrice: 72, stock: 60, status: 'active', sku: 'SWP-F500', volume: '500ml', desc: 'Pine-fresh floor cleaner for sparkling clean floors.', image: '../assets/products/product_4.png' },
-      { id: 5, name: 'Sweep Floor Cleaner', category: 'Cleaning', price: 270, buyPrice: 130, stock: 90, status: 'active', sku: 'SWP-F1000', volume: '1 Litre', desc: 'Pine-fresh floor cleaner. Large economy size.', image: '../assets/products/product_5.png' },
-      { id: 6, name: 'Sweep Toilet Cleaner', category: 'Cleaning', price: 160, buyPrice: 77, stock: 75, status: 'active', sku: 'SWP-T500', volume: '500ml', desc: 'Max power toilet cleaner with angled nozzle for under-rim cleaning.', image: '../assets/products/product_6.png' },
-      { id: 7, name: 'Purex Bleach', category: 'Cleaning', price: 90, buyPrice: 43, stock: 110, status: 'active', sku: 'BLC-500', volume: '500ml', desc: 'Active chlorine bleach for whitening and disinfection.', image: '../assets/products/product_7.png' },
-      { id: 8, name: 'Purex Bleach', category: 'Cleaning', price: 160, buyPrice: 77, stock: 85, status: 'active', sku: 'BLC-1000', volume: '1 Litre', desc: 'Active chlorine bleach. Large size for household use.', image: '../assets/products/product_8.png' },
-      { id: 9, name: 'Purex Bathroom Spray', category: 'Cleaning', price: 180, buyPrice: 85, stock: 70, status: 'active', sku: 'BTH-500', volume: '500ml', desc: 'Powerful antibacterial bathroom spray. Cuts through soap scum, limescale and grime. Leaves surfaces sparkling clean with a fresh scent.', image: '../assets/products/product_9.jpg' },
-      { id: 10, name: 'Purex Bathroom Spray Compact', category: 'Cleaning', price: 110, buyPrice: 52, stock: 95, status: 'active', sku: 'BTH-250', volume: '250ml', desc: 'Compact trigger spray for quick bathroom touch-ups. Perfect for daily cleaning of mirrors, taps and tiles.', image: '../assets/products/product_10.png' },
-      { id: 11, name: 'Purex Surface Cleaner', category: 'Cleaning', price: 195, buyPrice: 92, stock: 55, status: 'active', sku: 'SRF-500', volume: '500ml', desc: 'All-purpose surface cleaner spray. Safe for countertops, appliances and bathroom fixtures. Streak-free formula for a polished finish.', image: '../assets/products/product_11.jpg' },
-      { id: 12, name: 'Purex Glass Cleaner', category: 'Cleaning', price: 170, buyPrice: 80, stock: 65, status: 'active', sku: 'GLS-500', volume: '500ml', desc: 'Crystal clear glass and mirror cleaner. Ammonia-free formula removes fingerprints, dust and smudges without streaking.', image: '../assets/products/product_12.jpg' },
-      { id: 13, name: 'Purex Bleach Standard', category: 'Bleach', price: 220, buyPrice: 105, stock: 80, status: 'active', sku: 'BLX-1000', volume: '1 Litre', desc: 'Multipurpose household bleach for whitening, disinfecting and stain removal. Kills 99.9% of germs on contact.', image: '../assets/products/product_13.jpg' },
-      { id: 14, name: 'Purex Bleach Gallon', category: 'Bleach', price: 450, buyPrice: 210, stock: 40, status: 'active', sku: 'BLX-3500', volume: '3.5 Litre', desc: 'Family-size bleach jug with easy-grip handle. Ideal for laundry whitening, kitchen sanitizing and bathroom deep cleaning.', image: '../assets/products/product_14.jpg' },
-      { id: 15, name: 'Purex Bleach Industrial', category: 'Bleach', price: 550, buyPrice: 260, stock: 30, status: 'active', sku: 'BLX-5000', volume: '5 Litre', desc: 'Industrial-grade bleach in a heavy-duty jerry can. Designed for commercial kitchens, hospitals and large-scale cleaning operations.', image: '../assets/products/product_15.jpg' },
-      { id: 16, name: 'Purex Bleach Economy', category: 'Bleach', price: 480, buyPrice: 225, stock: 35, status: 'active', sku: 'BLX-4000', volume: '4 Litre', desc: 'Economy-size bleach with ergonomic handle. Great value for regular household use. Active chlorine formula for powerful disinfection.', image: '../assets/products/product_16.jpg' },
-      { id: 17, name: 'Purex Liquid Bleach Blue', category: 'Bleach', price: 520, buyPrice: 245, stock: 25, status: 'active', sku: 'BLX-B5000', volume: '5 Litre', desc: 'Premium blue liquid bleach concentrate. Extra strength formula for tough stains, mold removal and heavy-duty disinfection.', image: '../assets/products/product_17.jpg' },
-      { id: 18, name: 'Purex Coconut Bath Soap', category: 'Soap', price: 75, buyPrice: 35, stock: 150, status: 'active', sku: 'SOP-COC130', volume: '130g', desc: 'Natural coconut oil bath soap. Rich, creamy lather moisturizes skin while gently cleansing. Made with pure coconut extract for soft, supple skin.', image: '../assets/products/product_18.jpg' },
-      { id: 19, name: 'Purex Clothes Soap 3-Pack', category: 'Soap', price: 145, buyPrice: 68, stock: 100, status: 'active', sku: 'SOP-CLT3PK', volume: '3x200g', desc: 'Value pack of three laundry soap bars in assorted colors. Tough on stains, gentle on fabrics. Perfect for hand-washing clothes.', image: '../assets/products/product_19.jpg' },
-      { id: 20, name: 'Purex Classic White Soap', category: 'Soap', price: 55, buyPrice: 25, stock: 200, status: 'active', sku: 'SOP-WHT100', volume: '100g', desc: 'Pure white bath soap with a clean, fresh fragrance. Dermatologically tested for all skin types. Everyday essential for the whole family.', image: '../assets/products/product_20.jpg' },
-      { id: 21, name: 'Purex Laundry Soap Bundle', category: 'Soap', price: 280, buyPrice: 130, stock: 60, status: 'active', sku: 'SOP-BDL5', volume: '5x130g', desc: 'Bulk laundry soap bundle — five bars for maximum savings. Long-lasting formula removes tough stains from collars, cuffs and everyday dirt.', image: '../assets/products/product_21.png' },
-      { id: 22, name: 'Purex Bath Soap Honey', category: 'Soap', price: 65, buyPrice: 30, stock: 180, status: 'active', sku: 'SOP-HNY100', volume: '100g', desc: 'Luxurious honey-infused bath soap. Nourishes and hydrates dry skin with natural honey extracts. Smooth, creamy texture with a warm fragrance.', image: '../assets/products/product_22.webp' },
-      { id: 23, name: 'Purex Spin Mop', category: 'Cleaning', price: 850, buyPrice: 400, stock: 20, status: 'active', sku: 'MOP-SPIN', volume: 'Standard', desc: 'Professional spin mop with 360-degree rotating head. Microfiber strands pick up dust, dirt and spills effortlessly. Stainless steel handle for durability.', image: '../assets/products/product_23.png' },
-      { id: 24, name: 'Purex Cotton Mop', category: 'Cleaning', price: 450, buyPrice: 210, stock: 35, status: 'active', sku: 'MOP-CTN', volume: 'Standard', desc: 'Classic cotton string mop with sturdy aluminum handle. Highly absorbent cotton threads for efficient floor cleaning. Easy to wring and maintain.', image: '../assets/products/product_24.png' },
-      { id: 25, name: 'Purex Heavy Duty Mop', category: 'Cleaning', price: 550, buyPrice: 260, stock: 25, status: 'active', sku: 'MOP-HD', volume: 'Large', desc: 'Extra-thick cotton mop head for heavy-duty floor cleaning. Ideal for large areas, commercial spaces and deep cleaning sessions. Replaceable head.', image: '../assets/products/product_25.jpg' },
-      { id: 26, name: 'Purex Mop Head Refill', category: 'Cleaning', price: 250, buyPrice: 115, stock: 50, status: 'active', sku: 'MOP-REF', volume: 'Standard', desc: 'Replacement mop head made from premium cotton string. Universal fit for most mop handles. Economical and eco-friendly alternative to buying a full mop.', image: '../assets/products/product_26.jpg' },
-      { id: 27, name: 'Purex Cleaning Kit', category: 'Cleaning', price: 1200, buyPrice: 560, stock: 15, status: 'active', sku: 'KIT-FULL', volume: 'Complete Set', desc: 'All-in-one cleaning kit with assorted bottles, sponges, cloths and brushes. Everything you need for a spotless home. Great gift for new homeowners.', image: '../assets/products/product_27.jpg' },
-      { id: 28, name: 'Purex Power Spray', category: 'Cleaning', price: 220, buyPrice: 105, stock: 45, status: 'active', sku: 'PWR-500', volume: '500ml', desc: 'High-pressure action cleaning spray that blasts away grease, grime and stubborn stains. Works on kitchen surfaces, stovetops, tiles and bathroom fixtures.', image: '../assets/products/product_28.jpg' },
-      { id: 29, name: 'Purex Cleaning Bundle', category: 'Cleaning', price: 950, buyPrice: 440, stock: 18, status: 'active', sku: 'KIT-BSKT', volume: 'Basket Set', desc: 'Portable cleaning basket with essential supplies. Includes spray bottles, scrub brush, sponge and microfiber cloth. Organized and ready to use.', image: '../assets/products/product_29.png' },
-      { id: 30, name: 'Purex Liquid Detergent', category: 'Cleaning', price: 320, buyPrice: 150, stock: 55, status: 'active', sku: 'DET-1000', volume: '1 Litre', desc: 'Concentrated liquid laundry detergent. Removes tough stains at low temperatures. Fresh ocean breeze scent keeps clothes smelling great all day.', image: '../assets/products/product_30.jpg' },
-      { id: 31, name: 'Purex Liquid Detergent XL', category: 'Cleaning', price: 550, buyPrice: 255, stock: 30, status: 'active', sku: 'DET-2000', volume: '2 Litre', desc: 'Extra-large liquid detergent for families. Double the cleaning power in an economy bottle. Colour-safe formula protects bright and dark fabrics.', image: '../assets/products/product_31.jpg' },
+      { id: 1, name: 'Taizab Cleaning Acid', category: 'Cleaning', price: 120, buyPrice: 58, stock: 100, capacity: 100, status: 'active', sku: 'TZB-500', volume: '500ml', desc: 'Extra strong industrial cleaning acid for tough stains and heavy-duty cleaning.', image: '../assets/products/product_1.png' },
+      { id: 2, name: 'Taizab Cleaning Acid', category: 'Cleaning', price: 200, buyPrice: 96, stock: 100, capacity: 100, status: 'active', sku: 'TZB-1000', volume: '1 Litre', desc: 'Extra strong industrial cleaning acid. Large size for commercial use.', image: '../assets/products/product_2.png' },
+      { id: 3, name: 'Taizab Lemon Acid', category: 'Cleaning', price: 140, buyPrice: 67, stock: 100, capacity: 100, status: 'active', sku: 'TZB-L500', volume: '500ml', desc: 'Lemon-fresh cleaning acid with a pleasant citrus scent.', image: '../assets/products/product_3.png' },
+      { id: 4, name: 'Sweep Floor Cleaner', category: 'Cleaning', price: 150, buyPrice: 72, stock: 100, capacity: 100, status: 'active', sku: 'SWP-F500', volume: '500ml', desc: 'Pine-fresh floor cleaner for sparkling clean floors.', image: '../assets/products/product_4.png' },
+      { id: 5, name: 'Sweep Floor Cleaner', category: 'Cleaning', price: 270, buyPrice: 130, stock: 100, capacity: 100, status: 'active', sku: 'SWP-F1000', volume: '1 Litre', desc: 'Pine-fresh floor cleaner. Large economy size.', image: '../assets/products/product_5.png' },
+      { id: 6, name: 'Sweep Toilet Cleaner', category: 'Cleaning', price: 160, buyPrice: 77, stock: 100, capacity: 100, status: 'active', sku: 'SWP-T500', volume: '500ml', desc: 'Max power toilet cleaner with angled nozzle for under-rim cleaning.', image: '../assets/products/product_6.png' },
+      { id: 7, name: 'Purex Bleach', category: 'Cleaning', price: 90, buyPrice: 43, stock: 100, capacity: 100, status: 'active', sku: 'BLC-500', volume: '500ml', desc: 'Active chlorine bleach for whitening and disinfection.', image: '../assets/products/product_7.png' },
+      { id: 8, name: 'Purex Bleach', category: 'Cleaning', price: 160, buyPrice: 77, stock: 100, capacity: 100, status: 'active', sku: 'BLC-1000', volume: '1 Litre', desc: 'Active chlorine bleach. Large size for household use.', image: '../assets/products/product_8.png' },
+      { id: 9, name: 'Purex Bathroom Spray', category: 'Cleaning', price: 180, buyPrice: 85, stock: 100, capacity: 100, status: 'active', sku: 'BTH-500', volume: '500ml', desc: 'Powerful antibacterial bathroom spray. Cuts through soap scum, limescale and grime. Leaves surfaces sparkling clean with a fresh scent.', image: '../assets/products/product_9.jpg' },
+      { id: 10, name: 'Purex Bathroom Spray Compact', category: 'Cleaning', price: 110, buyPrice: 52, stock: 100, capacity: 100, status: 'active', sku: 'BTH-250', volume: '250ml', desc: 'Compact trigger spray for quick bathroom touch-ups. Perfect for daily cleaning of mirrors, taps and tiles.', image: '../assets/products/product_10.png' },
+      { id: 11, name: 'Purex Surface Cleaner', category: 'Cleaning', price: 195, buyPrice: 92, stock: 100, capacity: 100, status: 'active', sku: 'SRF-500', volume: '500ml', desc: 'All-purpose surface cleaner spray. Safe for countertops, appliances and bathroom fixtures. Streak-free formula for a polished finish.', image: '../assets/products/product_11.jpg' },
+      { id: 12, name: 'Purex Glass Cleaner', category: 'Cleaning', price: 170, buyPrice: 80, stock: 100, capacity: 100, status: 'active', sku: 'GLS-500', volume: '500ml', desc: 'Crystal clear glass and mirror cleaner. Ammonia-free formula removes fingerprints, dust and smudges without streaking.', image: '../assets/products/product_12.jpg' },
+      { id: 13, name: 'Purex Bleach Standard', category: 'Bleach', price: 220, buyPrice: 105, stock: 100, capacity: 100, status: 'active', sku: 'BLX-1000', volume: '1 Litre', desc: 'Multipurpose household bleach for whitening, disinfecting and stain removal. Kills 99.9% of germs on contact.', image: '../assets/products/product_13.jpg' },
+      { id: 14, name: 'Purex Bleach Gallon', category: 'Bleach', price: 450, buyPrice: 210, stock: 100, capacity: 100, status: 'active', sku: 'BLX-3500', volume: '3.5 Litre', desc: 'Family-size bleach jug with easy-grip handle. Ideal for laundry whitening, kitchen sanitizing and bathroom deep cleaning.', image: '../assets/products/product_14.jpg' },
+      { id: 15, name: 'Purex Bleach Industrial', category: 'Bleach', price: 550, buyPrice: 260, stock: 100, capacity: 100, status: 'active', sku: 'BLX-5000', volume: '5 Litre', desc: 'Industrial-grade bleach in a heavy-duty jerry can. Designed for commercial kitchens, hospitals and large-scale cleaning operations.', image: '../assets/products/product_15.jpg' },
+      { id: 16, name: 'Purex Bleach Economy', category: 'Bleach', price: 480, buyPrice: 225, stock: 100, capacity: 100, status: 'active', sku: 'BLX-4000', volume: '4 Litre', desc: 'Economy-size bleach with ergonomic handle. Great value for regular household use. Active chlorine formula for powerful disinfection.', image: '../assets/products/product_16.jpg' },
+      { id: 17, name: 'Purex Liquid Bleach Blue', category: 'Bleach', price: 520, buyPrice: 245, stock: 100, capacity: 100, status: 'active', sku: 'BLX-B5000', volume: '5 Litre', desc: 'Premium blue liquid bleach concentrate. Extra strength formula for tough stains, mold removal and heavy-duty disinfection.', image: '../assets/products/product_17.jpg' },
+      { id: 18, name: 'Purex Coconut Bath Soap', category: 'Soap', price: 75, buyPrice: 35, stock: 100, capacity: 100, status: 'active', sku: 'SOP-COC130', volume: '130g', desc: 'Natural coconut oil bath soap. Rich, creamy lather moisturizes skin while gently cleansing. Made with pure coconut extract for soft, supple skin.', image: '../assets/products/product_18.jpg' },
+      { id: 19, name: 'Purex Clothes Soap 3-Pack', category: 'Soap', price: 145, buyPrice: 68, stock: 100, capacity: 100, status: 'active', sku: 'SOP-CLT3PK', volume: '3x200g', desc: 'Value pack of three laundry soap bars in assorted colors. Tough on stains, gentle on fabrics. Perfect for hand-washing clothes.', image: '../assets/products/product_19.jpg' },
+      { id: 20, name: 'Purex Classic White Soap', category: 'Soap', price: 55, buyPrice: 25, stock: 100, capacity: 100, status: 'active', sku: 'SOP-WHT100', volume: '100g', desc: 'Pure white bath soap with a clean, fresh fragrance. Dermatologically tested for all skin types. Everyday essential for the whole family.', image: '../assets/products/product_20.jpg' },
+      { id: 21, name: 'Purex Laundry Soap Bundle', category: 'Soap', price: 280, buyPrice: 130, stock: 100, capacity: 100, status: 'active', sku: 'SOP-BDL5', volume: '5x130g', desc: 'Bulk laundry soap bundle — five bars for maximum savings. Long-lasting formula removes tough stains from collars, cuffs and everyday dirt.', image: '../assets/products/product_21.png' },
+      { id: 22, name: 'Purex Bath Soap Honey', category: 'Soap', price: 65, buyPrice: 30, stock: 100, capacity: 100, status: 'active', sku: 'SOP-HNY100', volume: '100g', desc: 'Luxurious honey-infused bath soap. Nourishes and hydrates dry skin with natural honey extracts. Smooth, creamy texture with a warm fragrance.', image: '../assets/products/product_22.webp' },
+      { id: 23, name: 'Purex Spin Mop', category: 'Cleaning', price: 850, buyPrice: 400, stock: 100, capacity: 100, status: 'active', sku: 'MOP-SPIN', volume: 'Standard', desc: 'Professional spin mop with 360-degree rotating head. Microfiber strands pick up dust, dirt and spills effortlessly. Stainless steel handle for durability.', image: '../assets/products/product_23.png' },
+      { id: 24, name: 'Purex Cotton Mop', category: 'Cleaning', price: 450, buyPrice: 210, stock: 100, capacity: 100, status: 'active', sku: 'MOP-CTN', volume: 'Standard', desc: 'Classic cotton string mop with sturdy aluminum handle. Highly absorbent cotton threads for efficient floor cleaning. Easy to wring and maintain.', image: '../assets/products/product_24.png' },
+      { id: 25, name: 'Purex Heavy Duty Mop', category: 'Cleaning', price: 550, buyPrice: 260, stock: 100, capacity: 100, status: 'active', sku: 'MOP-HD', volume: 'Large', desc: 'Extra-thick cotton mop head for heavy-duty floor cleaning. Ideal for large areas, commercial spaces and deep cleaning sessions. Replaceable head.', image: '../assets/products/product_25.jpg' },
+      { id: 26, name: 'Purex Mop Head Refill', category: 'Cleaning', price: 250, buyPrice: 115, stock: 100, capacity: 100, status: 'active', sku: 'MOP-REF', volume: 'Standard', desc: 'Replacement mop head made from premium cotton string. Universal fit for most mop handles. Economical and eco-friendly alternative to buying a full mop.', image: '../assets/products/product_26.jpg' },
+      { id: 27, name: 'Purex Cleaning Kit', category: 'Cleaning', price: 1200, buyPrice: 560, stock: 100, capacity: 100, status: 'active', sku: 'KIT-FULL', volume: 'Complete Set', desc: 'All-in-one cleaning kit with assorted bottles, sponges, cloths and brushes. Everything you need for a spotless home. Great gift for new homeowners.', image: '../assets/products/product_27.jpg' },
+      { id: 28, name: 'Purex Power Spray', category: 'Cleaning', price: 220, buyPrice: 105, stock: 100, capacity: 100, status: 'active', sku: 'PWR-500', volume: '500ml', desc: 'High-pressure action cleaning spray that blasts away grease, grime and stubborn stains. Works on kitchen surfaces, stovetops, tiles and bathroom fixtures.', image: '../assets/products/product_28.jpg' },
+      { id: 29, name: 'Purex Cleaning Bundle', category: 'Cleaning', price: 950, buyPrice: 440, stock: 100, capacity: 100, status: 'active', sku: 'KIT-BSKT', volume: 'Basket Set', desc: 'Portable cleaning basket with essential supplies. Includes spray bottles, scrub brush, sponge and microfiber cloth. Organized and ready to use.', image: '../assets/products/product_29.png' },
+      { id: 30, name: 'Purex Liquid Detergent', category: 'Cleaning', price: 320, buyPrice: 150, stock: 100, capacity: 100, status: 'active', sku: 'DET-1000', volume: '1 Litre', desc: 'Concentrated liquid laundry detergent. Removes tough stains at low temperatures. Fresh ocean breeze scent keeps clothes smelling great all day.', image: '../assets/products/product_30.jpg' },
+      { id: 31, name: 'Purex Liquid Detergent XL', category: 'Cleaning', price: 550, buyPrice: 255, stock: 100, capacity: 100, status: 'active', sku: 'DET-2000', volume: '2 Litre', desc: 'Extra-large liquid detergent for families. Double the cleaning power in an economy bottle. Colour-safe formula protects bright and dark fabrics.', image: '../assets/products/product_31.jpg' },
     ];
 
     const DEFAULT_ORDERS = [
@@ -1436,8 +1488,32 @@
       document.getElementById('kpi-orders').textContent = orders.length;
 
       // Revenue from orders
-      const revenue = orders.reduce((sum, o) => sum + o.total, 0);
+      const revenue = orders.reduce((sum, o) => sum + (Number(o.total) || 0), 0);
       document.getElementById('kpi-revenue').textContent = 'Rs. ' + revenue.toLocaleString();
+
+      // Revenue growth: compare confirmed/delivered orders from daily sales
+      const now = new Date();
+      const thisMonth = dailySales.filter(s => {
+        const d = new Date(s.date);
+        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+      }).reduce((sum, s) => sum + (Number(s.total) || 0), 0);
+      const lastMonth = dailySales.filter(s => {
+        const d = new Date(s.date);
+        const lm = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        return d.getMonth() === lm.getMonth() && d.getFullYear() === lm.getFullYear();
+      }).reduce((sum, s) => sum + (Number(s.total) || 0), 0);
+      const growthEl = document.getElementById('kpi-revenue-growth');
+      if (lastMonth > 0) {
+        const pct = (((thisMonth - lastMonth) / lastMonth) * 100).toFixed(1);
+        growthEl.textContent = (pct >= 0 ? '+' : '') + pct + '% vs last month';
+        growthEl.className = 'text-[10px] mt-1 ' + (pct >= 0 ? 'text-emerald-400' : 'text-red-400');
+      } else if (thisMonth > 0) {
+        growthEl.textContent = 'Rs. ' + thisMonth.toLocaleString() + ' this month';
+        growthEl.className = 'text-[10px] mt-1 text-emerald-400';
+      } else {
+        growthEl.textContent = 'No sales yet';
+        growthEl.className = 'text-[10px] mt-1 text-white/25';
+      }
 
       // Orders badge
       const pendingOrd = orders.filter(o => o.status === 'pending').length;
@@ -1473,20 +1549,36 @@
           document.getElementById('kpi-most-profitable-sub').textContent = margin.toFixed(1) + '% margin · Rs.' + (bestProfitProduct.price - (bestProfitProduct.buyPrice || 0)) + '/unit';
         }
 
-        // Most sold product (highest stock sold = lowest current stock relative to category avg, or simply highest revenue potential)
-        // Using simulated sales data: products with lower stock relative to initial = more sold
-        // Approximate: sort by (price * (200 - stock)) as a proxy for revenue from sales
-        let bestSoldProduct = null, bestSoldVal = 0;
-        products.forEach(p => {
-          const estimatedSold = Math.max(0, 200 - p.stock); // approximate units sold
-          const revenue = estimatedSold * p.price;
-          if (revenue > bestSoldVal) { bestSoldVal = revenue; bestSoldProduct = p; estimatedSold_best = estimatedSold; }
-        });
+        // Most sold product — use actual daily sales data if available, else estimate from capacity
+        let bestSoldProduct = null, bestSoldVal = 0, bestSoldUnits = 0;
+        if (dailySales.length > 0) {
+          // Use real sales data: sum qty per product
+          const salesByProduct = {};
+          dailySales.forEach(s => {
+            const key = s.productId || s.productName;
+            salesByProduct[key] = (salesByProduct[key] || 0) + (s.qty || 0);
+          });
+          let topKey = null, topQty = 0;
+          Object.entries(salesByProduct).forEach(([key, qty]) => {
+            if (qty > topQty) { topQty = qty; topKey = key; }
+          });
+          if (topKey) {
+            bestSoldProduct = products.find(p => p.id == topKey || p.name === topKey) || null;
+            bestSoldUnits = topQty;
+          }
+        } else {
+          // Estimate from capacity - stock
+          products.forEach(p => {
+            const cap = p.capacity || 100;
+            const estimatedSold = Math.max(0, cap - p.stock);
+            const rev = estimatedSold * p.price;
+            if (rev > bestSoldVal) { bestSoldVal = rev; bestSoldProduct = p; bestSoldUnits = estimatedSold; }
+          });
+        }
         if (bestSoldProduct) {
-          const soldUnits = Math.max(0, 200 - bestSoldProduct.stock);
           document.getElementById('kpi-most-sold').textContent = bestSoldProduct.name;
           document.getElementById('kpi-most-sold').title = bestSoldProduct.name;
-          document.getElementById('kpi-most-sold-sub').textContent = '~' + soldUnits + ' units · Rs.' + (soldUnits * bestSoldProduct.price).toLocaleString() + ' revenue';
+          document.getElementById('kpi-most-sold-sub').textContent = bestSoldUnits + ' units · Rs.' + (bestSoldUnits * bestSoldProduct.price).toLocaleString() + ' revenue';
         }
       }
     }
@@ -1543,12 +1635,27 @@
         }).join('');
       }
 
-      // Top 5 Most Sold (by estimated units sold: 200 - current stock)
-      const soldRanked = [...products].map(p => ({
-        ...p,
-        unitsSold: Math.max(0, 200 - p.stock),
-        revenue: Math.max(0, 200 - p.stock) * p.price
-      })).sort((a, b) => b.unitsSold - a.unitsSold).slice(0, 5);
+      // Top 5 Most Sold — use real sales data if available, else estimate from capacity
+      let soldRanked;
+      if (dailySales.length > 0) {
+        const salesMap = {};
+        dailySales.forEach(s => {
+          const key = s.productId || s.productName;
+          if (!salesMap[key]) salesMap[key] = { qty: 0, rev: 0 };
+          salesMap[key].qty += (s.qty || 0);
+          salesMap[key].rev += (Number(s.total) || 0);
+        });
+        soldRanked = Object.entries(salesMap).map(([key, data]) => {
+          const p = products.find(pr => pr.id == key || pr.name === key) || {};
+          return { ...p, unitsSold: data.qty, revenue: data.rev };
+        }).sort((a, b) => b.unitsSold - a.unitsSold).slice(0, 5);
+      } else {
+        soldRanked = [...products].map(p => ({
+          ...p,
+          unitsSold: Math.max(0, (p.capacity || 100) - p.stock),
+          revenue: Math.max(0, (p.capacity || 100) - p.stock) * p.price
+        })).sort((a, b) => b.unitsSold - a.unitsSold).slice(0, 5);
+      }
 
       const maxSold = soldRanked.length > 0 ? soldRanked[0].unitsSold : 1;
       const soldContainer = document.getElementById('top-sold-list');
@@ -1687,9 +1794,10 @@
 
     // ==================== PRODUCTS TABLE ====================
 
-    function getStockClass(stock) {
-      if (stock > 50) return { color: 'text-emerald-400', bg: 'bg-emerald-400', label: 'Good' };
-      if (stock >= 20) return { color: 'text-amber-400', bg: 'bg-amber-400', label: 'Low' };
+    function getStockClass(stock, capacity) {
+      const cap = capacity || 100;
+      if (stock > cap * 0.5) return { color: 'text-emerald-400', bg: 'bg-emerald-400', label: 'Good' };
+      if (stock >= cap * 0.2) return { color: 'text-amber-400', bg: 'bg-amber-400', label: 'Low' };
       return { color: 'text-red-400', bg: 'bg-red-400', label: 'Critical' };
     }
 
@@ -1739,7 +1847,7 @@
       empty.classList.add('hidden');
 
       tbody.innerHTML = filtered.map(p => {
-        const sc = getStockClass(p.stock);
+        const sc = getStockClass(p.stock, p.capacity);
         const margin = getProductMargin(p);
         const isPublished = p.status === 'active';
         const isOnSale = !!p.onSale;
@@ -1961,6 +2069,9 @@
         document.getElementById('form-price').value = p.price;
         document.getElementById('form-buy-price').value = p.buyPrice || 0;
         document.getElementById('form-stock').value = p.stock;
+        document.getElementById('form-capacity').value = p.capacity || 100;
+        document.getElementById('form-capacity').disabled = !isAdmin;
+        document.getElementById('capacity-lock').textContent = !isAdmin ? '(Admin only)' : '';
         document.getElementById('form-desc').value = p.desc || '';
         document.getElementById('form-image').value = p.image || '';
         formStatus = p.status;
@@ -1975,6 +2086,9 @@
         document.getElementById('modal-title').textContent = 'Add Product';
         document.getElementById('edit-product-id').value = '';
         document.getElementById('product-form').reset();
+        document.getElementById('form-capacity').value = 100;
+        document.getElementById('form-capacity').disabled = !isAdmin;
+        document.getElementById('capacity-lock').textContent = !isAdmin ? '(Admin only)' : '';
         formStatus = 'active';
         formOnSale = false;
         document.getElementById('form-sale-price').value = '';
@@ -2034,6 +2148,8 @@
       const salePrice = parseInt(document.getElementById('form-sale-price').value) || 0;
       const newStock = parseInt(document.getElementById('form-stock').value);
 
+      const newCapacity = parseInt(document.getElementById('form-capacity').value) || 100;
+
       // Editor restrictions
       if (!isAdmin && editId) {
         const existing = products.find(p => p.id === parseInt(editId));
@@ -2048,7 +2164,19 @@
             alert('You do not have permission to change prices. Contact admin.');
             return;
           }
+          // Cannot change capacity
+          if (newCapacity !== (existing.capacity || 100)) {
+            alert('Only admin can change product capacity. Contact your manager.');
+            return;
+          }
         }
+      }
+
+      // Capacity check — editor cannot exceed capacity
+      const effectiveCapacity = editId ? (products.find(p => p.id === parseInt(editId))?.capacity || 100) : newCapacity;
+      if (!isAdmin && newStock > effectiveCapacity) {
+        alert('Stock (' + newStock + ') exceeds capacity limit (' + effectiveCapacity + '). Contact your manager/admin to increase capacity.');
+        return;
       }
 
       const data = {
@@ -2059,6 +2187,7 @@
         price: sellPrice,
         buyPrice: buyPrice,
         stock: newStock,
+        capacity: isAdmin ? newCapacity : effectiveCapacity,
         status: formStatus,
         onSale: formOnSale,
         salePrice: formOnSale ? salePrice : 0,
@@ -2336,8 +2465,8 @@
               ${isEditing ? `
                 <div class="mt-2 flex gap-1.5 items-center">
                   <select id="add-item-select-${idx}" class="flex-1 text-[10px] bg-white/5 border border-white/10 rounded px-2 py-1 text-white/60">
-                    <option value="">+ Add product...</option>
-                    ${products.filter(p => p.status === 'active').map(p => `<option value="${p.id}">${p.name} (Rs.${p.price})</option>`).join('')}
+                    <option value="" class="bg-[#0a0e17]">+ Add product...</option>
+                    ${products.filter(p => p.status === 'active').map(p => `<option value="${p.id}" class="bg-[#0a0e17]">${p.name}${p.volume ? ' ' + p.volume : ''} (Rs.${p.price})</option>`).join('')}
                   </select>
                   <button onclick="addItemToOrder(${idx})" class="text-[10px] px-2 py-1 rounded bg-purex-blue/20 text-purex-blue hover:bg-purex-blue/30 transition">Add</button>
                 </div>
@@ -3034,11 +3163,13 @@
     function renderInventory() {
       const grid = document.getElementById('inventory-grid');
       grid.innerHTML = products.map(p => {
-        const maxStock = 200;
-        const pct = Math.min((p.stock / maxStock) * 100, 100);
+        const cap = p.capacity || 100;
+        const pct = Math.min((p.stock / cap) * 100, 100);
+        const halfCap = Math.round(cap * 0.5);
+        const lowCap = Math.round(cap * 0.2);
         let barColor, textColor;
-        if (p.stock > 50) { barColor = 'bg-emerald-400'; textColor = 'text-emerald-400'; }
-        else if (p.stock >= 20) { barColor = 'bg-amber-400'; textColor = 'text-amber-400'; }
+        if (p.stock > halfCap) { barColor = 'bg-emerald-400'; textColor = 'text-emerald-400'; }
+        else if (p.stock >= lowCap) { barColor = 'bg-amber-400'; textColor = 'text-amber-400'; }
         else { barColor = 'bg-red-400'; textColor = 'text-red-400'; }
 
         const imgSrc = p.image || '';
@@ -3053,7 +3184,7 @@
                 ${thumbHtml}
                 <p class="text-[11px] text-white/60 font-light truncate">${p.name}${p.volume ? ' ' + p.volume : ''}</p>
               </div>
-              <span class="text-[10px] ${textColor} font-light whitespace-nowrap">${p.stock}</span>
+              <span class="text-[10px] ${textColor} font-light whitespace-nowrap">${p.stock}<span class="text-white/20">/${cap}</span></span>
             </div>
             <div class="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
               <div class="h-full ${barColor} rounded-full inv-bar transition-all" style="width: ${pct}%;"></div>
@@ -3426,6 +3557,7 @@
         if (!document.getElementById('supplier-modal').classList.contains('hidden')) closeSupplierModal();
         if (!document.getElementById('sinv-modal').classList.contains('hidden')) closeSupplierInvoiceModal();
         if (!document.getElementById('user-modal').classList.contains('hidden')) closeUserModal();
+        if (!document.getElementById('supplier-history-modal').classList.contains('hidden')) closeSupplierHistory();
         if (!document.getElementById('sinv-photo-fullview').classList.contains('hidden')) document.getElementById('sinv-photo-fullview').classList.add('hidden');
       }
     });
@@ -3839,29 +3971,185 @@
         return;
       }
       noMsg.classList.add('hidden');
-      container.innerHTML = suppliers.map(s => `
-        <div class="glass rounded-xl p-3 transition hover:border-white/15">
+      container.innerHTML = suppliers.map(s => {
+        const invCount = supplierInvoices.filter(i => i.supplierId == s.id).length;
+        const postedTotal = supplierInvoices.filter(i => i.supplierId == s.id && i.status === 'posted').reduce((sum, i) => sum + (i.amount || 0), 0);
+        const draftCount = supplierInvoices.filter(i => i.supplierId == s.id && i.status === 'draft').length;
+        return `
+        <div class="glass rounded-xl p-3 transition hover:border-purex-blue/20 cursor-pointer group" onclick="openSupplierHistory(${s.id})">
           <div class="flex items-center justify-between mb-1">
             <div class="flex items-center gap-2">
-              <span class="text-xs text-white/80 font-light">${s.name}</span>
-              ${s.city ? '<span class="text-[9px] text-white/25">' + s.city + '</span>' : ''}
+              <div class="w-7 h-7 rounded-lg bg-purex-blue/10 flex items-center justify-center text-[10px] text-purex-blue font-heading">${s.name.substring(0, 2).toUpperCase()}</div>
+              <div>
+                <span class="text-xs text-white/80 font-light group-hover:text-purex-blue transition">${s.name}</span>
+                ${s.city ? '<span class="text-[9px] text-white/25 ml-1.5">' + s.city + '</span>' : ''}
+              </div>
             </div>
-            <div class="flex items-center gap-1">
+            <div class="flex items-center gap-1" onclick="event.stopPropagation()">
               <button onclick="openSupplierModal(${s.id})" class="text-[10px] px-1.5 py-0.5 rounded bg-white/5 text-white/30 hover:text-white/60 transition">Edit</button>
               ${isAdmin ? '<button onclick="deleteSupplier(' + s.id + ')" class="text-[10px] px-1.5 py-0.5 rounded bg-red-500/5 text-red-400/40 hover:text-red-400 transition">&times;</button>' : ''}
             </div>
           </div>
-          <div class="flex items-center gap-3 text-[10px] text-white/30">
+          <div class="flex items-center gap-3 text-[10px] text-white/30 ml-9">
             <span>${s.phone}</span>
             ${s.contact ? '<span>&middot; ' + s.contact + '</span>' : ''}
             ${s.products ? '<span>&middot; ' + s.products + '</span>' : ''}
           </div>
-          <div class="flex items-center gap-3 text-[10px] text-white/20 mt-1">
-            <span>${s.invoiceCount || 0} invoices</span>
-            <span>Rs. ${(s.totalPurchased || 0).toLocaleString()} total</span>
+          <div class="flex items-center gap-3 text-[10px] text-white/20 mt-1 ml-9">
+            <span>${invCount} invoice${invCount !== 1 ? 's' : ''}</span>
+            ${draftCount > 0 ? '<span class="text-amber-400/50">' + draftCount + ' draft</span>' : ''}
+            <span>Rs. ${postedTotal.toLocaleString()} total</span>
+            <span class="ml-auto text-purex-blue/40 group-hover:text-purex-blue/70 transition text-[9px]">View History &rarr;</span>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    let currentSupplierHistoryId = null;
+
+    function openSupplierHistory(supplierId) {
+      currentSupplierHistoryId = supplierId;
+      const s = suppliers.find(x => x.id == supplierId);
+      if (!s) return;
+
+      document.getElementById('supplier-history-modal').classList.remove('hidden');
+      document.getElementById('sh-title').textContent = s.name;
+      document.getElementById('sh-subtitle').textContent = (s.city || '') + (s.contact ? ' — ' + s.contact : '');
+
+      // Wire up the add invoice button to pre-select this supplier
+      document.getElementById('sh-add-invoice-btn').onclick = function() {
+        openSupplierInvoiceModal();
+        setTimeout(() => { document.getElementById('sinv-supplier').value = supplierId; }, 100);
+      };
+
+      // Supplier info card
+      document.getElementById('sh-info').innerHTML = `
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-[10px]">
+          <div>
+            <p class="text-white/30 mb-0.5">Phone</p>
+            <p class="text-white/70 font-light">${s.phone || '-'}</p>
+          </div>
+          <div>
+            <p class="text-white/30 mb-0.5">Email</p>
+            <p class="text-white/70 font-light">${s.email || '-'}</p>
+          </div>
+          <div>
+            <p class="text-white/30 mb-0.5">Products</p>
+            <p class="text-white/70 font-light">${s.products || '-'}</p>
+          </div>
+          <div>
+            <p class="text-white/30 mb-0.5">Address</p>
+            <p class="text-white/70 font-light">${s.address || '-'}</p>
           </div>
         </div>
-      `).join('');
+        ${s.notes ? '<p class="text-[10px] text-white/25 mt-2 italic">' + s.notes + '</p>' : ''}`;
+
+      // Stats
+      const allInvs = supplierInvoices.filter(i => i.supplierId == supplierId);
+      const postedInvs = allInvs.filter(i => i.status === 'posted');
+      const draftInvs = allInvs.filter(i => i.status === 'draft');
+      const totalAmount = postedInvs.reduce((sum, i) => sum + (i.amount || 0), 0);
+      const lastInv = allInvs.sort((a, b) => (b.date || '').localeCompare(a.date || ''))[0];
+
+      document.getElementById('sh-stats').innerHTML = `
+        <div class="glass rounded-xl p-3 text-center">
+          <p class="text-lg font-heading font-light text-white">${allInvs.length}</p>
+          <p class="text-[10px] text-white/30">Total Invoices</p>
+          ${draftInvs.length > 0 ? '<p class="text-[9px] text-amber-400/60 mt-0.5">' + draftInvs.length + ' draft</p>' : ''}
+        </div>
+        <div class="glass rounded-xl p-3 text-center">
+          <p class="text-lg font-heading font-light text-white">Rs. ${totalAmount.toLocaleString()}</p>
+          <p class="text-[10px] text-white/30">Total Purchased</p>
+        </div>
+        <div class="glass rounded-xl p-3 text-center">
+          <p class="text-sm font-heading font-light text-white">${lastInv ? lastInv.date : '-'}</p>
+          <p class="text-[10px] text-white/30">Last Invoice</p>
+        </div>`;
+
+      // Invoice history
+      renderSupplierHistoryInvoices(supplierId);
+      gsap.from('#supplier-history-modal .glass-strong', { scale: 0.95, opacity: 0, duration: 0.3, ease: 'back.out(1.5)' });
+    }
+
+    function closeSupplierHistory() {
+      document.getElementById('supplier-history-modal').classList.add('hidden');
+      currentSupplierHistoryId = null;
+    }
+
+    function renderSupplierHistoryInvoices(supplierId) {
+      const invs = supplierInvoices
+        .filter(i => i.supplierId == supplierId)
+        .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+
+      const tbody = document.getElementById('sh-invoices-tbody');
+      const noMsg = document.getElementById('sh-no-invoices');
+
+      if (invs.length === 0) {
+        tbody.innerHTML = '';
+        noMsg.classList.remove('hidden');
+        return;
+      }
+      noMsg.classList.add('hidden');
+
+      tbody.innerHTML = invs.map(inv => {
+        const isDraft = inv.status === 'draft';
+        const statusBadge = isDraft
+          ? '<span class="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-400">Draft</span>'
+          : '<span class="text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400">Posted</span>';
+        const photoBtn = inv.photo
+          ? `<button onclick="viewInvoicePhotoFull(supplierInvoices.find(x=>x.id==${inv.id}).photo)" class="text-[9px] text-purex-blue hover:underline">View</button>`
+          : '<span class="text-[9px] text-white/15">—</span>';
+
+        let actions = '';
+        if (isDraft) {
+          actions = `
+            <button onclick="openSupplierInvoiceModal(${inv.id})" class="text-[10px] px-1.5 py-0.5 rounded bg-white/5 text-white/30 hover:text-white/60 transition">Edit</button>
+            <button onclick="postSupplierInvoice(${inv.id}); renderSupplierHistoryInvoices(${supplierId}); renderSuppliers();" class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400/60 hover:text-emerald-400 transition">Post</button>`;
+        } else if (isAdmin) {
+          actions = `
+            <button onclick="openSupplierInvoiceModal(${inv.id})" class="text-[10px] px-1.5 py-0.5 rounded bg-white/5 text-white/30 hover:text-white/60 transition">Edit</button>
+            <button onclick="deleteSupplierInvoice(${inv.id}); renderSupplierHistoryInvoices(${supplierId}); renderSuppliers();" class="text-[10px] px-1.5 py-0.5 rounded bg-red-500/5 text-red-400/40 hover:text-red-400 transition">&times;</button>`;
+        } else {
+          actions = '<span class="text-[9px] text-white/15">Locked</span>';
+        }
+
+        // Expandable line items
+        const hasItems = inv.items && inv.items.length > 0;
+        const itemsHtml = hasItems ? `
+          <tr class="sh-items-row-${inv.id} hidden">
+            <td colspan="7" class="py-2 pl-4">
+              <div class="glass rounded-lg p-2">
+                <table class="w-full text-[10px]">
+                  <thead><tr class="text-white/25"><th class="text-left font-light pb-1">Item</th><th class="text-center font-light pb-1">Qty</th><th class="text-right font-light pb-1">Rate</th><th class="text-right font-light pb-1">Total</th></tr></thead>
+                  <tbody>${inv.items.map(it => `
+                    <tr class="text-white/50 border-t border-white/5">
+                      <td class="py-1">${it.description}</td>
+                      <td class="py-1 text-center">${it.qty}</td>
+                      <td class="py-1 text-right">Rs.${(it.rate || 0).toLocaleString()}</td>
+                      <td class="py-1 text-right">Rs.${((it.qty || 0) * (it.rate || 0)).toLocaleString()}</td>
+                    </tr>`).join('')}
+                  </tbody>
+                </table>
+              </div>
+              ${inv.description ? '<p class="text-[10px] text-white/25 mt-1.5 italic">' + inv.description + '</p>' : ''}
+            </td>
+          </tr>` : '';
+
+        return `
+          <tr class="border-b border-white/5 hover:bg-white/[0.02] transition ${isDraft ? 'opacity-70' : ''}">
+            <td class="py-2.5 text-xs font-light">
+              <button onclick="document.querySelectorAll('.sh-items-row-${inv.id}').forEach(r=>r.classList.toggle('hidden'))" class="text-purex-blue font-mono hover:underline">${inv.invoiceNumber}</button>
+              ${hasItems ? '<span class="text-[9px] text-white/20 ml-1">(' + inv.items.length + ' items)</span>' : ''}
+            </td>
+            <td class="py-2.5 text-xs text-white/50 font-light">${inv.date}</td>
+            <td class="py-2.5 text-xs text-white/70 font-light text-right">Rs. ${(inv.amount || 0).toLocaleString()}</td>
+            <td class="py-2.5 text-center">${photoBtn}</td>
+            <td class="py-2.5 text-center">${statusBadge}</td>
+            <td class="py-2.5 text-[10px] text-white/25 font-light">${inv.addedBy || '-'}</td>
+            <td class="py-2.5 text-center"><div class="flex items-center justify-center gap-1">${actions}</div></td>
+          </tr>
+          ${itemsHtml}`;
+      }).join('');
     }
 
     function exportSuppliersCSV() {
@@ -4062,6 +4350,11 @@
       saveSupplierInvoicesToDB();
       renderSupplierInvoices();
       renderSuppliers();
+      // Refresh supplier history if open
+      if (currentSupplierHistoryId) {
+        renderSupplierHistoryInvoices(currentSupplierHistoryId);
+        openSupplierHistory(currentSupplierHistoryId);
+      }
       closeSupplierInvoiceModal();
     }
 
