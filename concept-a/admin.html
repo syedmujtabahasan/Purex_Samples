@@ -958,7 +958,8 @@
       document.getElementById('kpi-revenue').textContent = 'Rs. ' + revenue.toLocaleString();
 
       // Orders badge
-      document.getElementById('orders-badge').textContent = orders.length + ' orders';
+      const pendingOrd = orders.filter(o => o.status === 'pending').length;
+      document.getElementById('orders-badge').textContent = pendingOrd > 0 ? pendingOrd + ' pending' : orders.length + ' orders';
 
       // Donut total
       document.getElementById('donut-total').textContent = totalProducts;
@@ -1770,19 +1771,92 @@
 
     const orderStatusColors = {
       pending: { bg: 'bg-amber-500/10', text: 'text-amber-400', dot: 'bg-amber-400' },
+      confirmed: { bg: 'bg-emerald-500/10', text: 'text-emerald-400', dot: 'bg-emerald-400' },
       shipped: { bg: 'bg-purex-blue/10', text: 'text-purex-blue', dot: 'bg-purex-blue' },
       delivered: { bg: 'bg-emerald-500/10', text: 'text-emerald-400', dot: 'bg-emerald-400' },
     };
 
+    let editingOrderIdx = null; // track which order is being edited
+
     function renderOrders() {
-      document.getElementById('orders-list').innerHTML = orders.map((o, idx) => {
-        const sc = orderStatusColors[o.status];
+      const container = document.getElementById('orders-list');
+      if (!orders.length) {
+        container.innerHTML = '<p class="text-xs text-white/30 text-center py-4">No orders yet</p>';
+        return;
+      }
+      container.innerHTML = orders.map((o, idx) => {
+        const sc = orderStatusColors[o.status] || orderStatusColors.pending;
+        const hasItems = o.itemDetails && o.itemDetails.length > 0;
+        const isPending = o.status === 'pending';
+        const isEditing = editingOrderIdx === idx;
+
+        // Item details rows
+        let itemsHtml = '';
+        if (hasItems) {
+          itemsHtml = `
+            <div id="order-items-${idx}" class="${isEditing ? '' : 'hidden'} mt-3 border-t border-white/5 pt-3">
+              <table class="w-full text-[10px]">
+                <thead><tr class="text-white/30">
+                  <th class="text-left pb-1 font-light">Product</th>
+                  <th class="text-center pb-1 font-light">Qty</th>
+                  <th class="text-right pb-1 font-light">Price</th>
+                  <th class="text-right pb-1 font-light">Total</th>
+                  ${isEditing ? '<th class="text-center pb-1 font-light w-8"></th>' : ''}
+                </tr></thead>
+                <tbody id="order-items-body-${idx}">
+                  ${o.itemDetails.map((item, iIdx) => `
+                    <tr class="text-white/60 border-t border-white/5">
+                      <td class="py-1.5 text-left">${item.name} ${item.volume ? '<span class="text-white/25">' + item.volume + '</span>' : ''}</td>
+                      <td class="py-1.5 text-center">${isEditing ? `<input type="number" min="1" value="${item.qty}" onchange="updateOrderItemQty(${idx}, ${iIdx}, this.value)" class="w-10 text-center bg-white/5 border border-white/10 rounded text-[10px] text-white/70 px-1 py-0.5" />` : item.qty}</td>
+                      <td class="py-1.5 text-right">Rs.${(item.price || 0).toLocaleString()}</td>
+                      <td class="py-1.5 text-right">Rs.${((item.price || 0) * item.qty).toLocaleString()}</td>
+                      ${isEditing ? `<td class="py-1.5 text-center"><button onclick="removeOrderItem(${idx}, ${iIdx})" class="text-red-400/60 hover:text-red-400 text-xs" title="Remove item">&times;</button></td>` : ''}
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+              ${isEditing ? `
+                <div class="mt-2 flex gap-1.5 items-center">
+                  <select id="add-item-select-${idx}" class="flex-1 text-[10px] bg-white/5 border border-white/10 rounded px-2 py-1 text-white/60">
+                    <option value="">+ Add product...</option>
+                    ${products.filter(p => p.status === 'active').map(p => `<option value="${p.id}">${p.name} (Rs.${p.price})</option>`).join('')}
+                  </select>
+                  <button onclick="addItemToOrder(${idx})" class="text-[10px] px-2 py-1 rounded bg-purex-blue/20 text-purex-blue hover:bg-purex-blue/30 transition">Add</button>
+                </div>
+              ` : ''}
+            </div>`;
+        }
+
+        // Action buttons
+        let actionsHtml = '';
+        if (isPending && hasItems) {
+          if (isEditing) {
+            actionsHtml = `
+              <div class="flex gap-1.5 mt-2">
+                <button onclick="saveOrderEdit(${idx})" class="flex-1 text-[10px] px-2 py-1.5 rounded-lg bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 transition font-light">Save & Confirm</button>
+                <button onclick="cancelOrderEdit(${idx})" class="text-[10px] px-2 py-1.5 rounded-lg bg-white/5 text-white/40 hover:bg-white/10 transition font-light">Cancel</button>
+              </div>`;
+          } else {
+            actionsHtml = `
+              <div class="flex gap-1.5 mt-2">
+                <button onclick="confirmOrder(${idx})" class="flex-1 text-[10px] px-2 py-1.5 rounded-lg bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 transition font-light">Confirm Order</button>
+                <button onclick="editOrder(${idx})" class="text-[10px] px-2 py-1.5 rounded-lg bg-purex-blue/20 text-purex-blue hover:bg-purex-blue/30 transition font-light">Edit Items</button>
+                <button onclick="toggleOrderItems(${idx})" class="text-[10px] px-2 py-1.5 rounded-lg bg-white/5 text-white/40 hover:bg-white/10 transition font-light">${o.itemDetails.length} items ▾</button>
+              </div>`;
+          }
+        } else if (isPending) {
+          actionsHtml = `<p class="text-[10px] text-white/20 mt-2 italic">No item details — record sales manually</p>`;
+        } else if (o.status === 'confirmed') {
+          actionsHtml = `<p class="text-[10px] text-emerald-400/50 mt-2">✓ Confirmed — ${hasItems ? o.itemDetails.length + ' items recorded as sales' : 'sales recorded'}</p>`;
+        }
+
         return `
-          <div class="glass rounded-xl p-3 transition hover:border-white/15">
+          <div class="glass rounded-xl p-3 transition hover:border-white/15" id="order-card-${idx}">
             <div class="flex items-center justify-between mb-2">
               <span class="text-xs text-purex-blue font-mono">${o.id}</span>
               <select onchange="changeOrderStatus(${idx}, this.value)" class="text-[10px] px-2 py-0.5 rounded-full ${sc.bg} ${sc.text} bg-transparent border-0 cursor-pointer font-light" style="background-image: none; padding-right: 8px;">
                 <option value="pending" ${o.status === 'pending' ? 'selected' : ''} class="bg-[#0a0e17]">Pending</option>
+                <option value="confirmed" ${o.status === 'confirmed' ? 'selected' : ''} class="bg-[#0a0e17]">Confirmed</option>
                 <option value="shipped" ${o.status === 'shipped' ? 'selected' : ''} class="bg-[#0a0e17]">Shipped</option>
                 <option value="delivered" ${o.status === 'delivered' ? 'selected' : ''} class="bg-[#0a0e17]">Delivered</option>
               </select>
@@ -1790,21 +1864,157 @@
             <div class="flex items-center justify-between">
               <div>
                 <p class="text-xs text-white/70 font-light">${o.customer}</p>
-                <p class="text-[10px] text-white/30">${o.city} &middot; ${o.items} item${o.items > 1 ? 's' : ''}</p>
+                <p class="text-[10px] text-white/30">${o.city || 'N/A'} &middot; ${o.phone || ''} &middot; ${hasItems ? o.itemDetails.length : o.items} item${(hasItems ? o.itemDetails.length : o.items) > 1 ? 's' : ''}</p>
               </div>
-              <span class="text-sm text-white font-light">Rs. ${o.total.toLocaleString()}</span>
+              <span class="text-sm text-white font-light">Rs. ${(o.total || 0).toLocaleString()}</span>
             </div>
+            ${itemsHtml}
+            ${actionsHtml}
           </div>`;
       }).join('');
+
+      const pendingCount = orders.filter(o => o.status === 'pending').length;
+      document.getElementById('orders-badge').textContent = pendingCount > 0 ? pendingCount + ' pending' : orders.length + ' orders';
+      document.getElementById('orders-badge').className = 'text-[10px] px-2 py-0.5 rounded-full ' + (pendingCount > 0 ? 'bg-amber-500/10 text-amber-400' : 'bg-purex-blue/10 text-purex-blue');
+    }
+
+    function toggleOrderItems(idx) {
+      const el = document.getElementById('order-items-' + idx);
+      if (el) el.classList.toggle('hidden');
+    }
+
+    function editOrder(idx) {
+      editingOrderIdx = idx;
+      renderOrders();
+    }
+
+    function cancelOrderEdit(idx) {
+      editingOrderIdx = null;
+      renderOrders();
+    }
+
+    function updateOrderItemQty(orderIdx, itemIdx, newQty) {
+      const qty = parseInt(newQty) || 1;
+      orders[orderIdx].itemDetails[itemIdx].qty = qty;
+      // Recalculate order total
+      orders[orderIdx].total = orders[orderIdx].itemDetails.reduce((sum, item) => sum + (item.price || 0) * item.qty, 0);
+      orders[orderIdx].items = orders[orderIdx].itemDetails.length;
+      saveOrders();
+    }
+
+    function removeOrderItem(orderIdx, itemIdx) {
+      orders[orderIdx].itemDetails.splice(itemIdx, 1);
+      orders[orderIdx].items = orders[orderIdx].itemDetails.length;
+      orders[orderIdx].total = orders[orderIdx].itemDetails.reduce((sum, item) => sum + (item.price || 0) * item.qty, 0);
+      saveOrders();
+      renderOrders();
+    }
+
+    function addItemToOrder(orderIdx) {
+      const select = document.getElementById('add-item-select-' + orderIdx);
+      const productId = parseInt(select.value);
+      if (!productId) return;
+      const product = products.find(p => p.id === productId);
+      if (!product) return;
+
+      orders[orderIdx].itemDetails.push({
+        id: product.id,
+        name: product.name,
+        sku: product.sku || '',
+        volume: product.volume || '',
+        price: product.onSale && product.salePrice ? product.salePrice : product.price,
+        qty: 1,
+        buyPrice: product.buyPrice || 0
+      });
+      orders[orderIdx].items = orders[orderIdx].itemDetails.length;
+      orders[orderIdx].total = orders[orderIdx].itemDetails.reduce((sum, item) => sum + (item.price || 0) * item.qty, 0);
+      saveOrders();
+      renderOrders();
+    }
+
+    function saveOrderEdit(idx) {
+      editingOrderIdx = null;
+      if (orders[idx].itemDetails.length === 0) {
+        alert('Cannot confirm an order with no items.');
+        return;
+      }
+      confirmOrder(idx);
+    }
+
+    function confirmOrder(idx) {
+      const order = orders[idx];
+      if (!order.itemDetails || order.itemDetails.length === 0) {
+        alert('This order has no item details to confirm.');
+        return;
+      }
+
+      const today = order.date || new Date().toISOString().split('T')[0];
+
+      // Bulk-record each item as a sale entry
+      order.itemDetails.forEach(item => {
+        const product = products.find(p => p.id === item.id);
+        const sellPrice = item.price || (product ? product.price : 0);
+        const buyPrice = item.buyPrice || (product ? (product.buyPrice || 0) : 0);
+
+        const saleEntry = {
+          id: Date.now() + Math.random(),
+          productId: item.id,
+          productName: item.name,
+          sku: item.sku || '',
+          volume: item.volume || '',
+          category: product ? product.category : '',
+          qty: item.qty,
+          unitPrice: sellPrice,
+          buyPrice: buyPrice,
+          total: item.qty * sellPrice,
+          profit: item.qty * (sellPrice - buyPrice),
+          date: today,
+          channel: order.channel || 'WhatsApp'
+        };
+
+        dailySales.unshift(saleEntry);
+
+        // Deduct stock
+        if (product) {
+          product.stock = Math.max(0, product.stock - item.qty);
+        }
+      });
+
+      // Mark order as confirmed
+      order.status = 'confirmed';
+      editingOrderIdx = null;
+
+      saveDailySales();
+      saveProducts();
+      saveOrders();
+
+      // Refresh all views
+      renderOrders();
+      renderDailySalesLog();
+      updateSalesKPIs();
+      renderSalesChart();
+      renderProducts();
+      renderInventory();
+
+      // Flash animation
+      const card = document.getElementById('order-card-' + idx);
+      if (card) {
+        gsap.fromTo(card, { borderColor: 'rgba(52,211,153,0.5)', boxShadow: '0 0 20px rgba(52,211,153,0.2)' },
+          { borderColor: 'rgba(255,255,255,0.08)', boxShadow: 'none', duration: 1.5 });
+      }
     }
 
     function changeOrderStatus(idx, newStatus) {
+      if (newStatus === 'confirmed' && orders[idx].status === 'pending') {
+        confirmOrder(idx);
+        return;
+      }
       orders[idx].status = newStatus;
       saveOrders();
       renderOrders();
-      const cards = document.querySelectorAll('#orders-list > div');
-      if (cards[idx]) {
-        gsap.fromTo(cards[idx], { borderColor: 'rgba(77,158,213,0.3)' }, { borderColor: 'rgba(255,255,255,0.08)', duration: 1 });
+      const card = document.getElementById('order-card-' + idx);
+      if (card) {
+        gsap.fromTo(card, { borderColor: 'rgba(77,158,213,0.3)' }, { borderColor: 'rgba(255,255,255,0.08)', duration: 1 });
       }
     }
 

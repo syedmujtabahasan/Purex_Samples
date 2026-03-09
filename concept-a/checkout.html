@@ -608,10 +608,25 @@
         timestamp: now.toISOString()
       };
 
-      // Save order to localStorage
+      // Save order to localStorage (admin orders list)
       try {
         const orders = JSON.parse(localStorage.getItem('purex_orders') || '[]');
-        orders.push(orderData);
+        orders.push({
+          id: orderNumber,
+          customer: customer.name,
+          phone: customer.phone,
+          city: customer.city,
+          address: customer.address,
+          email: customer.email || '',
+          notes: customer.notes || '',
+          items: cart.length,
+          itemDetails: cart.map(c => ({ id: c.id, name: c.name, sku: c.sku || '', volume: c.volume || '', price: c.price, qty: c.qty, buyPrice: c.buyPrice || 0 })),
+          total: subtotal,
+          status: 'pending',
+          channel: 'WhatsApp',
+          date: now.toISOString().split('T')[0],
+          timestamp: now.toISOString()
+        });
         localStorage.setItem('purex_orders', JSON.stringify(orders));
       } catch (e) { /* silent */ }
 
