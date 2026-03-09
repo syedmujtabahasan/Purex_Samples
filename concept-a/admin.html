@@ -660,10 +660,10 @@
             <input id="form-sku" type="text" class="w-full glass rounded-xl px-4 py-2.5 text-sm text-white font-light bg-transparent placeholder:text-white/20 border border-white/10" placeholder="e.g. TZB-500" />
           </div>
           <div>
-            <label class="text-[10px] text-white/40 tracking-wider block mb-1.5">VOLUME / SIZE</label>
-            <div class="flex gap-2">
-              <input id="form-volume-val" type="text" class="flex-1 glass rounded-xl px-4 py-2.5 text-sm text-white font-light bg-transparent placeholder:text-white/20 border border-white/10" placeholder="e.g. 500" />
-              <select id="form-volume-unit" class="glass rounded-xl px-3 py-2.5 text-sm text-white font-light bg-transparent border border-white/10 pr-7" style="min-width: 90px;">
+            <label class="text-[10px] text-white/40 tracking-wider block mb-1.5">SIZE</label>
+            <div class="flex gap-1.5">
+              <input id="form-volume-val" type="text" class="glass rounded-xl px-3 py-2.5 text-sm text-white font-light bg-transparent placeholder:text-white/20 border border-white/10" style="width:55%;" placeholder="e.g. 500" />
+              <select id="form-volume-unit" class="glass rounded-xl px-2 py-2.5 text-xs text-white font-light bg-transparent border border-white/10" style="width:45%;">
                 <option value="ml" class="bg-[#0a0e17]">ml</option>
                 <option value="Litre" class="bg-[#0a0e17]">Litre</option>
                 <option value="g" class="bg-[#0a0e17]">g</option>
@@ -674,8 +674,8 @@
                 <option value="pack" class="bg-[#0a0e17]">pack</option>
                 <option value="pair" class="bg-[#0a0e17]">pair</option>
                 <option value="set" class="bg-[#0a0e17]">set</option>
-                <option value="Standard" class="bg-[#0a0e17]">Standard</option>
-                <option value="" class="bg-[#0a0e17]">Custom</option>
+                <option value="Standard" class="bg-[#0a0e17]">Std</option>
+                <option value="" class="bg-[#0a0e17]">Other</option>
               </select>
             </div>
             <input id="form-volume" type="hidden" />
