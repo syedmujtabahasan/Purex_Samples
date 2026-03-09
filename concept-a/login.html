@@ -304,6 +304,37 @@
       delay: 1.5
     });
 
+    // ==================== USER SYSTEM ====================
+
+    // Seed default admin if no users exist
+    function initUsers() {
+      const stored = localStorage.getItem('purex_users');
+      if (!stored) {
+        const defaultUsers = [
+          {
+            id: 1,
+            username: 'admin@purex.com',
+            password: 'purex2026',
+            name: 'Admin',
+            role: 'admin',
+            active: true,
+            permissions: {
+              products: true, orders: true, inventory: true, sales: true,
+              profits: true, customers: true, users: true, invoices: true,
+              deleteProducts: true, editPrices: true, reduceStock: true, exportData: true
+            },
+            createdAt: new Date().toISOString()
+          }
+        ];
+        localStorage.setItem('purex_users', JSON.stringify(defaultUsers));
+      }
+    }
+    initUsers();
+
+    function getUsers() {
+      try { return JSON.parse(localStorage.getItem('purex_users') || '[]'); } catch(e) { return []; }
+    }
+
     // ==================== LOGIN HANDLER ====================
     document.getElementById('login-form').addEventListener('submit', function(e) {
       e.preventDefault();
@@ -311,10 +342,37 @@
       const email = document.getElementById('login-email').value.trim();
       const password = document.getElementById('login-password').value;
 
-      // Demo credentials
-      if (email === 'admin@purex.com' && password === 'purex2026') {
-        // Success
+      const users = getUsers();
+      const user = users.find(u => u.username === email && u.password === password && u.active);
+
+      if (user) {
+        // Store session with role info
+        const session = {
+          id: user.id,
+          name: user.name,
+          role: user.role,
+          username: user.username,
+          permissions: user.permissions || {}
+        };
+        sessionStorage.setItem('purex_session', JSON.stringify(session));
+        // Keep backward compat
         sessionStorage.setItem('purex_admin', 'true');
+
+        // Log activity
+        try {
+          const log = JSON.parse(localStorage.getItem('purex_activity_log') || '[]');
+          log.unshift({
+            id: Date.now(),
+            user: user.name,
+            role: user.role,
+            action: 'Logged in',
+            detail: '',
+            timestamp: new Date().toISOString()
+          });
+          // Keep last 500 entries
+          if (log.length > 500) log.length = 500;
+          localStorage.setItem('purex_activity_log', JSON.stringify(log));
+        } catch(e) {}
 
         // Success animation before redirect
         gsap.to('#login-card', {
@@ -331,7 +389,6 @@
         const errorMsg = document.getElementById('error-msg');
         errorMsg.classList.remove('hidden');
 
-        // Shake animation
         gsap.fromTo('#login-card',
           { x: 0 },
           {
@@ -346,7 +403,6 @@
           }
         );
 
-        // Highlight error fields
         gsap.fromTo('#error-msg', { opacity: 0, y: -5 }, { opacity: 1, y: 0, duration: 0.3 });
       }
     });
@@ -367,7 +423,7 @@
     }
 
     // If already logged in, redirect
-    if (sessionStorage.getItem('purex_admin')) {
+    if (sessionStorage.getItem('purex_session') || sessionStorage.getItem('purex_admin')) {
       window.location.href = 'admin.html';
     }
   </script>

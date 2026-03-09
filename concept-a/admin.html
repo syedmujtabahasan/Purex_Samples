@@ -159,16 +159,35 @@
           <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 2v14M6 5h5a2 2 0 010 4H6M7 9h4a2 2 0 010 4H6"/></svg>
           Profits
         </a>
+        <a href="#customers-section" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-white/50">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 9a3 3 0 100-6 3 3 0 000 6zM2 16c0-3 3-5 7-5s7 2 7 5"/></svg>
+          Customers
+        </a>
+        <a href="#suppliers-section" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-white/50">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 3h16v4H2zM4 7v8a1 1 0 001 1h8a1 1 0 001-1V7"/><path d="M7 10h4"/></svg>
+          Suppliers
+        </a>
+        <div id="admin-only-nav">
+          <div class="border-t border-white/5 my-2 mx-2"></div>
+          <a href="#users-section" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-white/50">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 12a4 4 0 10-8 0 4 4 0 008 0zM16 8a3 3 0 100-6"/><path d="M2 20c0-3 2.5-5 6-5s6 2 6 5"/><path d="M16 11c2 0 4 1.5 4 4"/></svg>
+            Users
+          </a>
+          <a href="#activity-section" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-white/50">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg>
+            Activity Log
+          </a>
+        </div>
       </nav>
 
       <div class="p-4 border-t border-white/5">
         <div class="flex items-center gap-3 px-2">
-          <div class="w-8 h-8 rounded-full bg-purex-blue/20 flex items-center justify-center text-xs text-purex-blue font-heading">SB</div>
+          <div id="sidebar-avatar" class="w-8 h-8 rounded-full bg-purex-blue/20 flex items-center justify-center text-xs text-purex-blue font-heading">AD</div>
           <div>
-            <p class="text-xs text-white font-light">Suleman Bhatti</p>
-            <p class="text-[10px] text-white/30">CEO</p>
+            <p id="sidebar-user-name" class="text-xs text-white font-light">Admin</p>
+            <p id="sidebar-user-role" class="text-[10px] text-white/30">Admin</p>
           </div>
-          <button onclick="sessionStorage.removeItem('purex_admin'); window.location.href='login.html';" class="ml-auto p-2 rounded-lg hover:bg-red-500/10 transition text-white/30 hover:text-red-400" title="Logout">
+          <button onclick="logActivity('Logged out',''); sessionStorage.removeItem('purex_admin'); sessionStorage.removeItem('purex_session'); window.location.href='login.html';" class="ml-auto p-2 rounded-lg hover:bg-red-500/10 transition text-white/30 hover:text-red-400" title="Logout">
             <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
           </button>
         </div>
@@ -190,7 +209,7 @@
       <a href="index.html" class="block px-4 py-2 text-sm text-white/50 rounded-lg">Home</a>
       <a href="shop.html" class="block px-4 py-2 text-sm text-white/50 rounded-lg">Shop</a>
       <a href="sale.html" class="block px-4 py-2 text-sm text-red-400/70 rounded-lg">Sale</a>
-      <button onclick="sessionStorage.removeItem('purex_admin'); window.location.href='login.html';" class="block w-full text-left px-4 py-2 text-sm text-red-400/70 rounded-lg hover:bg-red-500/10 transition">Logout</button>
+      <button onclick="sessionStorage.removeItem('purex_admin'); sessionStorage.removeItem('purex_session'); window.location.href='login.html';" class="block w-full text-left px-4 py-2 text-sm text-red-400/70 rounded-lg hover:bg-red-500/10 transition">Logout</button>
     </div>
 
     <!-- MAIN CONTENT -->
@@ -636,8 +655,436 @@
           </div>
         </div>
 
+        <!-- Row 5: User Management (Admin Only) -->
+        <div id="users-section" class="bento-card glass-strong rounded-2xl p-4 md:p-6">
+          <div class="flex items-center justify-between mb-5">
+            <div>
+              <h3 class="font-heading text-sm font-light text-white">User Management</h3>
+              <p class="text-[10px] text-white/30 mt-0.5">Create editor accounts, set permissions</p>
+            </div>
+            <button onclick="openUserModal()" class="text-[10px] px-3 py-1.5 rounded-lg bg-purex-blue/20 text-purex-blue hover:bg-purex-blue/30 transition font-light">+ Add User</button>
+          </div>
+          <div class="space-y-3" id="users-list"></div>
+        </div>
+
+        <!-- Row 6: Activity Log (Admin Only) -->
+        <div id="activity-section" class="bento-card glass-strong rounded-2xl p-4 md:p-6">
+          <div class="flex items-center justify-between mb-5">
+            <div>
+              <h3 class="font-heading text-sm font-light text-white">Activity Log</h3>
+              <p class="text-[10px] text-white/30 mt-0.5">Track who did what and when</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="clearActivityLog()" class="text-[10px] px-2 py-1 rounded-lg bg-red-500/10 text-red-400/60 hover:text-red-400 transition font-light">Clear</button>
+              <select id="activity-filter" onchange="renderActivityLog()" class="text-[10px] bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-white/50 font-light appearance-none cursor-pointer">
+                <option value="all" class="bg-[#0a0e17]">All Users</option>
+              </select>
+            </div>
+          </div>
+          <div class="space-y-2 max-h-96 overflow-y-auto" id="activity-list"></div>
+          <p id="no-activity-msg" class="hidden text-xs text-white/20 text-center py-4">No activity recorded yet.</p>
+        </div>
+
+        <!-- Row 7: Customer Database -->
+        <div id="customers-section" class="bento-card glass-strong rounded-2xl p-4 md:p-6">
+          <div class="flex items-center justify-between mb-5">
+            <div>
+              <h3 class="font-heading text-sm font-light text-white">Customer Database</h3>
+              <p class="text-[10px] text-white/30 mt-0.5">Manage retail & wholesale buyers</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="exportCustomersCSV()" class="btn-export">
+                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2v7M3 6l3 3 3-3"/><path d="M2 10v1h8v-1"/></svg>
+                Export
+              </button>
+              <button onclick="openCustomerModal()" class="text-[10px] px-3 py-1.5 rounded-lg bg-purex-blue/20 text-purex-blue hover:bg-purex-blue/30 transition font-light">+ Add Customer</button>
+              <span id="customers-badge" class="text-[10px] px-2 py-0.5 rounded-full bg-purex-blue/10 text-purex-blue">0</span>
+            </div>
+          </div>
+
+          <!-- Filters -->
+          <div class="flex flex-wrap items-center gap-2 mb-4">
+            <input id="customer-search" type="text" placeholder="Search name, phone, company..." oninput="renderCustomers()" class="text-xs bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white/70 font-light flex-1 min-w-[180px]" />
+            <select id="customer-type-filter" onchange="renderCustomers()" class="text-xs bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white/60 font-light appearance-none cursor-pointer">
+              <option value="all" class="bg-[#0a0e17]">All Types</option>
+              <option value="Retail" class="bg-[#0a0e17]">Retail</option>
+              <option value="Wholesale" class="bg-[#0a0e17]">Wholesale</option>
+            </select>
+          </div>
+
+          <!-- Customer Table -->
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs">
+              <thead>
+                <tr class="text-white/30 border-b border-white/5">
+                  <th class="text-left pb-2 font-light">Customer</th>
+                  <th class="text-left pb-2 font-light">Phone</th>
+                  <th class="text-left pb-2 font-light hidden md:table-cell">City</th>
+                  <th class="text-left pb-2 font-light hidden lg:table-cell">Company</th>
+                  <th class="text-center pb-2 font-light">Type</th>
+                  <th class="text-center pb-2 font-light">Orders</th>
+                  <th class="text-right pb-2 font-light">Total Spent</th>
+                  <th class="text-center pb-2 font-light w-20">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="customers-tbody"></tbody>
+            </table>
+          </div>
+          <p id="no-customers-msg" class="hidden text-xs text-white/20 text-center py-6">No customers yet. They'll be auto-added when orders are placed.</p>
+        </div>
+
+        <!-- Row 8: Suppliers & Supplier Invoices -->
+        <div id="suppliers-section" class="bento-card glass-strong rounded-2xl p-4 md:p-6">
+          <div class="flex items-center justify-between mb-5">
+            <div>
+              <h3 class="font-heading text-sm font-light text-white">Suppliers & Purchase Invoices</h3>
+              <p class="text-[10px] text-white/30 mt-0.5">Track supplier records and incoming purchase invoices</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="exportSuppliersCSV()" class="btn-export">
+                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2v7M3 6l3 3 3-3"/><path d="M2 10v1h8v-1"/></svg>
+                Export
+              </button>
+              <button onclick="openSupplierModal()" class="text-[10px] px-3 py-1.5 rounded-lg bg-purex-blue/20 text-purex-blue hover:bg-purex-blue/30 transition font-light">+ Add Supplier</button>
+            </div>
+          </div>
+
+          <!-- Supplier Cards -->
+          <div id="suppliers-list" class="space-y-3 mb-5"></div>
+          <p id="no-suppliers-msg" class="hidden text-xs text-white/20 text-center py-4">No suppliers added yet.</p>
+
+          <!-- Supplier Invoices Section -->
+          <div class="border-t border-white/5 pt-5 mt-2">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h4 class="font-heading text-xs font-light text-white">Purchase Invoices</h4>
+                <p class="text-[10px] text-white/25 mt-0.5">Record incoming invoices from suppliers</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <button onclick="openSupplierInvoiceModal()" class="text-[10px] px-3 py-1.5 rounded-lg bg-amber-500/15 text-amber-400 hover:bg-amber-500/25 transition font-light">+ New Invoice</button>
+                <select id="sinv-filter" onchange="renderSupplierInvoices()" class="text-[10px] bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-white/50 font-light appearance-none cursor-pointer">
+                  <option value="all" class="bg-[#0a0e17]">All Suppliers</option>
+                </select>
+                <select id="sinv-status-filter" onchange="renderSupplierInvoices()" class="text-[10px] bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-white/50 font-light appearance-none cursor-pointer">
+                  <option value="all" class="bg-[#0a0e17]">All Status</option>
+                  <option value="draft" class="bg-[#0a0e17]">Draft</option>
+                  <option value="posted" class="bg-[#0a0e17]">Posted</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Invoice Table -->
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs">
+                <thead>
+                  <tr class="text-white/30 border-b border-white/5">
+                    <th class="text-left pb-2 font-light">Invoice #</th>
+                    <th class="text-left pb-2 font-light">Date</th>
+                    <th class="text-left pb-2 font-light">Supplier</th>
+                    <th class="text-right pb-2 font-light">Amount</th>
+                    <th class="text-center pb-2 font-light">Photo</th>
+                    <th class="text-center pb-2 font-light">Status</th>
+                    <th class="text-left pb-2 font-light hidden md:table-cell">Added By</th>
+                    <th class="text-center pb-2 font-light w-24">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="sinv-tbody"></tbody>
+              </table>
+            </div>
+            <p id="no-sinv-msg" class="hidden text-xs text-white/20 text-center py-4">No purchase invoices recorded.</p>
+          </div>
+        </div>
+
       </div>
     </main>
+  </div>
+
+  <!-- CUSTOMER MODAL -->
+  <div id="customer-modal" class="modal-overlay hidden fixed inset-0 z-50 flex items-center justify-center p-4" style="background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);">
+    <div class="glass-strong rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between mb-5">
+        <h3 id="customer-modal-title" class="font-heading text-sm font-light text-white">Add Customer</h3>
+        <button onclick="closeCustomerModal()" class="text-white/30 hover:text-white/60 transition">&times;</button>
+      </div>
+      <div class="space-y-3">
+        <input type="hidden" id="cust-edit-id" value="" />
+        <div>
+          <label class="text-[10px] text-white/40 tracking-wider block mb-1">NAME *</label>
+          <input id="cust-name" type="text" required placeholder="Customer full name" class="w-full rounded-lg px-3 py-2 text-xs bg-white/5 border border-white/10 text-white/80 font-light" />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-[10px] text-white/40 tracking-wider block mb-1">PHONE *</label>
+            <input id="cust-phone" type="tel" required placeholder="03XX XXXXXXX" class="w-full rounded-lg px-3 py-2 text-xs bg-white/5 border border-white/10 text-white/80 font-light" />
+          </div>
+          <div>
+            <label class="text-[10px] text-white/40 tracking-wider block mb-1">EMAIL</label>
+            <input id="cust-email" type="email" placeholder="email@example.com" class="w-full rounded-lg px-3 py-2 text-xs bg-white/5 border border-white/10 text-white/80 font-light" />
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-[10px] text-white/40 tracking-wider block mb-1">CITY *</label>
+            <input id="cust-city" type="text" required placeholder="City" class="w-full rounded-lg px-3 py-2 text-xs bg-white/5 border border-white/10 text-white/80 font-light" />
+          </div>
+          <div>
+            <label class="text-[10px] text-white/40 tracking-wider block mb-1">TYPE</label>
+            <select id="cust-type" class="w-full rounded-lg px-3 py-2 text-xs bg-white/5 border border-white/10 text-white/60 font-light appearance-none cursor-pointer">
+              <option value="Retail" class="bg-[#0a0e17]">Retail</option>
+              <option value="Wholesale" class="bg-[#0a0e17]">Wholesale</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="text-[10px] text-white/40 tracking-wider block mb-1">ADDRESS</label>
+          <input id="cust-address" type="text" placeholder="Full address" class="w-full rounded-lg px-3 py-2 text-xs bg-white/5 border border-white/10 text-white/80 font-light" />
+        </div>
+        <div>
+          <label class="text-[10px] text-white/40 tracking-wider block mb-1">COMPANY / BUSINESS NAME</label>
+          <input id="cust-company" type="text" placeholder="For wholesale / bulk buyers" class="w-full rounded-lg px-3 py-2 text-xs bg-white/5 border border-white/10 text-white/80 font-light" />
+        </div>
+        <div>
+          <label class="text-[10px] text-white/40 tracking-wider block mb-1">NOTES</label>
+          <textarea id="cust-notes" rows="2" placeholder="Payment terms, preferences, etc." class="w-full rounded-lg px-3 py-2 text-xs bg-white/5 border border-white/10 text-white/80 font-light resize-none"></textarea>
+        </div>
+        <button onclick="saveCustomer()" class="w-full py-2.5 rounded-lg text-xs font-light tracking-wider transition-all duration-300" style="background: rgba(77,158,213,0.15); border: 1px solid rgba(77,158,213,0.3); color: #4d9ed5;">
+          Save Customer
+        </button>
+        <p id="cust-feedback" class="text-[10px] text-center transition-opacity" style="opacity:0;">&nbsp;</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- CUSTOMER DETAIL MODAL -->
+  <div id="customer-detail-modal" class="modal-overlay hidden fixed inset-0 z-50 flex items-center justify-center p-4" style="background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);">
+    <div class="glass-strong rounded-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between mb-5">
+        <h3 class="font-heading text-sm font-light text-white">Customer Details</h3>
+        <button onclick="document.getElementById('customer-detail-modal').classList.add('hidden')" class="text-white/30 hover:text-white/60 transition">&times;</button>
+      </div>
+      <div id="customer-detail-content"></div>
+    </div>
+  </div>
+
+  <!-- SUPPLIER MODAL -->
+  <div id="supplier-modal" class="modal-overlay hidden fixed inset-0 z-50 flex items-center justify-center p-4" style="background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);">
+    <div class="glass-strong rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between mb-5">
+        <h3 id="supplier-modal-title" class="font-heading text-sm font-light text-white">Add Supplier</h3>
+        <button onclick="closeSupplierModal()" class="text-white/30 hover:text-white/60 transition">&times;</button>
+      </div>
+      <div class="space-y-3">
+        <input type="hidden" id="sup-edit-id" value="" />
+        <div>
+          <label class="text-[10px] text-white/40 tracking-wider block mb-1">SUPPLIER / COMPANY NAME *</label>
+          <input id="sup-name" type="text" required placeholder="e.g. Ali Chemicals Pvt Ltd" class="w-full rounded-lg px-3 py-2 text-xs bg-white/5 border border-white/10 text-white/80 font-light" />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-[10px] text-white/40 tracking-wider block mb-1">CONTACT PERSON</label>
+            <input id="sup-contact" type="text" placeholder="Name" class="w-full rounded-lg px-3 py-2 text-xs bg-white/5 border border-white/10 text-white/80 font-light" />
+          </div>
+          <div>
+            <label class="text-[10px] text-white/40 tracking-wider block mb-1">PHONE *</label>
+            <input id="sup-phone" type="tel" required placeholder="03XX XXXXXXX" class="w-full rounded-lg px-3 py-2 text-xs bg-white/5 border border-white/10 text-white/80 font-light" />
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-[10px] text-white/40 tracking-wider block mb-1">EMAIL</label>
+            <input id="sup-email" type="email" placeholder="email@company.com" class="w-full rounded-lg px-3 py-2 text-xs bg-white/5 border border-white/10 text-white/80 font-light" />
+          </div>
+          <div>
+            <label class="text-[10px] text-white/40 tracking-wider block mb-1">CITY</label>
+            <input id="sup-city" type="text" placeholder="City" class="w-full rounded-lg px-3 py-2 text-xs bg-white/5 border border-white/10 text-white/80 font-light" />
+          </div>
+        </div>
+        <div>
+          <label class="text-[10px] text-white/40 tracking-wider block mb-1">ADDRESS</label>
+          <input id="sup-address" type="text" placeholder="Full address" class="w-full rounded-lg px-3 py-2 text-xs bg-white/5 border border-white/10 text-white/80 font-light" />
+        </div>
+        <div>
+          <label class="text-[10px] text-white/40 tracking-wider block mb-1">PRODUCTS SUPPLIED</label>
+          <input id="sup-products" type="text" placeholder="e.g. Raw chemicals, Bottles, Labels" class="w-full rounded-lg px-3 py-2 text-xs bg-white/5 border border-white/10 text-white/80 font-light" />
+        </div>
+        <div>
+          <label class="text-[10px] text-white/40 tracking-wider block mb-1">NOTES</label>
+          <textarea id="sup-notes" rows="2" placeholder="Payment terms, credit days, etc." class="w-full rounded-lg px-3 py-2 text-xs bg-white/5 border border-white/10 text-white/80 font-light resize-none"></textarea>
+        </div>
+        <button onclick="saveSupplier()" class="w-full py-2.5 rounded-lg text-xs font-light tracking-wider transition-all duration-300" style="background: rgba(77,158,213,0.15); border: 1px solid rgba(77,158,213,0.3); color: #4d9ed5;">Save Supplier</button>
+        <p id="sup-feedback" class="text-[10px] text-center transition-opacity" style="opacity:0;">&nbsp;</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUPPLIER INVOICE MODAL -->
+  <div id="sinv-modal" class="modal-overlay hidden fixed inset-0 z-50 flex items-center justify-center p-4" style="background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);">
+    <div class="glass-strong rounded-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between mb-5">
+        <h3 id="sinv-modal-title" class="font-heading text-sm font-light text-white">New Purchase Invoice</h3>
+        <button onclick="closeSupplierInvoiceModal()" class="text-white/30 hover:text-white/60 transition">&times;</button>
+      </div>
+      <div class="space-y-3">
+        <input type="hidden" id="sinv-edit-id" value="" />
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-[10px] text-white/40 tracking-wider block mb-1">INVOICE NUMBER *</label>
+            <input id="sinv-number" type="text" required placeholder="e.g. SUP-2026-0045" class="w-full rounded-lg px-3 py-2 text-xs bg-white/5 border border-white/10 text-white/80 font-light" />
+          </div>
+          <div>
+            <label class="text-[10px] text-white/40 tracking-wider block mb-1">INVOICE DATE *</label>
+            <input id="sinv-date" type="date" required class="w-full rounded-lg px-3 py-2 text-xs bg-white/5 border border-white/10 text-white/80 font-light" />
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-[10px] text-white/40 tracking-wider block mb-1">SUPPLIER *</label>
+            <select id="sinv-supplier" required class="w-full rounded-lg px-3 py-2 text-xs bg-white/5 border border-white/10 text-white/60 font-light appearance-none cursor-pointer">
+              <option value="" class="bg-[#0a0e17]">Select supplier...</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-[10px] text-white/40 tracking-wider block mb-1">TOTAL AMOUNT (Rs.) *</label>
+            <input id="sinv-amount" type="number" required min="0" placeholder="0" class="w-full rounded-lg px-3 py-2 text-xs bg-white/5 border border-white/10 text-white/80 font-light" />
+          </div>
+        </div>
+
+        <!-- Line Items -->
+        <div>
+          <label class="text-[10px] text-white/40 tracking-wider block mb-1">LINE ITEMS <span class="text-white/20">(optional)</span></label>
+          <div id="sinv-items-list" class="space-y-2 mb-2"></div>
+          <button type="button" onclick="addInvoiceLineItem()" class="text-[10px] px-2 py-1 rounded bg-white/5 text-white/30 hover:text-white/50 transition">+ Add Item</button>
+        </div>
+
+        <div>
+          <label class="text-[10px] text-white/40 tracking-wider block mb-1">DESCRIPTION / NOTES</label>
+          <textarea id="sinv-desc" rows="2" placeholder="What was purchased, payment method, etc." class="w-full rounded-lg px-3 py-2 text-xs bg-white/5 border border-white/10 text-white/80 font-light resize-none"></textarea>
+        </div>
+
+        <!-- Invoice Photo Upload -->
+        <div>
+          <label class="text-[10px] text-white/40 tracking-wider block mb-1">INVOICE PHOTO <span class="text-white/20">(max 2MB)</span></label>
+          <div class="flex items-center gap-3">
+            <label class="cursor-pointer glass rounded-lg px-3 py-2 text-[10px] text-white/40 hover:text-white/60 hover:border-white/20 transition flex items-center gap-1.5">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              Upload Photo
+              <input id="sinv-photo-input" type="file" accept="image/*" class="hidden" onchange="handleInvoicePhoto(this)" />
+            </label>
+            <span id="sinv-photo-name" class="text-[10px] text-white/25">No file</span>
+          </div>
+          <div id="sinv-photo-preview" class="mt-2 hidden">
+            <img id="sinv-photo-img" src="" alt="" class="w-24 h-24 rounded-lg object-cover border border-white/10 cursor-pointer" onclick="viewInvoicePhotoFull(this.src)" />
+            <button onclick="removeInvoicePhoto()" class="text-[10px] text-red-400/60 hover:text-red-400 mt-1">Remove</button>
+          </div>
+        </div>
+
+        <div class="flex gap-2">
+          <button onclick="saveSupplierInvoice('draft')" class="flex-1 py-2.5 rounded-lg text-xs font-light tracking-wider transition-all duration-300 bg-white/5 border border-white/10 text-white/50 hover:text-white/70">
+            Save as Draft
+          </button>
+          <button onclick="saveSupplierInvoice('posted')" class="flex-1 py-2.5 rounded-lg text-xs font-light tracking-wider transition-all duration-300" style="background: rgba(77,158,213,0.15); border: 1px solid rgba(77,158,213,0.3); color: #4d9ed5;">
+            Post Invoice
+          </button>
+        </div>
+        <p id="sinv-feedback" class="text-[10px] text-center transition-opacity" style="opacity:0;">&nbsp;</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- INVOICE PHOTO FULL VIEW -->
+  <div id="sinv-photo-fullview" class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4 cursor-pointer" style="background: rgba(0,0,0,0.85);" onclick="this.classList.add('hidden')">
+    <img id="sinv-photo-full-img" src="" alt="Invoice Photo" class="max-w-full max-h-[90vh] rounded-xl object-contain" />
+  </div>
+
+  <!-- USER MODAL -->
+  <div id="user-modal" class="modal-overlay hidden fixed inset-0 z-50 flex items-center justify-center p-4" style="background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);">
+    <div class="glass-strong rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between mb-5">
+        <h3 id="user-modal-title" class="font-heading text-sm font-light text-white">Add User</h3>
+        <button onclick="closeUserModal()" class="text-white/30 hover:text-white/60 transition">&times;</button>
+      </div>
+      <div class="space-y-3">
+        <input type="hidden" id="user-edit-id" value="" />
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-[10px] text-white/40 tracking-wider block mb-1">FULL NAME *</label>
+            <input id="user-name" type="text" required placeholder="e.g. Ali Ahmed" class="w-full rounded-lg px-3 py-2 text-xs bg-white/5 border border-white/10 text-white/80 font-light" />
+          </div>
+          <div>
+            <label class="text-[10px] text-white/40 tracking-wider block mb-1">ROLE</label>
+            <select id="user-role" class="w-full rounded-lg px-3 py-2 text-xs bg-white/5 border border-white/10 text-white/60 font-light appearance-none cursor-pointer">
+              <option value="editor" class="bg-[#0a0e17]">Editor</option>
+              <option value="admin" class="bg-[#0a0e17]">Admin</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="text-[10px] text-white/40 tracking-wider block mb-1">USERNAME / EMAIL *</label>
+          <input id="user-username" type="text" required placeholder="e.g. ali@purex.com" class="w-full rounded-lg px-3 py-2 text-xs bg-white/5 border border-white/10 text-white/80 font-light" />
+        </div>
+        <div>
+          <label class="text-[10px] text-white/40 tracking-wider block mb-1">PASSWORD *</label>
+          <input id="user-password" type="text" required placeholder="Set password" class="w-full rounded-lg px-3 py-2 text-xs bg-white/5 border border-white/10 text-white/80 font-light" />
+        </div>
+
+        <!-- Permissions -->
+        <div>
+          <label class="text-[10px] text-white/40 tracking-wider block mb-2">ACCESS PERMISSIONS</label>
+          <div class="grid grid-cols-2 gap-2">
+            <label class="flex items-center gap-2 text-[10px] text-white/50 cursor-pointer">
+              <input type="checkbox" id="perm-products" class="accent-purex-blue" checked /> View Products
+            </label>
+            <label class="flex items-center gap-2 text-[10px] text-white/50 cursor-pointer">
+              <input type="checkbox" id="perm-orders" class="accent-purex-blue" checked /> View Orders
+            </label>
+            <label class="flex items-center gap-2 text-[10px] text-white/50 cursor-pointer">
+              <input type="checkbox" id="perm-inventory" class="accent-purex-blue" checked /> View Inventory
+            </label>
+            <label class="flex items-center gap-2 text-[10px] text-white/50 cursor-pointer">
+              <input type="checkbox" id="perm-sales" class="accent-purex-blue" checked /> Record Sales
+            </label>
+            <label class="flex items-center gap-2 text-[10px] text-white/50 cursor-pointer">
+              <input type="checkbox" id="perm-profits" class="accent-purex-blue" /> View Profits
+            </label>
+            <label class="flex items-center gap-2 text-[10px] text-white/50 cursor-pointer">
+              <input type="checkbox" id="perm-customers" class="accent-purex-blue" /> View Customers
+            </label>
+            <label class="flex items-center gap-2 text-[10px] text-white/50 cursor-pointer">
+              <input type="checkbox" id="perm-invoices" class="accent-purex-blue" /> Generate Invoices
+            </label>
+            <label class="flex items-center gap-2 text-[10px] text-white/50 cursor-pointer">
+              <input type="checkbox" id="perm-exportData" class="accent-purex-blue" /> Export CSV
+            </label>
+            <div class="col-span-2 border-t border-white/5 pt-2 mt-1">
+              <p class="text-[9px] text-white/25 mb-2">RESTRICTED (Admin role gets all by default)</p>
+            </div>
+            <label class="flex items-center gap-2 text-[10px] text-white/50 cursor-pointer">
+              <input type="checkbox" id="perm-editPrices" class="accent-amber-400" /> Edit Prices
+            </label>
+            <label class="flex items-center gap-2 text-[10px] text-white/50 cursor-pointer">
+              <input type="checkbox" id="perm-deleteProducts" class="accent-red-400" /> Delete Products
+            </label>
+            <label class="flex items-center gap-2 text-[10px] text-white/50 cursor-pointer">
+              <input type="checkbox" id="perm-reduceStock" class="accent-red-400" /> Reduce Stock
+            </label>
+            <label class="flex items-center gap-2 text-[10px] text-white/50 cursor-pointer">
+              <input type="checkbox" id="perm-users" class="accent-red-400" /> Manage Users
+            </label>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <label class="flex items-center gap-2 text-[10px] text-white/50 cursor-pointer">
+            <input type="checkbox" id="user-active" class="accent-emerald-400" checked /> Account Active
+          </label>
+        </div>
+
+        <button onclick="saveUser()" class="w-full py-2.5 rounded-lg text-xs font-light tracking-wider transition-all duration-300" style="background: rgba(77,158,213,0.15); border: 1px solid rgba(77,158,213,0.3); color: #4d9ed5;">
+          Save User
+        </button>
+        <p id="user-feedback" class="text-[10px] text-center transition-opacity" style="opacity:0;">&nbsp;</p>
+      </div>
+    </div>
   </div>
 
   <!-- PRODUCT MODAL -->
@@ -754,8 +1201,9 @@
             <span class="text-white/20 text-xs self-center">or</span>
             <input id="form-image" type="text" class="flex-1 glass rounded-xl px-4 py-2.5 text-sm text-white font-light bg-transparent placeholder:text-white/20 border border-white/10" placeholder="Paste URL/path" oninput="previewImage()" />
           </div>
-          <div id="image-preview-wrap" class="mt-2 hidden">
+          <div id="image-preview-wrap" class="mt-2 hidden relative inline-block">
             <img id="image-preview" src="" alt="Preview" class="w-20 h-20 rounded-xl object-cover bg-white/5 border border-white/10" onerror="this.style.display='none'" onload="this.style.display='block'" />
+            <button type="button" onclick="clearProductImage()" class="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-500/80 hover:bg-red-500 text-white flex items-center justify-center text-xs leading-none transition" title="Remove image">&times;</button>
           </div>
         </div>
         <div>
@@ -815,8 +1263,41 @@
 
   <script>
     // ==================== AUTH CHECK ====================
-    if (!sessionStorage.getItem('purex_admin')) {
+    if (!sessionStorage.getItem('purex_admin') && !sessionStorage.getItem('purex_session')) {
       window.location.href = 'login.html';
+    }
+
+    // Current user session
+    let currentUser = { name: 'Admin', role: 'admin', permissions: {} };
+    try {
+      const sess = JSON.parse(sessionStorage.getItem('purex_session') || '{}');
+      if (sess.name) currentUser = sess;
+    } catch(e) {}
+
+    const isAdmin = currentUser.role === 'admin';
+    const userPerms = currentUser.permissions || {};
+
+    // Permission helper
+    function hasPermission(perm) {
+      if (isAdmin) return true;
+      return userPerms[perm] === true;
+    }
+
+    // Activity logging
+    function logActivity(action, detail) {
+      try {
+        const log = JSON.parse(localStorage.getItem('purex_activity_log') || '[]');
+        log.unshift({
+          id: Date.now(),
+          user: currentUser.name,
+          role: currentUser.role,
+          action: action,
+          detail: detail || '',
+          timestamp: new Date().toISOString()
+        });
+        if (log.length > 500) log.length = 500;
+        localStorage.setItem('purex_activity_log', JSON.stringify(log));
+      } catch(e) {}
     }
 
     gsap.registerPlugin();
@@ -1340,6 +1821,14 @@
       }
     }
 
+    function clearProductImage() {
+      document.getElementById('form-image').value = '';
+      document.getElementById('image-preview-wrap').classList.add('hidden');
+      document.getElementById('image-preview').src = '';
+      document.getElementById('form-image-file').value = '';
+      document.getElementById('upload-label').textContent = 'Upload Image';
+    }
+
     function toggleSale() {
       formOnSale = !formOnSale;
       updateSaleToggle();
@@ -1543,6 +2032,24 @@
       const imageVal = document.getElementById('form-image').value.trim();
 
       const salePrice = parseInt(document.getElementById('form-sale-price').value) || 0;
+      const newStock = parseInt(document.getElementById('form-stock').value);
+
+      // Editor restrictions
+      if (!isAdmin && editId) {
+        const existing = products.find(p => p.id === parseInt(editId));
+        if (existing) {
+          // Cannot reduce stock
+          if (newStock < existing.stock && !hasPermission('reduceStock')) {
+            alert('You cannot reduce stock. Only add inventory. Ask admin to reduce stock.');
+            return;
+          }
+          // Cannot edit prices
+          if (!hasPermission('editPrices') && (sellPrice !== existing.price || buyPrice !== existing.buyPrice)) {
+            alert('You do not have permission to change prices. Contact admin.');
+            return;
+          }
+        }
+      }
 
       const data = {
         name: document.getElementById('form-name').value.trim(),
@@ -1551,7 +2058,7 @@
         category: document.getElementById('form-category').value,
         price: sellPrice,
         buyPrice: buyPrice,
-        stock: parseInt(document.getElementById('form-stock').value),
+        stock: newStock,
         status: formStatus,
         onSale: formOnSale,
         salePrice: formOnSale ? salePrice : 0,
@@ -1563,13 +2070,16 @@
       if (editId) {
         const idx = products.findIndex(p => p.id === parseInt(editId));
         if (idx !== -1) {
+          const oldStock = products[idx].stock;
           products[idx] = { ...products[idx], ...data };
           savedId = products[idx].id;
+          logActivity('Updated product', data.name + (data.stock !== oldStock ? ' (stock: ' + oldStock + '→' + data.stock + ')' : ''));
         }
       } else {
         savedId = newId;
         data.id = savedId;
         products.push(data);
+        logActivity('Added product', data.name + ' (stock: ' + data.stock + ')');
       }
 
       saveProducts();
@@ -1742,6 +2252,10 @@
     // ==================== DELETE ====================
 
     function confirmDelete(id) {
+      if (!hasPermission('deleteProducts')) {
+        alert('You do not have permission to delete products. Contact admin.');
+        return;
+      }
       deleteTargetId = id;
       const modal = document.getElementById('delete-modal');
       modal.classList.remove('hidden');
@@ -1758,8 +2272,10 @@
 
     document.getElementById('confirm-delete-btn').addEventListener('click', () => {
       if (deleteTargetId !== null) {
+        const delProduct = products.find(p => p.id === deleteTargetId);
         products = products.filter(p => p.id !== deleteTargetId);
         saveProducts();
+        if (delProduct) logActivity('Deleted product', delProduct.name);
         closeDeleteModal();
         renderProducts();
         renderInventory();
@@ -1831,6 +2347,9 @@
 
         // Action buttons
         let actionsHtml = '';
+        const isConfirmedOrBeyond = ['confirmed', 'shipped', 'delivered'].includes(o.status);
+        const canEditThisOrder = isPending || isAdmin; // Admin can edit ANY order, editor only pending
+
         if (isPending && hasItems) {
           if (isEditing) {
             actionsHtml = `
@@ -1849,23 +2368,51 @@
         } else if (isPending) {
           actionsHtml = `<p class="text-[10px] text-white/20 mt-2 italic">No item details — record sales manually</p>`;
         } else if (o.status === 'confirmed') {
-          actionsHtml = `
-            <div class="flex items-center gap-2 mt-2">
-              <p class="text-[10px] text-emerald-400/50 flex-1">✓ Confirmed — ${hasItems ? o.itemDetails.length + ' items recorded as sales' : 'sales recorded'}</p>
-              <button onclick="generateInvoice(${idx})" class="text-[10px] px-3 py-1.5 rounded-lg bg-purex-blue/20 text-purex-blue hover:bg-purex-blue/30 transition font-light flex items-center gap-1">
-                <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 1v3H1l4 4 4-4H7V1z"/><path d="M1 9h8"/></svg>
-                Invoice PDF
-              </button>
-            </div>`;
+          if (isEditing && isAdmin) {
+            actionsHtml = `
+              <div class="flex gap-1.5 mt-2 items-center">
+                <label class="flex items-center gap-1.5 text-[10px] text-white/40 cursor-pointer">
+                  <input type="checkbox" id="corrected-check-${idx}" ${o.corrected ? 'checked' : ''} class="w-3 h-3 rounded accent-emerald-400" />
+                  Mark as Corrected
+                </label>
+                <div class="flex-1"></div>
+                <button onclick="saveAdminOrderEdit(${idx})" class="text-[10px] px-3 py-1.5 rounded-lg bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 transition font-light">Save Changes</button>
+                <button onclick="cancelOrderEdit(${idx})" class="text-[10px] px-2 py-1.5 rounded-lg bg-white/5 text-white/40 hover:bg-white/10 transition font-light">Cancel</button>
+              </div>`;
+          } else {
+            actionsHtml = `
+              <div class="flex items-center gap-2 mt-2">
+                <p class="text-[10px] text-emerald-400/50 flex-1">✓ Confirmed${o.corrected ? ' <span class="text-emerald-400 font-medium">(Corrected)</span>' : ''} — ${hasItems ? o.itemDetails.length + ' items recorded as sales' : 'sales recorded'}</p>
+                ${isAdmin ? `<button onclick="editConfirmedOrder(${idx})" class="text-[10px] px-2 py-1.5 rounded-lg bg-amber-500/10 text-amber-400/70 hover:bg-amber-500/20 hover:text-amber-400 transition font-light" title="Admin: Edit confirmed order">Edit</button>` : ''}
+                <button onclick="generateInvoice(${idx})" class="text-[10px] px-3 py-1.5 rounded-lg bg-purex-blue/20 text-purex-blue hover:bg-purex-blue/30 transition font-light flex items-center gap-1">
+                  <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 1v3H1l4 4 4-4H7V1z"/><path d="M1 9h8"/></svg>
+                  Invoice PDF
+                </button>
+              </div>`;
+          }
         } else if (o.status === 'shipped' || o.status === 'delivered') {
-          actionsHtml = `
-            <div class="flex items-center gap-2 mt-2">
-              <p class="text-[10px] ${o.status === 'shipped' ? 'text-white/30' : 'text-emerald-400'} flex-1">${o.status === 'shipped' ? '📦 Shipped' : '✅ Delivered'}</p>
-              <button onclick="generateInvoice(${idx})" class="text-[10px] px-3 py-1.5 rounded-lg bg-purex-blue/20 text-purex-blue hover:bg-purex-blue/30 transition font-light flex items-center gap-1">
-                <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 1v3H1l4 4 4-4H7V1z"/><path d="M1 9h8"/></svg>
-                Invoice PDF
-              </button>
-            </div>`;
+          if (isEditing && isAdmin) {
+            actionsHtml = `
+              <div class="flex gap-1.5 mt-2 items-center">
+                <label class="flex items-center gap-1.5 text-[10px] text-white/40 cursor-pointer">
+                  <input type="checkbox" id="corrected-check-${idx}" ${o.corrected ? 'checked' : ''} class="w-3 h-3 rounded accent-emerald-400" />
+                  Mark as Corrected
+                </label>
+                <div class="flex-1"></div>
+                <button onclick="saveAdminOrderEdit(${idx})" class="text-[10px] px-3 py-1.5 rounded-lg bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 transition font-light">Save Changes</button>
+                <button onclick="cancelOrderEdit(${idx})" class="text-[10px] px-2 py-1.5 rounded-lg bg-white/5 text-white/40 hover:bg-white/10 transition font-light">Cancel</button>
+              </div>`;
+          } else {
+            actionsHtml = `
+              <div class="flex items-center gap-2 mt-2">
+                <p class="text-[10px] ${o.status === 'shipped' ? 'text-white/30' : 'text-emerald-400'} flex-1">${o.status === 'shipped' ? '📦 Shipped' : '✅ Delivered'}${o.corrected ? ' <span class="text-emerald-400 font-medium">(Corrected)</span>' : ''}</p>
+                ${isAdmin ? `<button onclick="editConfirmedOrder(${idx})" class="text-[10px] px-2 py-1.5 rounded-lg bg-amber-500/10 text-amber-400/70 hover:bg-amber-500/20 hover:text-amber-400 transition font-light" title="Admin: Edit order">Edit</button>` : ''}
+                <button onclick="generateInvoice(${idx})" class="text-[10px] px-3 py-1.5 rounded-lg bg-purex-blue/20 text-purex-blue hover:bg-purex-blue/30 transition font-light flex items-center gap-1">
+                  <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 1v3H1l4 4 4-4H7V1z"/><path d="M1 9h8"/></svg>
+                  Invoice PDF
+                </button>
+              </div>`;
+          }
         } else if (o.status === 'cancelled') {
           actionsHtml = `
             <div class="flex items-center gap-2 mt-2">
@@ -1913,6 +2460,41 @@
       renderOrders();
     }
 
+    // Admin-only: edit a confirmed/shipped/delivered order
+    function editConfirmedOrder(idx) {
+      if (!isAdmin) { alert('Only admin can edit confirmed orders.'); return; }
+      editingOrderIdx = idx;
+      renderOrders();
+    }
+
+    // Admin saves edits on a confirmed/shipped/delivered order
+    function saveAdminOrderEdit(idx) {
+      if (!isAdmin) return;
+      const order = orders[idx];
+      if (!order.itemDetails || order.itemDetails.length === 0) {
+        alert('Cannot save an order with no items.');
+        return;
+      }
+
+      // Check if admin chose to mark as corrected
+      const correctedCheck = document.getElementById('corrected-check-' + idx);
+      order.corrected = correctedCheck ? correctedCheck.checked : false;
+
+      // Recalculate total
+      order.total = order.itemDetails.reduce((sum, item) => sum + (item.price || 0) * item.qty, 0);
+      order.items = order.itemDetails.length;
+      if (order.corrected) {
+        order.correctedAt = new Date().toISOString();
+        order.correctedBy = currentUser.name;
+      }
+
+      editingOrderIdx = null;
+      saveOrders();
+      logActivity('Edited order' + (order.corrected ? ' (Corrected)' : ''), order.id + ' — new total Rs.' + order.total.toLocaleString());
+      renderOrders();
+      updateKPIs();
+    }
+
     function cancelOrderEdit(idx) {
       editingOrderIdx = null;
       renderOrders();
@@ -1925,6 +2507,22 @@
       orders[orderIdx].total = orders[orderIdx].itemDetails.reduce((sum, item) => sum + (item.price || 0) * item.qty, 0);
       orders[orderIdx].items = orders[orderIdx].itemDetails.length;
       saveOrders();
+      // Update total and item row total without full re-render (keeps input focus)
+      const card = document.getElementById('order-card-' + orderIdx);
+      if (card) {
+        const totalEl = card.querySelector('.text-sm.text-white');
+        if (totalEl) totalEl.textContent = 'Rs. ' + orders[orderIdx].total.toLocaleString();
+      }
+      // Update item row total
+      const tbody = document.getElementById('order-items-body-' + orderIdx);
+      if (tbody) {
+        const rows = tbody.querySelectorAll('tr');
+        if (rows[itemIdx]) {
+          const tds = rows[itemIdx].querySelectorAll('td');
+          const item = orders[orderIdx].itemDetails[itemIdx];
+          if (tds[3]) tds[3].textContent = 'Rs.' + ((item.price || 0) * item.qty).toLocaleString();
+        }
+      }
     }
 
     function removeOrderItem(orderIdx, itemIdx) {
@@ -1958,12 +2556,30 @@
     }
 
     function saveOrderEdit(idx) {
-      editingOrderIdx = null;
       if (orders[idx].itemDetails.length === 0) {
-        alert('Cannot confirm an order with no items.');
+        alert('Cannot save an order with no items.');
         return;
       }
-      confirmOrder(idx);
+      const order = orders[idx];
+      const wasPending = order.status === 'pending';
+      editingOrderIdx = null;
+
+      if (wasPending) {
+        // Normal flow: confirm the pending order
+        confirmOrder(idx);
+      } else if (isAdmin) {
+        // Admin editing a confirmed/shipped/delivered order
+        // Recalculate total
+        order.total = order.itemDetails.reduce((sum, item) => sum + (item.price || 0) * item.qty, 0);
+        order.items = order.itemDetails.length;
+        order.corrected = true;
+        order.correctedAt = new Date().toISOString();
+        order.correctedBy = currentUser.name;
+        saveOrders();
+        logActivity('Corrected order', order.id + ' — items updated, new total Rs.' + order.total.toLocaleString());
+        renderOrders();
+        updateKPIs();
+      }
     }
 
     function confirmOrder(idx) {
@@ -2013,6 +2629,10 @@
       saveProducts();
       saveOrders();
 
+      // Auto-register customer
+      autoRegisterCustomer(order);
+      logActivity('Confirmed order', order.id + ' (' + (order.itemDetails ? order.itemDetails.length : 0) + ' items, Rs.' + (order.total || 0).toLocaleString() + ')');
+
       // Refresh all views
       renderOrders();
       renderDailySalesLog();
@@ -2020,6 +2640,7 @@
       renderSalesChart();
       renderProducts();
       renderInventory();
+      renderCustomers();
 
       // Flash animation
       const card = document.getElementById('order-card-' + idx);
@@ -2380,6 +3001,23 @@
       doc.setTextColor(...gray);
       doc.text('For complaints & support: ' + COMPANY.phone + ' | ' + COMPANY.email, pw / 2, y, { align: 'center' });
 
+      // ---- CORRECTED WATERMARK (if admin marked as corrected) ----
+      if (order.corrected) {
+        doc.saveGraphicsState();
+        doc.setGState(new doc.GState({ opacity: 0.12 }));
+        doc.setFontSize(60);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(34, 197, 94); // emerald green
+        // Diagonal text across the page
+        const centerX = pw / 2;
+        const centerY = 148; // roughly center of A4
+        doc.text('CORRECTED', centerX, centerY, {
+          align: 'center',
+          angle: 35
+        });
+        doc.restoreGraphicsState();
+      }
+
       // Save PDF
       doc.save(invoiceNo + '_' + (order.customer || 'customer').replace(/\s+/g, '_') + '.pdf');
 
@@ -2466,14 +3104,17 @@
     }
 
     function exportOrdersCSV() {
-      const header = ['Order ID', 'Customer', 'City', 'Items', 'Total', 'Status'];
+      const header = ['Order ID', 'Date', 'Customer', 'Phone', 'City', 'Items', 'Total', 'Status', 'Channel'];
       const rows = orders.map(o => [
         o.id,
+        o.date || '',
         o.customer,
+        o.phone || '',
         o.city,
         o.items,
         o.total,
-        o.status.charAt(0).toUpperCase() + o.status.slice(1)
+        o.status.charAt(0).toUpperCase() + o.status.slice(1),
+        o.channel || ''
       ]);
       downloadCSV([header, ...rows], 'purex-orders.csv');
     }
@@ -2780,8 +3421,1159 @@
       if (e.key === 'Escape') {
         if (!document.getElementById('product-modal').classList.contains('hidden')) closeProductModal();
         if (!document.getElementById('delete-modal').classList.contains('hidden')) closeDeleteModal();
+        if (!document.getElementById('customer-modal').classList.contains('hidden')) closeCustomerModal();
+        if (!document.getElementById('customer-detail-modal').classList.contains('hidden')) document.getElementById('customer-detail-modal').classList.add('hidden');
+        if (!document.getElementById('supplier-modal').classList.contains('hidden')) closeSupplierModal();
+        if (!document.getElementById('sinv-modal').classList.contains('hidden')) closeSupplierInvoiceModal();
+        if (!document.getElementById('user-modal').classList.contains('hidden')) closeUserModal();
+        if (!document.getElementById('sinv-photo-fullview').classList.contains('hidden')) document.getElementById('sinv-photo-fullview').classList.add('hidden');
       }
     });
+
+    // ==================== ROLE-BASED ACCESS CONTROL ====================
+
+    function applyRoleRestrictions() {
+      const initials = currentUser.name.split(' ').map(w => w[0]).join('').toUpperCase().substring(0, 2) || 'U';
+      document.getElementById('sidebar-avatar').textContent = initials;
+      document.getElementById('sidebar-user-name').textContent = currentUser.name;
+      document.getElementById('sidebar-user-role').textContent = isAdmin ? 'Admin' : 'Editor';
+
+      // Hide admin-only nav items
+      if (!isAdmin) {
+        document.getElementById('admin-only-nav').style.display = 'none';
+        document.getElementById('users-section').style.display = 'none';
+        document.getElementById('activity-section').style.display = 'none';
+      }
+
+      // Hide sections editor can't access
+      if (!hasPermission('products')) {
+        const ps = document.getElementById('products-section');
+        if (ps) ps.style.display = 'none';
+        document.querySelectorAll('a[href="#products-section"]').forEach(a => a.style.display = 'none');
+      }
+      if (!hasPermission('orders')) {
+        const os = document.getElementById('orders-section');
+        if (os) os.style.display = 'none';
+        document.querySelectorAll('a[href="#orders-section"]').forEach(a => a.style.display = 'none');
+      }
+      if (!hasPermission('inventory')) {
+        document.getElementById('inventory-section').style.display = 'none';
+        document.querySelectorAll('a[href="#inventory-section"]').forEach(a => a.style.display = 'none');
+      }
+      if (!hasPermission('profits')) {
+        document.getElementById('profit-section').style.display = 'none';
+        document.querySelectorAll('a[href="#profit-section"]').forEach(a => a.style.display = 'none');
+      }
+      if (!hasPermission('customers')) {
+        document.getElementById('customers-section').style.display = 'none';
+        document.querySelectorAll('a[href="#customers-section"]').forEach(a => a.style.display = 'none');
+      }
+      if (!hasPermission('sales')) {
+        const salesSection = document.getElementById('sales-section');
+        if (salesSection) salesSection.style.display = 'none';
+        document.querySelectorAll('a[href="#sales-section"]').forEach(a => a.style.display = 'none');
+      }
+      if (!hasPermission('invoices')) {
+        const ss = document.getElementById('suppliers-section');
+        if (ss) ss.style.display = 'none';
+        document.querySelectorAll('a[href="#suppliers-section"]').forEach(a => a.style.display = 'none');
+      }
+
+      // Hide export buttons if no permission
+      if (!hasPermission('exportData')) {
+        document.querySelectorAll('.btn-export').forEach(b => b.style.display = 'none');
+      }
+    }
+
+    applyRoleRestrictions();
+
+    // ==================== USER MANAGEMENT (Admin Only) ====================
+
+    function getUsers() {
+      try { return JSON.parse(localStorage.getItem('purex_users') || '[]'); } catch(e) { return []; }
+    }
+
+    function saveUsers(users) {
+      localStorage.setItem('purex_users', JSON.stringify(users));
+    }
+
+    const permLabels = {
+      products: 'Products', orders: 'Orders', inventory: 'Inventory', sales: 'Sales',
+      profits: 'Profits', customers: 'Customers', users: 'Users', invoices: 'Invoices',
+      deleteProducts: 'Delete', editPrices: 'Prices', reduceStock: 'Reduce Stock', exportData: 'Export'
+    };
+
+    function renderUsers() {
+      if (!isAdmin) return;
+      const users = getUsers();
+      const container = document.getElementById('users-list');
+      container.innerHTML = users.map(u => {
+        const isSelf = u.id === currentUser.id;
+        const roleBadge = u.role === 'admin'
+          ? '<span class="text-[9px] px-1.5 py-0.5 rounded-full bg-purex-blue/10 text-purex-blue">Admin</span>'
+          : '<span class="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-400">Editor</span>';
+        const statusDot = u.active
+          ? '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block"></span>'
+          : '<span class="w-1.5 h-1.5 rounded-full bg-red-400 inline-block"></span>';
+
+        // Permission tags
+        const permTags = u.role === 'admin' ? '<span class="text-[8px] text-white/20">Full Access</span>' :
+          Object.entries(u.permissions || {}).filter(([k,v]) => v).map(([k]) =>
+            `<span class="text-[8px] px-1 py-0.5 rounded bg-white/5 text-white/30">${permLabels[k] || k}</span>`
+          ).join(' ');
+
+        return `
+          <div class="glass rounded-xl p-3 transition hover:border-white/15">
+            <div class="flex items-center justify-between mb-1.5">
+              <div class="flex items-center gap-2">
+                ${statusDot}
+                <span class="text-xs text-white/80 font-light">${u.name}</span>
+                ${roleBadge}
+                ${isSelf ? '<span class="text-[8px] text-purex-blue/50">(You)</span>' : ''}
+              </div>
+              <div class="flex items-center gap-1">
+                ${!isSelf ? `
+                  <button onclick="toggleUserActive(${u.id})" class="text-[10px] px-1.5 py-0.5 rounded ${u.active ? 'bg-red-500/10 text-red-400/60 hover:text-red-400' : 'bg-emerald-500/10 text-emerald-400/60 hover:text-emerald-400'} transition">${u.active ? 'Disable' : 'Enable'}</button>
+                ` : ''}
+                <button onclick="openUserModal(${u.id})" class="text-[10px] px-1.5 py-0.5 rounded bg-white/5 text-white/30 hover:text-white/60 transition">Edit</button>
+                ${!isSelf ? `<button onclick="deleteUser(${u.id})" class="text-[10px] px-1.5 py-0.5 rounded bg-red-500/5 text-red-400/40 hover:text-red-400 transition">&times;</button>` : ''}
+              </div>
+            </div>
+            <p class="text-[10px] text-white/25 mb-1">${u.username}</p>
+            <div class="flex flex-wrap gap-1">${permTags}</div>
+          </div>`;
+      }).join('');
+    }
+
+    function openUserModal(editId) {
+      if (!isAdmin) return;
+      document.getElementById('user-modal').classList.remove('hidden');
+      document.getElementById('user-edit-id').value = editId || '';
+      document.getElementById('user-modal-title').textContent = editId ? 'Edit User' : 'Add User';
+
+      if (editId) {
+        const users = getUsers();
+        const u = users.find(x => x.id == editId);
+        if (u) {
+          document.getElementById('user-name').value = u.name || '';
+          document.getElementById('user-role').value = u.role || 'editor';
+          document.getElementById('user-username').value = u.username || '';
+          document.getElementById('user-password').value = u.password || '';
+          document.getElementById('user-active').checked = u.active !== false;
+          // Set permissions
+          Object.keys(permLabels).forEach(k => {
+            const el = document.getElementById('perm-' + k);
+            if (el) el.checked = u.permissions ? u.permissions[k] === true : false;
+          });
+        }
+      } else {
+        document.getElementById('user-name').value = '';
+        document.getElementById('user-role').value = 'editor';
+        document.getElementById('user-username').value = '';
+        document.getElementById('user-password').value = '';
+        document.getElementById('user-active').checked = true;
+        // Default editor permissions
+        ['products', 'orders', 'inventory', 'sales'].forEach(k => {
+          const el = document.getElementById('perm-' + k);
+          if (el) el.checked = true;
+        });
+        ['profits', 'customers', 'invoices', 'exportData', 'editPrices', 'deleteProducts', 'reduceStock', 'users'].forEach(k => {
+          const el = document.getElementById('perm-' + k);
+          if (el) el.checked = false;
+        });
+      }
+
+      gsap.from('#user-modal .glass-strong', { scale: 0.9, opacity: 0, duration: 0.3, ease: 'back.out(1.5)' });
+    }
+
+    function closeUserModal() {
+      document.getElementById('user-modal').classList.add('hidden');
+    }
+
+    function saveUser() {
+      if (!isAdmin) return;
+      const name = document.getElementById('user-name').value.trim();
+      const username = document.getElementById('user-username').value.trim();
+      const password = document.getElementById('user-password').value;
+      const role = document.getElementById('user-role').value;
+      const active = document.getElementById('user-active').checked;
+
+      if (!name || !username || !password) {
+        const fb = document.getElementById('user-feedback');
+        fb.textContent = 'Name, username, and password are required.';
+        fb.style.color = '#f87171';
+        fb.style.opacity = '1';
+        setTimeout(() => { fb.style.opacity = '0'; }, 2000);
+        return;
+      }
+
+      // Gather permissions
+      const permissions = {};
+      Object.keys(permLabels).forEach(k => {
+        const el = document.getElementById('perm-' + k);
+        permissions[k] = role === 'admin' ? true : (el ? el.checked : false);
+      });
+
+      const users = getUsers();
+      const editId = document.getElementById('user-edit-id').value;
+
+      if (editId) {
+        const u = users.find(x => x.id == editId);
+        if (u) {
+          u.name = name;
+          u.username = username;
+          u.password = password;
+          u.role = role;
+          u.active = active;
+          u.permissions = permissions;
+          logActivity('Updated user', name + ' (' + role + ')');
+        }
+      } else {
+        // Check duplicate username
+        if (users.find(u => u.username === username)) {
+          const fb = document.getElementById('user-feedback');
+          fb.textContent = 'Username already exists.';
+          fb.style.color = '#f87171';
+          fb.style.opacity = '1';
+          setTimeout(() => { fb.style.opacity = '0'; }, 2000);
+          return;
+        }
+        users.push({
+          id: Date.now(),
+          name, username, password, role, active, permissions,
+          createdAt: new Date().toISOString()
+        });
+        logActivity('Created user', name + ' (' + role + ')');
+      }
+
+      saveUsers(users);
+      renderUsers();
+      closeUserModal();
+    }
+
+    function toggleUserActive(id) {
+      if (!isAdmin) return;
+      const users = getUsers();
+      const u = users.find(x => x.id == id);
+      if (u) {
+        u.active = !u.active;
+        saveUsers(users);
+        renderUsers();
+        logActivity(u.active ? 'Enabled user' : 'Disabled user', u.name);
+      }
+    }
+
+    function deleteUser(id) {
+      if (!isAdmin) return;
+      const users = getUsers();
+      const u = users.find(x => x.id == id);
+      if (!u) return;
+      if (!confirm('Delete user "' + u.name + '"?')) return;
+      saveUsers(users.filter(x => x.id != id));
+      renderUsers();
+      logActivity('Deleted user', u.name);
+    }
+
+    // ==================== ACTIVITY LOG ====================
+
+    function getActivityLog() {
+      try { return JSON.parse(localStorage.getItem('purex_activity_log') || '[]'); } catch(e) { return []; }
+    }
+
+    function renderActivityLog() {
+      if (!isAdmin) return;
+      const log = getActivityLog();
+      const filter = document.getElementById('activity-filter').value;
+      const filtered = filter === 'all' ? log : log.filter(e => e.user === filter);
+
+      const container = document.getElementById('activity-list');
+      const noMsg = document.getElementById('no-activity-msg');
+
+      // Populate user filter dropdown
+      const filterEl = document.getElementById('activity-filter');
+      const uniqueUsers = [...new Set(log.map(e => e.user))];
+      const currentVal = filterEl.value;
+      filterEl.innerHTML = '<option value="all" class="bg-[#0a0e17]">All Users</option>' +
+        uniqueUsers.map(u => `<option value="${u}" class="bg-[#0a0e17]" ${u === currentVal ? 'selected' : ''}>${u}</option>`).join('');
+
+      if (filtered.length === 0) {
+        container.innerHTML = '';
+        noMsg.classList.remove('hidden');
+        return;
+      }
+      noMsg.classList.add('hidden');
+
+      container.innerHTML = filtered.slice(0, 100).map(e => {
+        const time = new Date(e.timestamp);
+        const timeStr = time.toLocaleDateString('en-PK', { day: '2-digit', month: 'short' }) + ' ' +
+          time.toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit', hour12: true });
+        const roleBadge = e.role === 'admin'
+          ? '<span class="text-[8px] px-1 py-0.5 rounded bg-purex-blue/10 text-purex-blue">Admin</span>'
+          : '<span class="text-[8px] px-1 py-0.5 rounded bg-amber-500/10 text-amber-400">Editor</span>';
+        return `
+          <div class="flex items-start gap-3 py-2 border-b border-white/5">
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-1.5 mb-0.5">
+                <span class="text-[10px] text-white/60 font-light">${e.user}</span>
+                ${roleBadge}
+              </div>
+              <p class="text-[10px] text-white/40">${e.action}${e.detail ? ' — <span class="text-white/25">' + e.detail + '</span>' : ''}</p>
+            </div>
+            <span class="text-[9px] text-white/20 whitespace-nowrap">${timeStr}</span>
+          </div>`;
+      }).join('');
+    }
+
+    function clearActivityLog() {
+      if (!isAdmin) return;
+      if (!confirm('Clear all activity history?')) return;
+      localStorage.setItem('purex_activity_log', '[]');
+      renderActivityLog();
+    }
+
+    // Initialize admin-only sections
+    if (isAdmin) {
+      renderUsers();
+      renderActivityLog();
+    }
+
+    // ==================== ADD ACTIVITY LOGGING TO KEY ACTIONS ====================
+
+    // Wrap recordSale to log
+    const _origRecordSale = recordSale;
+    recordSale = function() {
+      const productId = parseInt(document.getElementById('sale-product').value);
+      const qty = parseInt(document.getElementById('sale-qty').value) || 1;
+      const product = products.find(p => p.id === productId);
+      _origRecordSale();
+      if (product) logActivity('Recorded sale', product.name + ' x' + qty);
+      if (isAdmin) renderActivityLog();
+    };
+
+    // ==================== SUPPLIERS ====================
+
+    function loadSuppliers() {
+      try { return JSON.parse(localStorage.getItem('purex_suppliers') || '[]'); } catch(e) { return []; }
+    }
+    let suppliers = loadSuppliers();
+    function saveSuppliersToDB() { localStorage.setItem('purex_suppliers', JSON.stringify(suppliers)); }
+
+    function openSupplierModal(editId) {
+      document.getElementById('supplier-modal').classList.remove('hidden');
+      document.getElementById('sup-edit-id').value = editId || '';
+      document.getElementById('supplier-modal-title').textContent = editId ? 'Edit Supplier' : 'Add Supplier';
+      if (editId) {
+        const s = suppliers.find(x => x.id == editId);
+        if (s) {
+          document.getElementById('sup-name').value = s.name || '';
+          document.getElementById('sup-contact').value = s.contact || '';
+          document.getElementById('sup-phone').value = s.phone || '';
+          document.getElementById('sup-email').value = s.email || '';
+          document.getElementById('sup-city').value = s.city || '';
+          document.getElementById('sup-address').value = s.address || '';
+          document.getElementById('sup-products').value = s.products || '';
+          document.getElementById('sup-notes').value = s.notes || '';
+        }
+      } else {
+        ['sup-name','sup-contact','sup-phone','sup-email','sup-city','sup-address','sup-products','sup-notes'].forEach(id => {
+          document.getElementById(id).value = '';
+        });
+      }
+      gsap.from('#supplier-modal .glass-strong', { scale: 0.9, opacity: 0, duration: 0.3, ease: 'back.out(1.5)' });
+    }
+
+    function closeSupplierModal() { document.getElementById('supplier-modal').classList.add('hidden'); }
+
+    function saveSupplier() {
+      const name = document.getElementById('sup-name').value.trim();
+      const phone = document.getElementById('sup-phone').value.trim();
+      if (!name || !phone) {
+        showFeedback('sup-feedback', 'Name and phone are required.', false);
+        return;
+      }
+      const editId = document.getElementById('sup-edit-id').value;
+      const data = {
+        name, phone,
+        contact: document.getElementById('sup-contact').value.trim(),
+        email: document.getElementById('sup-email').value.trim(),
+        city: document.getElementById('sup-city').value.trim(),
+        address: document.getElementById('sup-address').value.trim(),
+        products: document.getElementById('sup-products').value.trim(),
+        notes: document.getElementById('sup-notes').value.trim(),
+      };
+      if (editId) {
+        const s = suppliers.find(x => x.id == editId);
+        if (s) Object.assign(s, data);
+        logActivity('Updated supplier', name);
+      } else {
+        data.id = Date.now();
+        data.createdAt = new Date().toISOString();
+        data.invoiceCount = 0;
+        data.totalPurchased = 0;
+        suppliers.push(data);
+        logActivity('Added supplier', name);
+      }
+      saveSuppliersToDB();
+      renderSuppliers();
+      populateSupplierDropdowns();
+      closeSupplierModal();
+    }
+
+    function deleteSupplier(id) {
+      if (!isAdmin) { alert('Only admin can delete suppliers.'); return; }
+      const s = suppliers.find(x => x.id == id);
+      if (!s || !confirm('Delete supplier "' + s.name + '"?')) return;
+      suppliers = suppliers.filter(x => x.id != id);
+      saveSuppliersToDB();
+      renderSuppliers();
+      populateSupplierDropdowns();
+      logActivity('Deleted supplier', s.name);
+    }
+
+    function renderSuppliers() {
+      const container = document.getElementById('suppliers-list');
+      const noMsg = document.getElementById('no-suppliers-msg');
+      if (suppliers.length === 0) {
+        container.innerHTML = '';
+        noMsg.classList.remove('hidden');
+        return;
+      }
+      noMsg.classList.add('hidden');
+      container.innerHTML = suppliers.map(s => `
+        <div class="glass rounded-xl p-3 transition hover:border-white/15">
+          <div class="flex items-center justify-between mb-1">
+            <div class="flex items-center gap-2">
+              <span class="text-xs text-white/80 font-light">${s.name}</span>
+              ${s.city ? '<span class="text-[9px] text-white/25">' + s.city + '</span>' : ''}
+            </div>
+            <div class="flex items-center gap-1">
+              <button onclick="openSupplierModal(${s.id})" class="text-[10px] px-1.5 py-0.5 rounded bg-white/5 text-white/30 hover:text-white/60 transition">Edit</button>
+              ${isAdmin ? '<button onclick="deleteSupplier(' + s.id + ')" class="text-[10px] px-1.5 py-0.5 rounded bg-red-500/5 text-red-400/40 hover:text-red-400 transition">&times;</button>' : ''}
+            </div>
+          </div>
+          <div class="flex items-center gap-3 text-[10px] text-white/30">
+            <span>${s.phone}</span>
+            ${s.contact ? '<span>&middot; ' + s.contact + '</span>' : ''}
+            ${s.products ? '<span>&middot; ' + s.products + '</span>' : ''}
+          </div>
+          <div class="flex items-center gap-3 text-[10px] text-white/20 mt-1">
+            <span>${s.invoiceCount || 0} invoices</span>
+            <span>Rs. ${(s.totalPurchased || 0).toLocaleString()} total</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function exportSuppliersCSV() {
+      if (!hasPermission('exportData')) { alert('No export permission.'); return; }
+      const header = ['Name', 'Contact', 'Phone', 'Email', 'City', 'Address', 'Products', 'Invoices', 'Total Purchased', 'Notes'];
+      const rows = suppliers.map(s => [s.name, s.contact || '', s.phone, s.email || '', s.city || '', s.address || '', s.products || '', s.invoiceCount || 0, s.totalPurchased || 0, (s.notes || '').replace(/,/g, ';')]);
+      downloadCSV([header, ...rows], 'purex-suppliers.csv');
+    }
+
+    // ==================== SUPPLIER INVOICES ====================
+
+    function loadSupplierInvoices() {
+      try { return JSON.parse(localStorage.getItem('purex_supplier_invoices') || '[]'); } catch(e) { return []; }
+    }
+    let supplierInvoices = loadSupplierInvoices();
+    function saveSupplierInvoicesToDB() { localStorage.setItem('purex_supplier_invoices', JSON.stringify(supplierInvoices)); }
+
+    let sinvLineItems = [];
+    let sinvPhotoData = null;
+
+    function showFeedback(elId, msg, success) {
+      const fb = document.getElementById(elId);
+      fb.textContent = msg;
+      fb.style.color = success ? '#34d399' : '#f87171';
+      fb.style.opacity = '1';
+      setTimeout(() => { fb.style.opacity = '0'; }, 2500);
+    }
+
+    function populateSupplierDropdowns() {
+      // Invoice form dropdown
+      const select = document.getElementById('sinv-supplier');
+      const val = select.value;
+      select.innerHTML = '<option value="" class="bg-[#0a0e17]">Select supplier...</option>' +
+        suppliers.map(s => `<option value="${s.id}" class="bg-[#0a0e17]">${s.name}</option>`).join('');
+      if (val) select.value = val;
+
+      // Filter dropdown
+      const filter = document.getElementById('sinv-filter');
+      const fval = filter.value;
+      filter.innerHTML = '<option value="all" class="bg-[#0a0e17]">All Suppliers</option>' +
+        suppliers.map(s => `<option value="${s.id}" class="bg-[#0a0e17]">${s.name}</option>`).join('');
+      if (fval) filter.value = fval;
+    }
+
+    function openSupplierInvoiceModal(editId) {
+      document.getElementById('sinv-modal').classList.remove('hidden');
+      document.getElementById('sinv-edit-id').value = editId || '';
+      document.getElementById('sinv-modal-title').textContent = editId ? 'Edit Purchase Invoice' : 'New Purchase Invoice';
+      sinvLineItems = [];
+      sinvPhotoData = null;
+      populateSupplierDropdowns();
+
+      if (editId) {
+        const inv = supplierInvoices.find(x => x.id == editId);
+        if (inv) {
+          document.getElementById('sinv-number').value = inv.invoiceNumber || '';
+          document.getElementById('sinv-date').value = inv.date || '';
+          document.getElementById('sinv-supplier').value = inv.supplierId || '';
+          document.getElementById('sinv-amount').value = inv.amount || '';
+          document.getElementById('sinv-desc').value = inv.description || '';
+          sinvLineItems = inv.items ? [...inv.items] : [];
+          sinvPhotoData = inv.photo || null;
+        }
+      } else {
+        document.getElementById('sinv-number').value = '';
+        document.getElementById('sinv-date').value = new Date().toISOString().split('T')[0];
+        document.getElementById('sinv-supplier').value = '';
+        document.getElementById('sinv-amount').value = '';
+        document.getElementById('sinv-desc').value = '';
+      }
+
+      renderInvoiceLineItems();
+      updateInvoicePhotoPreview();
+      gsap.from('#sinv-modal .glass-strong', { scale: 0.9, opacity: 0, duration: 0.3, ease: 'back.out(1.5)' });
+    }
+
+    function closeSupplierInvoiceModal() { document.getElementById('sinv-modal').classList.add('hidden'); }
+
+    function addInvoiceLineItem() {
+      sinvLineItems.push({ description: '', qty: 1, rate: 0 });
+      renderInvoiceLineItems();
+    }
+
+    function removeInvoiceLineItem(idx) {
+      sinvLineItems.splice(idx, 1);
+      renderInvoiceLineItems();
+    }
+
+    function renderInvoiceLineItems() {
+      const container = document.getElementById('sinv-items-list');
+      container.innerHTML = sinvLineItems.map((item, i) => `
+        <div class="flex gap-1.5 items-center">
+          <input type="text" value="${item.description}" placeholder="Item" onchange="sinvLineItems[${i}].description=this.value" class="flex-1 rounded-lg px-2 py-1.5 text-[10px] bg-white/5 border border-white/10 text-white/70 font-light" />
+          <input type="number" value="${item.qty}" min="1" onchange="sinvLineItems[${i}].qty=parseInt(this.value)||1" class="w-12 rounded-lg px-2 py-1.5 text-[10px] bg-white/5 border border-white/10 text-white/70 font-light text-center" placeholder="Qty" />
+          <input type="number" value="${item.rate}" min="0" onchange="sinvLineItems[${i}].rate=parseInt(this.value)||0" class="w-16 rounded-lg px-2 py-1.5 text-[10px] bg-white/5 border border-white/10 text-white/70 font-light text-right" placeholder="Rate" />
+          <button onclick="removeInvoiceLineItem(${i})" class="text-red-400/40 hover:text-red-400 text-xs">&times;</button>
+        </div>
+      `).join('');
+    }
+
+    function handleInvoicePhoto(input) {
+      const file = input.files[0];
+      if (!file) return;
+      if (file.size > 2 * 1024 * 1024) {
+        showFeedback('sinv-feedback', 'Photo must be under 2MB.', false);
+        input.value = '';
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        sinvPhotoData = e.target.result;
+        updateInvoicePhotoPreview();
+      };
+      reader.readAsDataURL(file);
+      input.value = '';
+    }
+
+    function removeInvoicePhoto() {
+      sinvPhotoData = null;
+      updateInvoicePhotoPreview();
+    }
+
+    function updateInvoicePhotoPreview() {
+      const preview = document.getElementById('sinv-photo-preview');
+      const nameEl = document.getElementById('sinv-photo-name');
+      if (sinvPhotoData) {
+        preview.classList.remove('hidden');
+        document.getElementById('sinv-photo-img').src = sinvPhotoData;
+        nameEl.textContent = 'Photo attached';
+      } else {
+        preview.classList.add('hidden');
+        nameEl.textContent = 'No file';
+      }
+    }
+
+    function viewInvoicePhotoFull(src) {
+      document.getElementById('sinv-photo-full-img').src = src;
+      document.getElementById('sinv-photo-fullview').classList.remove('hidden');
+    }
+
+    function saveSupplierInvoice(status) {
+      const invoiceNumber = document.getElementById('sinv-number').value.trim();
+      const date = document.getElementById('sinv-date').value;
+      const supplierId = document.getElementById('sinv-supplier').value;
+      const amount = parseInt(document.getElementById('sinv-amount').value) || 0;
+
+      if (!invoiceNumber || !date || !supplierId || !amount) {
+        showFeedback('sinv-feedback', 'Invoice #, date, supplier, and amount are required.', false);
+        return;
+      }
+
+      const supplier = suppliers.find(s => s.id == supplierId);
+      const editId = document.getElementById('sinv-edit-id').value;
+
+      if (editId) {
+        const inv = supplierInvoices.find(x => x.id == editId);
+        if (inv) {
+          // Editor cannot edit posted invoices
+          if (inv.status === 'posted' && !isAdmin) {
+            alert('This invoice is posted. Only admin can edit posted invoices.');
+            return;
+          }
+          const oldStatus = inv.status;
+          inv.invoiceNumber = invoiceNumber;
+          inv.date = date;
+          inv.supplierId = parseInt(supplierId);
+          inv.supplierName = supplier ? supplier.name : 'Unknown';
+          inv.amount = amount;
+          inv.description = document.getElementById('sinv-desc').value.trim();
+          inv.items = sinvLineItems.filter(i => i.description);
+          inv.photo = sinvPhotoData;
+          inv.status = status;
+          inv.lastEditedBy = currentUser.name;
+          inv.lastEditedAt = new Date().toISOString();
+          logActivity('Updated supplier invoice', invoiceNumber + ' (' + status + ')');
+        }
+      } else {
+        supplierInvoices.push({
+          id: Date.now(),
+          invoiceNumber, date,
+          supplierId: parseInt(supplierId),
+          supplierName: supplier ? supplier.name : 'Unknown',
+          amount,
+          description: document.getElementById('sinv-desc').value.trim(),
+          items: sinvLineItems.filter(i => i.description),
+          photo: sinvPhotoData,
+          status: status,
+          addedBy: currentUser.name,
+          addedAt: new Date().toISOString(),
+          lastEditedBy: currentUser.name,
+          lastEditedAt: new Date().toISOString()
+        });
+        logActivity('Added supplier invoice', invoiceNumber + ' Rs.' + amount.toLocaleString() + ' (' + status + ')');
+      }
+
+      // Update supplier totals
+      updateSupplierTotals();
+      saveSupplierInvoicesToDB();
+      renderSupplierInvoices();
+      renderSuppliers();
+      closeSupplierInvoiceModal();
+    }
+
+    function updateSupplierTotals() {
+      suppliers.forEach(s => {
+        const invs = supplierInvoices.filter(i => i.supplierId == s.id && i.status === 'posted');
+        s.invoiceCount = invs.length;
+        s.totalPurchased = invs.reduce((sum, i) => sum + (i.amount || 0), 0);
+      });
+      saveSuppliersToDB();
+    }
+
+    function deleteSupplierInvoice(id) {
+      if (!isAdmin) { alert('Only admin can delete posted invoices.'); return; }
+      const inv = supplierInvoices.find(x => x.id == id);
+      if (!inv || !confirm('Delete invoice "' + inv.invoiceNumber + '"?')) return;
+      supplierInvoices = supplierInvoices.filter(x => x.id != id);
+      updateSupplierTotals();
+      saveSupplierInvoicesToDB();
+      renderSupplierInvoices();
+      renderSuppliers();
+      logActivity('Deleted supplier invoice', inv.invoiceNumber);
+    }
+
+    function postSupplierInvoice(id) {
+      const inv = supplierInvoices.find(x => x.id == id);
+      if (!inv) return;
+      inv.status = 'posted';
+      inv.postedBy = currentUser.name;
+      inv.postedAt = new Date().toISOString();
+      saveSupplierInvoicesToDB();
+      updateSupplierTotals();
+      renderSupplierInvoices();
+      renderSuppliers();
+      logActivity('Posted supplier invoice', inv.invoiceNumber);
+    }
+
+    function renderSupplierInvoices() {
+      const filterSup = document.getElementById('sinv-filter').value;
+      const filterStatus = document.getElementById('sinv-status-filter').value;
+
+      let filtered = supplierInvoices.filter(inv => {
+        if (filterSup !== 'all' && inv.supplierId != filterSup) return false;
+        if (filterStatus !== 'all' && inv.status !== filterStatus) return false;
+        return true;
+      });
+
+      // Sort by date descending
+      filtered.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+
+      const tbody = document.getElementById('sinv-tbody');
+      const noMsg = document.getElementById('no-sinv-msg');
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '';
+        noMsg.classList.remove('hidden');
+        return;
+      }
+      noMsg.classList.add('hidden');
+
+      tbody.innerHTML = filtered.map(inv => {
+        const isDraft = inv.status === 'draft';
+        const statusBadge = isDraft
+          ? '<span class="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-400">Draft</span>'
+          : '<span class="text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400">Posted</span>';
+        const photoBadge = inv.photo
+          ? '<button onclick="viewInvoicePhotoFull(\'' + inv.photo.substring(0, 50) + '...\')" class="text-[9px] text-purex-blue hover:underline">View</button>'
+          : '<span class="text-[9px] text-white/15">-</span>';
+        // For photo viewing, we need the full data
+        const photoBtn = inv.photo
+          ? `<button onclick="viewInvoicePhotoFull(supplierInvoices.find(x=>x.id==${inv.id}).photo)" class="text-[9px] text-purex-blue hover:underline">View</button>`
+          : '<span class="text-[9px] text-white/15">—</span>';
+
+        // Actions: draft = edit + post, posted = only admin can edit/delete
+        let actions = '';
+        if (isDraft) {
+          actions = `
+            <button onclick="openSupplierInvoiceModal(${inv.id})" class="text-[10px] px-1.5 py-0.5 rounded bg-white/5 text-white/30 hover:text-white/60 transition">Edit</button>
+            <button onclick="postSupplierInvoice(${inv.id})" class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400/60 hover:text-emerald-400 transition">Post</button>`;
+        } else if (isAdmin) {
+          actions = `
+            <button onclick="openSupplierInvoiceModal(${inv.id})" class="text-[10px] px-1.5 py-0.5 rounded bg-white/5 text-white/30 hover:text-white/60 transition">Edit</button>
+            <button onclick="deleteSupplierInvoice(${inv.id})" class="text-[10px] px-1.5 py-0.5 rounded bg-red-500/5 text-red-400/40 hover:text-red-400 transition">&times;</button>`;
+        } else {
+          actions = '<span class="text-[9px] text-white/15">Locked</span>';
+        }
+
+        return `
+          <tr class="border-b border-white/5 hover:bg-white/[0.02] transition ${isDraft ? 'opacity-70' : ''}">
+            <td class="py-2.5 text-xs text-purex-blue font-mono font-light">${inv.invoiceNumber}</td>
+            <td class="py-2.5 text-xs text-white/50 font-light">${inv.date}</td>
+            <td class="py-2.5 text-xs text-white/60 font-light">${inv.supplierName || '-'}</td>
+            <td class="py-2.5 text-xs text-white/70 font-light text-right">Rs. ${(inv.amount || 0).toLocaleString()}</td>
+            <td class="py-2.5 text-center">${photoBtn}</td>
+            <td class="py-2.5 text-center">${statusBadge}</td>
+            <td class="py-2.5 text-[10px] text-white/25 font-light hidden md:table-cell">${inv.addedBy || '-'}</td>
+            <td class="py-2.5 text-center"><div class="flex items-center justify-center gap-1">${actions}</div></td>
+          </tr>`;
+      }).join('');
+    }
+
+    // Initialize suppliers
+    renderSuppliers();
+    populateSupplierDropdowns();
+    renderSupplierInvoices();
+
+    // ==================== CUSTOMER DATABASE ====================
+
+    function loadCustomers() {
+      try {
+        const stored = localStorage.getItem('purex_customers');
+        if (stored) return JSON.parse(stored);
+      } catch(e) {}
+      return [];
+    }
+
+    let customers = loadCustomers();
+
+    function saveCustomers() {
+      localStorage.setItem('purex_customers', JSON.stringify(customers));
+    }
+
+    function findCustomerByPhone(phone) {
+      if (!phone) return null;
+      const clean = phone.replace(/[\s\-\+]/g, '');
+      return customers.find(c => c.phone.replace(/[\s\-\+]/g, '') === clean);
+    }
+
+    // Auto-capture customer from order (called when order is confirmed)
+    function autoRegisterCustomer(order) {
+      if (!order.phone && !order.customer) return;
+      const existing = findCustomerByPhone(order.phone);
+      if (existing) {
+        // Update last order date and increment order count
+        existing.lastOrder = order.date || new Date().toISOString().split('T')[0];
+        existing.orderCount = (existing.orderCount || 0) + 1;
+        existing.totalSpent = (existing.totalSpent || 0) + (order.total || 0);
+        // Update address/city if we have new info
+        if (order.city && !existing.city) existing.city = order.city;
+        if (order.address && !existing.address) existing.address = order.address;
+        if (order.email && !existing.email) existing.email = order.email;
+        saveCustomers();
+        return;
+      }
+      // Create new customer
+      customers.push({
+        id: Date.now(),
+        name: order.customer || 'Unknown',
+        phone: order.phone || '',
+        email: order.email || '',
+        city: order.city || '',
+        address: order.address || '',
+        company: '',
+        type: 'Retail',
+        notes: '',
+        orderCount: 1,
+        totalSpent: order.total || 0,
+        firstOrder: order.date || new Date().toISOString().split('T')[0],
+        lastOrder: order.date || new Date().toISOString().split('T')[0],
+        createdAt: new Date().toISOString()
+      });
+      saveCustomers();
+    }
+
+    function openCustomerModal(editId) {
+      document.getElementById('customer-modal').classList.remove('hidden');
+      document.getElementById('cust-edit-id').value = editId || '';
+      document.getElementById('customer-modal-title').textContent = editId ? 'Edit Customer' : 'Add Customer';
+
+      if (editId) {
+        const c = customers.find(x => x.id == editId);
+        if (c) {
+          document.getElementById('cust-name').value = c.name || '';
+          document.getElementById('cust-phone').value = c.phone || '';
+          document.getElementById('cust-email').value = c.email || '';
+          document.getElementById('cust-city').value = c.city || '';
+          document.getElementById('cust-type').value = c.type || 'Retail';
+          document.getElementById('cust-address').value = c.address || '';
+          document.getElementById('cust-company').value = c.company || '';
+          document.getElementById('cust-notes').value = c.notes || '';
+        }
+      } else {
+        document.getElementById('cust-name').value = '';
+        document.getElementById('cust-phone').value = '';
+        document.getElementById('cust-email').value = '';
+        document.getElementById('cust-city').value = '';
+        document.getElementById('cust-type').value = 'Retail';
+        document.getElementById('cust-address').value = '';
+        document.getElementById('cust-company').value = '';
+        document.getElementById('cust-notes').value = '';
+      }
+
+      gsap.from('#customer-modal .glass-strong', { scale: 0.9, opacity: 0, duration: 0.3, ease: 'back.out(1.5)' });
+    }
+
+    function closeCustomerModal() {
+      document.getElementById('customer-modal').classList.add('hidden');
+    }
+
+    function saveCustomer() {
+      const name = document.getElementById('cust-name').value.trim();
+      const phone = document.getElementById('cust-phone').value.trim();
+      const city = document.getElementById('cust-city').value.trim();
+      if (!name || !phone || !city) {
+        const fb = document.getElementById('cust-feedback');
+        fb.textContent = 'Name, phone, and city are required.';
+        fb.style.color = '#f87171';
+        fb.style.opacity = '1';
+        setTimeout(() => { fb.style.opacity = '0'; }, 2000);
+        return;
+      }
+
+      const editId = document.getElementById('cust-edit-id').value;
+      if (editId) {
+        const c = customers.find(x => x.id == editId);
+        if (c) {
+          c.name = name;
+          c.phone = phone;
+          c.email = document.getElementById('cust-email').value.trim();
+          c.city = city;
+          c.type = document.getElementById('cust-type').value;
+          c.address = document.getElementById('cust-address').value.trim();
+          c.company = document.getElementById('cust-company').value.trim();
+          c.notes = document.getElementById('cust-notes').value.trim();
+        }
+      } else {
+        // Check duplicate phone
+        if (findCustomerByPhone(phone)) {
+          const fb = document.getElementById('cust-feedback');
+          fb.textContent = 'Customer with this phone already exists.';
+          fb.style.color = '#f87171';
+          fb.style.opacity = '1';
+          setTimeout(() => { fb.style.opacity = '0'; }, 2000);
+          return;
+        }
+        customers.push({
+          id: Date.now(),
+          name: name,
+          phone: phone,
+          email: document.getElementById('cust-email').value.trim(),
+          city: city,
+          type: document.getElementById('cust-type').value,
+          address: document.getElementById('cust-address').value.trim(),
+          company: document.getElementById('cust-company').value.trim(),
+          notes: document.getElementById('cust-notes').value.trim(),
+          orderCount: 0,
+          totalSpent: 0,
+          firstOrder: null,
+          lastOrder: null,
+          createdAt: new Date().toISOString()
+        });
+      }
+
+      saveCustomers();
+      renderCustomers();
+      closeCustomerModal();
+
+      // Flash feedback
+      const fb = document.getElementById('cust-feedback');
+      fb.textContent = 'Customer saved!';
+      fb.style.color = '#34d399';
+      fb.style.opacity = '1';
+      setTimeout(() => { fb.style.opacity = '0'; }, 2000);
+    }
+
+    function deleteCustomer(id) {
+      if (!confirm('Delete this customer record?')) return;
+      customers = customers.filter(c => c.id != id);
+      saveCustomers();
+      renderCustomers();
+    }
+
+    function renderCustomers() {
+      const search = (document.getElementById('customer-search').value || '').toLowerCase();
+      const typeFilter = document.getElementById('customer-type-filter').value;
+
+      let filtered = customers.filter(c => {
+        const matchSearch = !search || (c.name || '').toLowerCase().includes(search) ||
+          (c.phone || '').includes(search) || (c.company || '').toLowerCase().includes(search) ||
+          (c.city || '').toLowerCase().includes(search);
+        const matchType = typeFilter === 'all' || c.type === typeFilter;
+        return matchSearch && matchType;
+      });
+
+      // Sort: most recent orders first, then by name
+      filtered.sort((a, b) => {
+        if (b.lastOrder && a.lastOrder) return b.lastOrder.localeCompare(a.lastOrder);
+        if (b.lastOrder) return 1;
+        if (a.lastOrder) return -1;
+        return (a.name || '').localeCompare(b.name || '');
+      });
+
+      const tbody = document.getElementById('customers-tbody');
+      const noMsg = document.getElementById('no-customers-msg');
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '';
+        noMsg.classList.remove('hidden');
+      } else {
+        noMsg.classList.add('hidden');
+        tbody.innerHTML = filtered.map(c => {
+          const typeBadge = c.type === 'Wholesale'
+            ? '<span class="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-400">Wholesale</span>'
+            : '<span class="text-[9px] px-1.5 py-0.5 rounded-full bg-purex-blue/10 text-purex-blue">Retail</span>';
+          return `
+            <tr class="border-b border-white/5 hover:bg-white/[0.02] transition">
+              <td class="py-2.5">
+                <p class="text-xs text-white/80 font-light">${c.name}</p>
+                ${c.company ? '<p class="text-[10px] text-white/30">' + c.company + '</p>' : ''}
+              </td>
+              <td class="py-2.5 text-xs text-white/50 font-light">${c.phone}</td>
+              <td class="py-2.5 text-xs text-white/50 font-light hidden md:table-cell">${c.city || '-'}</td>
+              <td class="py-2.5 text-xs text-white/50 font-light hidden lg:table-cell">${c.company || '-'}</td>
+              <td class="py-2.5 text-center">${typeBadge}</td>
+              <td class="py-2.5 text-center text-xs text-white/50">${c.orderCount || 0}</td>
+              <td class="py-2.5 text-right text-xs text-white/70 font-light">Rs. ${(c.totalSpent || 0).toLocaleString()}</td>
+              <td class="py-2.5 text-center">
+                <div class="flex items-center justify-center gap-1">
+                  <button onclick="viewCustomer(${c.id})" class="text-purex-blue/60 hover:text-purex-blue transition text-[10px] px-1.5 py-0.5 rounded bg-purex-blue/5" title="View">View</button>
+                  <button onclick="openCustomerModal(${c.id})" class="text-white/30 hover:text-white/60 transition text-[10px] px-1.5 py-0.5 rounded bg-white/5" title="Edit">Edit</button>
+                  <button onclick="deleteCustomer(${c.id})" class="text-red-400/40 hover:text-red-400 transition text-[10px] px-1.5 py-0.5 rounded bg-red-500/5" title="Delete">&times;</button>
+                </div>
+              </td>
+            </tr>`;
+        }).join('');
+      }
+
+      document.getElementById('customers-badge').textContent = customers.length + ' customers';
+    }
+
+    function viewCustomer(id) {
+      const c = customers.find(x => x.id == id);
+      if (!c) return;
+
+      // Get this customer's orders
+      const custOrders = orders.filter(o => {
+        if (!o.phone && !o.customer) return false;
+        const orderPhone = (o.phone || '').replace(/[\s\-\+]/g, '');
+        const custPhone = (c.phone || '').replace(/[\s\-\+]/g, '');
+        return orderPhone === custPhone || (o.customer || '').toLowerCase() === (c.name || '').toLowerCase();
+      });
+
+      const modal = document.getElementById('customer-detail-modal');
+      const content = document.getElementById('customer-detail-content');
+
+      content.innerHTML = `
+        <div class="grid grid-cols-2 gap-3 mb-4">
+          <div>
+            <p class="text-[10px] text-white/30 mb-0.5">Name</p>
+            <p class="text-sm text-white/80 font-light">${c.name}</p>
+          </div>
+          <div>
+            <p class="text-[10px] text-white/30 mb-0.5">Phone</p>
+            <p class="text-sm text-white/80 font-light">${c.phone}</p>
+          </div>
+          <div>
+            <p class="text-[10px] text-white/30 mb-0.5">Email</p>
+            <p class="text-sm text-white/80 font-light">${c.email || '-'}</p>
+          </div>
+          <div>
+            <p class="text-[10px] text-white/30 mb-0.5">City</p>
+            <p class="text-sm text-white/80 font-light">${c.city || '-'}</p>
+          </div>
+          <div>
+            <p class="text-[10px] text-white/30 mb-0.5">Type</p>
+            <p class="text-sm ${c.type === 'Wholesale' ? 'text-amber-400' : 'text-purex-blue'} font-light">${c.type || 'Retail'}</p>
+          </div>
+          <div>
+            <p class="text-[10px] text-white/30 mb-0.5">Company</p>
+            <p class="text-sm text-white/80 font-light">${c.company || '-'}</p>
+          </div>
+          <div>
+            <p class="text-[10px] text-white/30 mb-0.5">Address</p>
+            <p class="text-sm text-white/80 font-light">${c.address || '-'}</p>
+          </div>
+          <div>
+            <p class="text-[10px] text-white/30 mb-0.5">Total Spent</p>
+            <p class="text-sm text-emerald-400 font-light">Rs. ${(c.totalSpent || 0).toLocaleString()}</p>
+          </div>
+        </div>
+        ${c.notes ? '<div class="mb-4"><p class="text-[10px] text-white/30 mb-0.5">Notes</p><p class="text-xs text-white/60 font-light">' + c.notes + '</p></div>' : ''}
+
+        <div class="border-t border-white/5 pt-4">
+          <div class="flex items-center justify-between mb-3">
+            <h4 class="text-xs text-white/50 font-light">Order History (${custOrders.length})</h4>
+            <p class="text-[10px] text-white/25">First: ${c.firstOrder || '-'} | Last: ${c.lastOrder || '-'}</p>
+          </div>
+          ${custOrders.length === 0 ? '<p class="text-[10px] text-white/20 text-center py-3">No orders found</p>' :
+            custOrders.map(o => {
+              const sc = orderStatusColors[o.status] || orderStatusColors.pending;
+              return `
+                <div class="glass rounded-lg p-2.5 mb-2">
+                  <div class="flex items-center justify-between">
+                    <span class="text-[10px] text-purex-blue font-mono">${o.id}</span>
+                    <span class="text-[9px] px-1.5 py-0.5 rounded-full ${sc.bg} ${sc.text}">${(o.status || 'pending').charAt(0).toUpperCase() + (o.status || '').slice(1)}</span>
+                  </div>
+                  <div class="flex items-center justify-between mt-1">
+                    <span class="text-[10px] text-white/30">${o.date || '-'} &middot; ${o.items || 0} items</span>
+                    <span class="text-xs text-white/70 font-light">Rs. ${(o.total || 0).toLocaleString()}</span>
+                  </div>
+                </div>`;
+            }).join('')}
+        </div>
+
+        <div class="flex gap-2 mt-4">
+          <a href="https://wa.me/${(c.phone || '').replace(/[\s\-\+]/g, '').replace(/^0/, '92')}" target="_blank" class="flex-1 text-center text-[10px] px-3 py-2 rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition font-light">WhatsApp</a>
+          <button onclick="openCustomerModal(${c.id}); document.getElementById('customer-detail-modal').classList.add('hidden');" class="flex-1 text-[10px] px-3 py-2 rounded-lg bg-purex-blue/10 text-purex-blue hover:bg-purex-blue/20 transition font-light">Edit</button>
+        </div>
+      `;
+
+      modal.classList.remove('hidden');
+      gsap.from('#customer-detail-modal .glass-strong', { scale: 0.9, opacity: 0, duration: 0.3, ease: 'back.out(1.5)' });
+    }
+
+    function exportCustomersCSV() {
+      const header = ['Name', 'Phone', 'Email', 'City', 'Address', 'Company', 'Type', 'Orders', 'Total Spent', 'First Order', 'Last Order', 'Notes'];
+      const rows = customers.map(c => [
+        c.name, c.phone, c.email || '', c.city || '', c.address || '', c.company || '',
+        c.type || 'Retail', c.orderCount || 0, c.totalSpent || 0,
+        c.firstOrder || '', c.lastOrder || '', (c.notes || '').replace(/,/g, ';')
+      ]);
+      downloadCSV([header, ...rows], 'purex-customers.csv');
+    }
+
+    // Auto-register customers from existing orders (one-time sync)
+    function syncCustomersFromOrders() {
+      orders.forEach(o => {
+        if (o.status !== 'cancelled' && (o.phone || o.customer)) {
+          autoRegisterCustomer(o);
+        }
+      });
+      renderCustomers();
+    }
+
+    // Initialize customers
+    renderCustomers();
+
+    // If customers list is empty but we have orders, sync them
+    if (customers.length === 0 && orders.length > 0) {
+      syncCustomersFromOrders();
+    }
+
+    // ==================== REAL-TIME SYNC ====================
+    // When another tab/session updates localStorage, refresh the dashboard
+
+    const SYNC_KEYS = ['purex_products', 'purex_orders', 'purex_daily_sales', 'purex_customers', 'purex_suppliers', 'purex_supplier_invoices', 'purex_activity_log', 'purex_users'];
+
+    // Listen for storage events from other tabs/windows
+    window.addEventListener('storage', function(e) {
+      if (!e.key || !SYNC_KEYS.includes(e.key)) return;
+      refreshDashboard(e.key);
+    });
+
+    // For same-tab sync (e.g. editor and admin on different browsers),
+    // poll localStorage every 5 seconds for changes
+    const syncHashes = {};
+    SYNC_KEYS.forEach(k => { syncHashes[k] = localStorage.getItem(k) || ''; });
+
+    setInterval(function() {
+      let changed = false;
+      SYNC_KEYS.forEach(k => {
+        const current = localStorage.getItem(k) || '';
+        if (current !== syncHashes[k]) {
+          syncHashes[k] = current;
+          changed = true;
+        }
+      });
+      if (changed) refreshDashboard();
+    }, 5000);
+
+    function refreshDashboard(changedKey) {
+      // Reload data from localStorage
+      products = JSON.parse(localStorage.getItem('purex_products') || '[]');
+      orders = JSON.parse(localStorage.getItem('purex_orders') || '[]');
+      customers = JSON.parse(localStorage.getItem('purex_customers') || '[]');
+
+      // Re-render all visible sections
+      renderProducts();
+      renderInventory();
+      renderOrders();
+      updateKPIs();
+      renderSalesChart();
+      renderMarginBars();
+      renderCustomers();
+
+      if (isAdmin) {
+        if (typeof renderUsers === 'function') renderUsers();
+        if (typeof renderActivityLog === 'function') renderActivityLog();
+      }
+      if (typeof renderSuppliers === 'function') renderSuppliers();
+      if (typeof renderSupplierInvoices === 'function') renderSupplierInvoices();
+
+      // Update sync hashes so we don't re-trigger
+      SYNC_KEYS.forEach(k => { syncHashes[k] = localStorage.getItem(k) || ''; });
+
+      // Brief visual indicator
+      showSyncIndicator();
+    }
+
+    function showSyncIndicator() {
+      let indicator = document.getElementById('sync-indicator');
+      if (!indicator) {
+        indicator = document.createElement('div');
+        indicator.id = 'sync-indicator';
+        indicator.style.cssText = 'position:fixed;top:16px;right:16px;z-index:9998;padding:8px 16px;border-radius:10px;background:rgba(52,211,153,0.15);border:1px solid rgba(52,211,153,0.3);color:#34d399;font-size:11px;font-family:Inter,sans-serif;display:flex;align-items:center;gap:6px;pointer-events:none;opacity:0;backdrop-filter:blur(12px);';
+        indicator.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 7a6 6 0 0112 0M13 7a6 6 0 01-12 0"/><path d="M7 3v4l2 2"/></svg> Synced';
+        document.body.appendChild(indicator);
+      }
+      gsap.fromTo(indicator, { opacity: 0, y: -10 }, { opacity: 1, y: 0, duration: 0.3, ease: 'back.out(1.5)' });
+      gsap.to(indicator, { opacity: 0, y: -10, duration: 0.3, delay: 2 });
+    }
+
   </script>
 </body>
 </html>
