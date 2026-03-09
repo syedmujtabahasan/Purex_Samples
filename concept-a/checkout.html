@@ -613,12 +613,12 @@
         const orders = JSON.parse(localStorage.getItem('purex_orders') || '[]');
         orders.push({
           id: orderNumber,
-          customer: customer.name,
-          phone: customer.phone,
-          city: customer.city,
-          address: customer.address,
-          email: customer.email || '',
-          notes: customer.notes || '',
+          customer: name,
+          phone: phone,
+          city: city,
+          address: address,
+          email: email || '',
+          notes: notes || '',
           items: cart.length,
           itemDetails: cart.map(c => ({ id: c.id, name: c.name, sku: c.sku || '', volume: c.volume || '', price: c.price, qty: c.qty, buyPrice: c.buyPrice || 0 })),
           total: subtotal,
@@ -628,7 +628,7 @@
           timestamp: now.toISOString()
         });
         localStorage.setItem('purex_orders', JSON.stringify(orders));
-      } catch (e) { /* silent */ }
+      } catch (e) { console.error('Order save failed:', e); }
 
       // Clear cart
       localStorage.removeItem('purex_cart');
