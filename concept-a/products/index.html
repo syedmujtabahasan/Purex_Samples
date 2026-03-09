@@ -180,29 +180,26 @@
   </a>
 
   <script>
-  // ─── PRODUCT DATA ───
-  const products = [
-    { id: 1, sku: 'PX-TZB-500', name: 'Taizab Cleaning Acid 500ml', category: 'Cleaning', price: 120, stock: 85, desc: 'Powerful cleaning acid for tough stains on tiles, marble, and bathroom surfaces. Effective formula for deep cleaning.' },
-    { id: 2, sku: 'PX-TZB-1L', name: 'Taizab Cleaning Acid 1L', category: 'Cleaning', price: 220, stock: 120, desc: 'Economy size cleaning acid. Ideal for heavy-duty cleaning of floors, drains, and industrial surfaces.' },
-    { id: 3, sku: 'PX-TZB-2L', name: 'Taizab Cleaning Acid 2L', category: 'Cleaning', price: 400, stock: 45, desc: 'Bulk cleaning acid for commercial and industrial use. Maximum value for large-scale cleaning operations.' },
-    { id: 4, sku: 'PX-SWP-F5', name: 'Sweep Floor Cleaner 500ml', category: 'Cleaning', price: 95, stock: 60, desc: 'Fragrant floor cleaner that leaves surfaces sparkling clean. Suitable for all floor types including marble and tiles.' },
-    { id: 5, sku: 'PX-SWP-F1', name: 'Sweep Floor Cleaner 1L', category: 'Cleaning', price: 180, stock: 90, desc: 'Large bottle floor cleaner for daily use. Pleasant fragrance that keeps your home fresh all day.' },
-    { id: 6, sku: 'PX-SWP-F2', name: 'Sweep Floor Cleaner 2L', category: 'Cleaning', price: 340, stock: 30, desc: 'Family-size floor cleaner. Best value for households and offices with large floor areas.' },
-    { id: 7, sku: 'PX-SWP-T5', name: 'Sweep Toilet Cleaner 500ml', category: 'Cleaning', price: 110, stock: 75, desc: 'Specialized toilet bowl cleaner with angled nozzle. Kills 99.9% germs and removes tough stains.' },
-    { id: 8, sku: 'PX-SWP-T1', name: 'Sweep Toilet Cleaner 1L', category: 'Cleaning', price: 200, stock: 55, desc: 'Large toilet cleaner for commercial and household use. Powerful formula for complete toilet hygiene.' },
-    { id: 9, sku: 'PX-NEL-100', name: 'Neel Fabric Whitener 100ml', category: 'Whitener', price: 45, stock: 200, desc: 'Traditional fabric whitener for brilliant white clothes. Trusted formula used in Pakistani households for generations.' },
-    { id: 10, sku: 'PX-NEL-250', name: 'Neel Fabric Whitener 250ml', category: 'Whitener', price: 90, stock: 150, desc: 'Medium bottle fabric whitener. Perfect for regular laundry needs. Restores whiteness to dull fabrics.' },
-    { id: 11, sku: 'PX-NEL-500', name: 'Neel Fabric Whitener 500ml', category: 'Whitener', price: 160, stock: 95, desc: 'Large fabric whitener for bulk laundry. Ideal for laundry businesses and large families.' },
-    { id: 12, sku: 'PX-CSB-200', name: 'Clothes Soap Bar 200g', category: 'Soap', price: 55, stock: 180, desc: 'Premium clothes washing soap bar. Gentle on fabrics, tough on stains. Produces rich lather.' },
-    { id: 13, sku: 'PX-CSB-400', name: 'Clothes Soap Bar 400g', category: 'Soap', price: 95, stock: 140, desc: 'Large clothes soap bar for extended use. Removes grease, dirt, and collar stains effectively.' },
-    { id: 14, sku: 'PX-BSB-100', name: 'Bath Soap Bar 100g', category: 'Soap', price: 65, stock: 160, desc: 'Moisturizing bath soap with gentle fragrance. Suitable for all skin types including sensitive skin.' },
-    { id: 15, sku: 'PX-BSB-150', name: 'Bath Soap Bar 150g', category: 'Soap', price: 90, stock: 130, desc: 'Premium bath soap bar with long-lasting fragrance. Leaves skin soft, clean, and refreshed.' },
-    { id: 16, sku: 'PX-DSB-200', name: 'Dish Soap Bar 200g', category: 'Soap', price: 50, stock: 170, desc: 'Heavy-duty dish washing soap. Cuts through grease and food residue. Safe for all utensils.' },
-    { id: 17, sku: 'PX-DSL-500', name: 'Dish Soap Liquid 500ml', category: 'Soap', price: 140, stock: 80, desc: 'Liquid dish soap with concentrated formula. A small amount goes a long way. Gentle on hands.' },
-    { id: 18, sku: 'PX-BLC-500', name: 'Bleach 500ml', category: 'Bleach', price: 75, stock: 110, desc: 'Multi-purpose bleach for cleaning, whitening, and disinfecting. Essential household cleaning supply.' },
-    { id: 19, sku: 'PX-BLC-1L', name: 'Bleach 1L', category: 'Bleach', price: 130, stock: 85, desc: 'Large bottle bleach for thorough home sanitization. Effective against bacteria, viruses, and mold.' },
-    { id: 20, sku: 'PX-BLC-2L', name: 'Bleach 2L', category: 'Bleach', price: 240, stock: 40, desc: 'Bulk bleach for commercial cleaning. Maximum cleaning and sanitizing power at the best value.' },
+  // ─── LOAD PRODUCTS FROM SHARED STORE ───
+  const DEFAULT_PRODUCTS = [
+    { id: 1, name: 'Taizab Cleaning Acid', category: 'Cleaning', price: 120, buyPrice: 58, stock: 85, status: 'active', sku: 'TZB-500', volume: '500ml', desc: 'Extra strong industrial cleaning acid for tough stains and heavy-duty cleaning.', image: '../../assets/products/product_1.png' },
+    { id: 2, name: 'Taizab Cleaning Acid', category: 'Cleaning', price: 200, buyPrice: 96, stock: 120, status: 'active', sku: 'TZB-1000', volume: '1 Litre', desc: 'Extra strong industrial cleaning acid. Large size for commercial use.', image: '../../assets/products/product_2.png' },
+    { id: 3, name: 'Taizab Lemon Acid', category: 'Cleaning', price: 140, buyPrice: 67, stock: 65, status: 'active', sku: 'TZB-L500', volume: '500ml', desc: 'Lemon-fresh cleaning acid with a pleasant citrus scent.', image: '../../assets/products/product_3.png' },
+    { id: 4, name: 'Sweep Floor Cleaner', category: 'Cleaning', price: 150, buyPrice: 72, stock: 60, status: 'active', sku: 'SWP-F500', volume: '500ml', desc: 'Pine-fresh floor cleaner for sparkling clean floors.', image: '../../assets/products/product_4.png' },
+    { id: 5, name: 'Sweep Floor Cleaner', category: 'Cleaning', price: 270, buyPrice: 130, stock: 90, status: 'active', sku: 'SWP-F1000', volume: '1 Litre', desc: 'Pine-fresh floor cleaner. Large economy size.', image: '../../assets/products/product_5.png' },
+    { id: 6, name: 'Sweep Toilet Cleaner', category: 'Cleaning', price: 160, buyPrice: 77, stock: 75, status: 'active', sku: 'SWP-T500', volume: '500ml', desc: 'Max power toilet cleaner with angled nozzle for under-rim cleaning.', image: '../../assets/products/product_6.png' },
+    { id: 7, name: 'Purex Bleach', category: 'Cleaning', price: 90, buyPrice: 43, stock: 110, status: 'active', sku: 'BLC-500', volume: '500ml', desc: 'Active chlorine bleach for whitening and disinfection.', image: '../../assets/products/product_7.png' },
+    { id: 8, name: 'Purex Bleach', category: 'Cleaning', price: 160, buyPrice: 77, stock: 85, status: 'active', sku: 'BLC-1000', volume: '1 Litre', desc: 'Active chlorine bleach. Large size for household use.', image: '../../assets/products/product_8.png' },
   ];
+
+  let products;
+  try {
+    const saved = localStorage.getItem('purex_products');
+    products = saved ? JSON.parse(saved) : DEFAULT_PRODUCTS;
+    if (!saved) localStorage.setItem('purex_products', JSON.stringify(DEFAULT_PRODUCTS));
+  } catch(e) { products = DEFAULT_PRODUCTS; }
+  // Only show active/published products
+  products = products.filter(p => p.status === 'active');
 
   // ─── HELPERS ───
   const categoryIcons = {
@@ -281,7 +278,7 @@
   function renderProductDetail(p) {
     const stockInfo = getStockInfo(p.stock);
     const colors = categoryColors[p.category];
-    const size = getSizeFromName(p.name);
+    const size = p.volume || getSizeFromName(p.name);
     const initial = getProductInitial(p);
 
     // Find related products (same category, different id)
@@ -304,19 +301,15 @@
           <!-- LEFT: Product Image -->
           <div id="product-image-section">
             <div class="product-image-placeholder rounded-3xl aspect-square flex flex-col items-center justify-center relative" style="max-height: 520px;">
-              <!-- Decorative ring -->
-              <div class="absolute inset-8 rounded-full border border-white/[0.04]"></div>
-              <div class="absolute inset-16 rounded-full border border-white/[0.03]"></div>
-
-              <!-- Product initial / icon -->
-              <div class="relative z-10 flex flex-col items-center gap-4">
+              <img src="${p.image || '../../assets/products/product_' + p.id + '.png'}" alt="${p.name}"
+                   class="relative z-10 max-h-80 w-auto object-contain"
+                   onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+              <div class="hidden relative z-10 flex-col items-center gap-4">
                 <div class="w-28 h-28 rounded-full flex items-center justify-center" style="background: ${colors.bg}; border: 2px solid ${colors.border};">
                   <span class="font-heading text-4xl font-bold" style="color: ${colors.text};">${initial}</span>
                 </div>
                 <span class="text-sm font-light tracking-widest text-white/30 uppercase">${size}</span>
               </div>
-
-              <!-- QR Note -->
               <div class="absolute bottom-6 left-6 right-6 glass rounded-xl px-4 py-3 flex items-center gap-3">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-white/30 flex-shrink-0">
                   <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/>
@@ -422,13 +415,16 @@
     const stockInfo = getStockInfo(p.stock);
     const colors = categoryColors[p.category];
     const initial = getProductInitial(p);
-    const size = getSizeFromName(p.name);
+    const size = p.volume || getSizeFromName(p.name);
 
     return `
       <a href="?id=${p.id}" class="product-grid-card glass-card rounded-2xl overflow-hidden block group">
         <!-- Image area -->
         <div class="product-image-placeholder aspect-[4/3] flex items-center justify-center relative">
-          <div class="w-16 h-16 rounded-full flex items-center justify-center" style="background: ${colors.bg}; border: 1px solid ${colors.border};">
+          <img src="${p.image || '../../assets/products/product_' + p.id + '.png'}" alt="${p.name}"
+               class="h-32 w-32 object-contain transition-transform duration-300 group-hover:scale-110"
+               onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+          <div class="hidden w-16 h-16 rounded-full flex items-center justify-center" style="background: ${colors.bg}; border: 1px solid ${colors.border};">
             <span class="font-heading text-xl font-bold" style="color: ${colors.text};">${initial}</span>
           </div>
           ${size ? `<span class="absolute bottom-3 right-3 text-[10px] text-white/25 tracking-widest">${size}</span>` : ''}

@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" type="image/png" href="../assets/purex_icon.png">
-  <title>Shop — PUREX Household Essentials</title>
+  <title>Sale — PUREX Household Essentials</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -44,14 +44,17 @@
     .flying-dot { position: fixed; width: 44px; height: 44px; background: #4d9ed5; border-radius: 50%; z-index: 1000; pointer-events: none; display: flex; align-items: center; justify-content: center; }
     .cart-badge { transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
     .cart-badge.bounce { transform: scale(1.4); }
-    .filter-btn { transition: all 0.3s ease; }
-    .filter-btn.active { background: rgba(77,158,213,0.15); color: #4d9ed5; border-color: rgba(77,158,213,0.3); }
+    .sale-badge { animation: sale-pulse 2s ease-in-out infinite; }
+    @keyframes sale-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.3); } 50% { box-shadow: 0 0 15px 5px rgba(239,68,68,0.15); } }
+    .sale-card { border-color: rgba(239,68,68,0.2) !important; }
+    .sale-card:hover { box-shadow: 0 20px 60px rgba(239,68,68,0.1); }
+    .price-strike { text-decoration: line-through; opacity: 0.4; }
   </style>
 </head>
 <body>
   <div class="grain"></div>
 
-  <!-- ─── NAVBAR ─── -->
+  <!-- NAVBAR -->
   <nav class="fixed top-0 w-full z-50 glass-strong" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
     <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
       <div class="flex items-center gap-4">
@@ -66,8 +69,8 @@
       <div class="hidden md:flex items-center gap-8">
         <a href="index.html" class="nav-link text-sm font-light tracking-wider text-white/80 hover:text-white transition">Home</a>
         <a href="about.html" class="nav-link text-sm font-light tracking-wider text-white/80 hover:text-white transition">About</a>
-        <a href="shop.html" class="nav-link text-sm font-light tracking-wider text-white hover:text-white transition" style="border-bottom: 1px solid #4d9ed5; padding-bottom: 2px;">Shop</a>
-        <a href="sale.html" class="nav-link text-sm font-light tracking-wider text-red-400 hover:text-red-300 transition">Sale</a>
+        <a href="shop.html" class="nav-link text-sm font-light tracking-wider text-white/80 hover:text-white transition">Shop</a>
+        <a href="sale.html" class="nav-link text-sm font-light tracking-wider text-red-400 hover:text-red-300 transition" style="border-bottom: 1px solid #ef4444; padding-bottom: 2px;">Sale</a>
         <a href="admin.html" class="nav-link text-sm font-light tracking-wider text-white/80 hover:text-white transition">Dashboard</a>
       </div>
       <!-- Cart -->
@@ -80,51 +83,32 @@
     </div>
   </nav>
 
-  <!-- ─── SHOP HEADER ─── -->
+  <!-- SALE HEADER -->
   <section class="pt-28 pb-12 px-6">
-    <div class="max-w-7xl mx-auto">
-      <p class="font-heading text-sm tracking-[0.4em] text-purex-blue/80 uppercase mb-3">Product Catalog</p>
-      <h1 class="font-heading text-4xl md:text-5xl font-extralight text-white">Household <span class="text-gradient">Essentials</span></h1>
-      <p class="text-white/40 font-light mt-3 max-w-lg">Taizab, Neel, Sweep, Soaps, and Bleach — everything a Pakistani home needs.</p>
-
-      <!-- Search & Sort -->
-      <div class="flex flex-col sm:flex-row gap-3 mt-8">
-        <div class="relative flex-1 max-w-md">
-          <div class="absolute left-4 top-1/2 -translate-y-1/2 text-white/30">
-            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-          </div>
-          <input id="search-input" type="text" placeholder="Search products, categories, SKUs..."
-            class="w-full pl-11 pr-4 py-2.5 rounded-full text-sm text-white font-light placeholder-white/30"
-            style="background: rgba(255,255,255,0.05); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); outline: none;"
-            onfocus="this.style.borderColor='rgba(77,158,213,0.4)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'"
-          >
-        </div>
-        <select id="sort-select"
-          class="px-5 py-2.5 rounded-full text-sm text-white/60 font-light tracking-wider cursor-pointer"
-          style="background: rgba(255,255,255,0.05); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); outline: none; -webkit-appearance: none; appearance: none; background-image: url('data:image/svg+xml;utf8,<svg fill=\'rgba(255,255,255,0.4)\' viewBox=\'0 0 24 24\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M7 10l5 5 5-5z\'/></svg>'); background-repeat: no-repeat; background-position: right 12px center; background-size: 16px; padding-right: 36px;">
-          <option value="default" style="background:#0a0e17;">Sort: Default</option>
-          <option value="price-asc" style="background:#0a0e17;">Price: Low &rarr; High</option>
-          <option value="price-desc" style="background:#0a0e17;">Price: High &rarr; Low</option>
-        </select>
+    <div class="max-w-7xl mx-auto text-center">
+      <div class="inline-flex items-center gap-2 mb-4">
+        <span class="sale-badge inline-block bg-red-500/20 text-red-400 text-[11px] tracking-[0.3em] uppercase px-4 py-1.5 rounded-full border border-red-500/30">Limited Time</span>
       </div>
-
-      <!-- Filters -->
-      <div class="flex flex-wrap gap-3 mt-4">
-        <button class="filter-btn glass text-sm px-5 py-2 rounded-full text-white/60 tracking-wider active" data-filter="all">All</button>
-        <button class="filter-btn glass text-sm px-5 py-2 rounded-full text-white/60 tracking-wider" data-filter="Cleaning">Cleaning</button>
-        <button class="filter-btn glass text-sm px-5 py-2 rounded-full text-white/60 tracking-wider" data-filter="Soap">Soap</button>
-        <button class="filter-btn glass text-sm px-5 py-2 rounded-full text-white/60 tracking-wider" data-filter="Whitener">Whitener</button>
-      </div>
+      <h1 class="font-heading text-4xl md:text-6xl font-extralight text-white mb-3">
+        <span class="text-red-400">Sale</span> Collection
+      </h1>
+      <p class="text-white/40 font-light max-w-lg mx-auto">Grab your favorite Purex products at discounted prices. Limited stock available!</p>
+      <div id="sale-count" class="mt-4 text-sm text-red-400/60"></div>
     </div>
   </section>
 
-  <!-- ─── PRODUCT GRID ─── -->
+  <!-- PRODUCT GRID -->
   <section class="px-6 pb-32">
     <div id="product-grid" class="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
     </div>
+    <div id="no-sale" class="hidden max-w-7xl mx-auto text-center py-20">
+      <svg width="64" height="64" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1" class="mx-auto mb-4"><rect x="8" y="12" width="48" height="40" rx="4"/><path d="M8 24h48"/><circle cx="32" cy="38" r="6"/></svg>
+      <p class="text-white/30 text-sm font-light">No products on sale right now.</p>
+      <a href="shop.html" class="inline-block mt-4 text-purex-blue text-sm hover:underline">Browse all products &rarr;</a>
+    </div>
   </section>
 
-  <!-- ─── CART SIDEBAR ─── -->
+  <!-- CART SIDEBAR -->
   <div id="cart-overlay" class="fixed inset-0 bg-black/60 z-[60] opacity-0 pointer-events-none transition-opacity duration-300"></div>
   <div id="cart-sidebar" class="fixed top-0 right-0 h-full w-full max-w-md z-[70] transform translate-x-full transition-transform duration-500 ease-out">
     <div class="h-full glass-strong border-l border-white/10 flex flex-col" style="background: rgba(10,14,23,0.95);">
@@ -147,7 +131,7 @@
     </div>
   </div>
 
-  <!-- ─── FOOTER ─── -->
+  <!-- FOOTER -->
   <footer class="border-t border-white/5 py-12 px-6">
     <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
       <div class="flex items-center gap-3">
@@ -172,8 +156,8 @@
     </div>
   </footer>
 
-  <!-- ─── FLOATING WHATSAPP WIDGET ─── -->
-  <a id="wa-float" href="https://wa.me/923400145796?text=Hello%20Purex!%20I'm%20interested%20in%20your%20products." target="_blank" rel="noopener"
+  <!-- FLOATING WHATSAPP -->
+  <a id="wa-float" href="https://wa.me/923400145796?text=Hello%20Purex!%20I'm%20interested%20in%20your%20sale%20products." target="_blank" rel="noopener"
      class="fixed bottom-6 right-6 z-50 group">
     <div class="relative w-16 h-16 rounded-full flex items-center justify-center"
          style="background: rgba(37,211,102,0.15); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(37,211,102,0.25);">
@@ -222,12 +206,12 @@
   </script>
 
   <script>
-    // ─── LENIS ───
+    // Lenis
     const lenis = new Lenis({ duration: 1.2, easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)) });
     function raf(time) { lenis.raf(time); requestAnimationFrame(raf); }
     requestAnimationFrame(raf);
 
-    // ─── DEFAULT PRODUCT DATA ───
+    // Default products
     const DEFAULT_PRODUCTS = [
       { id: 1, name: 'Taizab Cleaning Acid', category: 'Cleaning', price: 120, buyPrice: 58, stock: 85, status: 'active', sku: 'TZB-500', volume: '500ml', desc: 'Extra strong industrial cleaning acid for tough stains and heavy-duty cleaning.', image: '../assets/products/product_1.png' },
       { id: 2, name: 'Taizab Cleaning Acid', category: 'Cleaning', price: 200, buyPrice: 96, stock: 120, status: 'active', sku: 'TZB-1000', volume: '1 Litre', desc: 'Extra strong industrial cleaning acid. Large size for commercial use.', image: '../assets/products/product_2.png' },
@@ -239,201 +223,147 @@
       { id: 8, name: 'Purex Bleach', category: 'Cleaning', price: 160, buyPrice: 77, stock: 85, status: 'active', sku: 'BLC-1000', volume: '1 Litre', desc: 'Active chlorine bleach. Large size for household use.', image: '../assets/products/product_8.png' },
     ];
 
-    // ─── LOAD PRODUCTS FROM LOCALSTORAGE (shared data store) ───
     function loadProducts() {
       try {
         const saved = localStorage.getItem('purex_products');
-        if (saved) {
-          return JSON.parse(saved);
-        }
+        if (saved) return JSON.parse(saved);
       } catch(e) {}
-      // Initialize localStorage with defaults if not set
       localStorage.setItem('purex_products', JSON.stringify(DEFAULT_PRODUCTS));
       return DEFAULT_PRODUCTS;
     }
 
-    // Load all products from shared store, then filter to active only
     const allProducts = loadProducts();
-    const products = allProducts.filter(p => p.status === 'active');
+    // Only show active products that are on sale
+    const saleProducts = allProducts.filter(p => p.status === 'active' && p.onSale && p.salePrice > 0);
 
     let cart = [];
-    let currentFilter = 'all';
-    let currentSort = 'default';
-    let currentSearch = '';
 
-    // ─── LOAD CART FROM LOCALSTORAGE ───
     function loadCart() {
       try {
         const saved = localStorage.getItem('purex_cart');
-        if (saved) {
-          cart = JSON.parse(saved);
-          updateCartUI();
-        }
+        if (saved) { cart = JSON.parse(saved); updateCartUI(); }
       } catch(e) { cart = []; }
     }
 
-    // ─── SAVE CART TO LOCALSTORAGE ───
     function saveCart() {
-      try {
-        localStorage.setItem('purex_cart', JSON.stringify(cart));
-      } catch(e) {}
+      try { localStorage.setItem('purex_cart', JSON.stringify(cart)); } catch(e) {}
     }
 
-    // ─── GET FILTERED & SORTED PRODUCTS ───
-    function getFilteredProducts() {
-      let filtered = currentFilter === 'all' ? [...products] : products.filter(p => p.category === currentFilter);
-
-      // Search filter
-      if (currentSearch.trim()) {
-        const q = currentSearch.trim().toLowerCase();
-        filtered = filtered.filter(p =>
-          p.name.toLowerCase().includes(q) ||
-          p.category.toLowerCase().includes(q) ||
-          p.sku.toLowerCase().includes(q) ||
-          (p.desc || '').toLowerCase().includes(q) ||
-          p.volume.toLowerCase().includes(q)
-        );
-      }
-
-      // Sort
-      if (currentSort === 'price-asc') {
-        filtered.sort((a, b) => a.price - b.price);
-      } else if (currentSort === 'price-desc') {
-        filtered.sort((a, b) => b.price - a.price);
-      }
-
-      return filtered;
-    }
-
-    // ─── RENDER PRODUCTS ───
     function renderProducts() {
       const grid = document.getElementById('product-grid');
-      const filtered = getFilteredProducts();
-      grid.innerHTML = filtered.length === 0
-        ? '<p class="col-span-full text-center text-white/30 text-sm py-20">No products found.</p>'
-        : filtered.map(p => `
-        <div class="product-card glass-strong rounded-2xl overflow-hidden group${p.onSale ? ' border-red-500/20' : ''}" data-category="${p.category}">
+      const noSale = document.getElementById('no-sale');
+      const countEl = document.getElementById('sale-count');
+
+      if (saleProducts.length === 0) {
+        grid.innerHTML = '';
+        noSale.classList.remove('hidden');
+        countEl.textContent = '';
+        return;
+      }
+
+      noSale.classList.add('hidden');
+      countEl.textContent = saleProducts.length + ' product' + (saleProducts.length > 1 ? 's' : '') + ' on sale';
+
+      grid.innerHTML = saleProducts.map(p => {
+        const discount = Math.round(((p.price - p.salePrice) / p.price) * 100);
+        return `
+        <div class="product-card sale-card glass-strong rounded-2xl overflow-hidden group">
           <div class="relative h-48 flex items-center justify-center overflow-hidden bg-white/[0.03] rounded-t-2xl">
             <img src="${p.image}" alt="${p.name}" class="h-40 w-40 object-contain transition-transform duration-500 group-hover:scale-110"
                  onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
             <div class="hidden absolute inset-0 items-center justify-center text-white/20">
               <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1"><rect x="8" y="8" width="32" height="32" rx="4"/><circle cx="18" cy="18" r="3"/><path d="M8 32l8-8 6 6 4-4 14 6"/></svg>
             </div>
-            ${p.onSale && p.salePrice ? '<span class="absolute top-3 left-3 text-[11px] tracking-wider uppercase px-2.5 py-1 rounded-full bg-red-500/20 text-red-400 border border-red-500/30 font-medium">' + Math.round(((p.price - p.salePrice) / p.price) * 100) + '% OFF</span>' : ''}
+            <span class="absolute top-3 left-3 text-[11px] tracking-wider uppercase px-2.5 py-1 rounded-full bg-red-500/20 text-red-400 border border-red-500/30 font-medium">${discount}% OFF</span>
             <span class="absolute top-3 right-3 text-[10px] tracking-widest uppercase px-2 py-1 rounded-full glass text-white/50">${p.category}</span>
           </div>
           <div class="p-5">
             <h3 class="font-heading text-sm font-light text-white mb-1">${p.name}</h3>
             <div class="mb-3">
               <span class="text-[10px] text-white/30 tracking-wider">SKU: ${p.sku}</span>
-              ${p.desc ? '<p class="text-[10px] text-white/40 mt-1 line-clamp-2 leading-relaxed">' + p.desc.substring(0, 80) + (p.desc.length > 80 ? '... <button onclick="showDescModal(\'' + p.name.replace(/'/g, "\\'") + '\', \'' + p.desc.replace(/'/g, "\\'").replace(/\n/g, ' ') + '\')" class="text-purex-blue hover:underline ml-0.5">Read more</button>' : '') + '</p>' : ''}
+              <span class="text-[10px] text-white/30 ml-1">|</span>
+              <span class="text-[10px] text-purex-blue/80 tracking-wider ml-1">${p.volume}</span>
+              ${p.desc ? '<p class="text-[10px] text-white/40 mt-1 leading-relaxed">' + p.desc.substring(0, 80) + (p.desc.length > 80 ? '... <button onclick="showDescModal(\'' + p.name.replace(/'/g, "\\'") + '\', \'' + p.desc.replace(/'/g, "\\'").replace(/\n/g, ' ') + '\')" class="text-red-400 hover:underline ml-0.5">Read more</button>' : '') + '</p>' : ''}
             </div>
             <div class="flex items-center justify-between">
               <div>
-                ${p.onSale && p.salePrice ? '<span class="text-lg font-heading font-light text-red-400">Rs.' + p.salePrice + '</span><span class="text-sm text-white/30 line-through ml-1.5">Rs.' + p.price + '</span>' : '<span class="text-lg font-heading font-light text-purex-blue">Rs.' + p.price + '</span>'}
-                <span class="text-[10px] text-white/30 ml-1">/ ${p.volume}</span>
+                <span class="text-lg font-heading font-light text-red-400">Rs.${p.salePrice}</span>
+                <span class="text-sm font-heading font-light text-white/30 price-strike ml-2">Rs.${p.price}</span>
               </div>
-              <button class="atc-btn bg-purex-blue/10 border border-purex-blue/20 text-purex-blue px-4 py-2 rounded-full text-xs tracking-wider hover:bg-purex-blue/20 transition-all flex items-center gap-2"
+              <button class="atc-btn bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-2 rounded-full text-xs tracking-wider hover:bg-red-500/20 transition-all flex items-center gap-2"
                       data-product-id="${p.id}" onclick="addToCart(${p.id}, this)">
                 <span class="btn-text">Add to Cart</span>
                 <svg class="btn-text" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 1v12M1 7h12"/></svg>
               </button>
             </div>
-            <a href="https://wa.me/923400145796?text=${encodeURIComponent('Hi, I\'d like to inquire about ' + p.name + ' (' + p.volume + ') - Rs.' + p.price)}" target="_blank" class="mt-3 flex items-center justify-center gap-1.5 text-[11px] text-[#25D366]/70 hover:text-[#25D366] transition">
+            <a href="https://wa.me/923400145796?text=${encodeURIComponent('Hi, I\'d like to order ' + p.name + ' (' + p.volume + ') at sale price Rs.' + p.salePrice)}" target="_blank" class="mt-3 flex items-center justify-center gap-1.5 text-[11px] text-[#25D366]/70 hover:text-[#25D366] transition">
               <svg width="12" height="12" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-              Inquire on WhatsApp
+              Order on WhatsApp
             </a>
           </div>
-        </div>
-      `).join('');
+        </div>`;
+      }).join('');
 
-      // Animate in
       gsap.from('.product-card', { opacity: 0, y: 30, duration: 0.5, stagger: 0.08, ease: 'power3.out' });
     }
 
-    // ─── ADD TO CART WITH FLY ANIMATION ───
+    // Add to cart (uses sale price)
     function addToCart(productId, btnEl) {
-      const product = products.find(p => p.id === productId);
+      const product = saleProducts.find(p => p.id === productId);
       if (!product) return;
 
-      // Get positions
       const btnRect = btnEl.getBoundingClientRect();
       const cartEl = document.getElementById('cart-icon');
       const cartRect = cartEl.getBoundingClientRect();
-
-      // Save original styles
       const origWidth = btnEl.offsetWidth;
-      const origHeight = btnEl.offsetHeight;
       const origText = btnEl.innerHTML;
 
-      // Phase 1: Morph button into a sphere
       btnEl.style.width = origWidth + 'px';
-      btnEl.style.height = origHeight + 'px';
+      btnEl.style.height = btnEl.offsetHeight + 'px';
       btnEl.classList.add('morphing');
 
       gsap.to(btnEl, {
-        width: 44, height: 44,
-        duration: 0.25,
-        ease: 'power2.in',
+        width: 44, height: 44, duration: 0.25, ease: 'power2.in',
         onComplete: () => {
-          // Phase 2: Create flying dot
           const dot = document.createElement('div');
           dot.className = 'flying-dot';
+          dot.style.background = '#ef4444';
           dot.innerHTML = '<svg width="16" height="16" fill="none" stroke="white" stroke-width="2"><path d="M8 1v14M1 8h14"/></svg>';
           document.body.appendChild(dot);
 
           const newBtnRect = btnEl.getBoundingClientRect();
           gsap.set(dot, { left: newBtnRect.left, top: newBtnRect.top });
-
-          // Hide original button temporarily
           btnEl.style.opacity = '0';
 
-          // Fly to cart with arc
           gsap.to(dot, {
             left: cartRect.left + cartRect.width / 2 - 22,
             top: cartRect.top + cartRect.height / 2 - 22,
-            scale: 0.3,
-            duration: 0.6,
-            ease: 'power3.in',
-            motionPath: undefined,
+            scale: 0.3, duration: 0.6, ease: 'power3.in',
             onComplete: () => {
               dot.remove();
-
-              // Bounce the cart badge (Peak-End rule: memorable ending)
               const badge = document.getElementById('cart-badge');
               badge.classList.add('bounce');
               setTimeout(() => badge.classList.remove('bounce'), 300);
 
-              // Update cart
               const existing = cart.find(c => c.id === productId);
+              // Use sale price for cart
               if (existing) existing.qty++;
-              else cart.push({ ...product, qty: 1 });
+              else cart.push({ ...product, price: product.salePrice, originalPrice: product.price, qty: 1 });
               updateCartUI();
 
-              // Restore button
               btnEl.classList.remove('morphing');
               btnEl.style.width = '';
               btnEl.style.height = '';
               btnEl.style.opacity = '1';
               btnEl.innerHTML = origText;
-
-              // Success flash
-              gsap.fromTo(btnEl, { boxShadow: '0 0 20px rgba(77,158,213,0.5)' }, { boxShadow: '0 0 0px rgba(77,158,213,0)', duration: 0.8 });
+              gsap.fromTo(btnEl, { boxShadow: '0 0 20px rgba(239,68,68,0.5)' }, { boxShadow: '0 0 0px rgba(239,68,68,0)', duration: 0.8 });
             }
           });
-
-          // Arc motion via y keyframes
-          gsap.to(dot, {
-            keyframes: [
-              { y: -80, duration: 0.3, ease: 'power2.out' },
-              { y: 0, duration: 0.3, ease: 'power2.in' }
-            ]
-          });
+          gsap.to(dot, { keyframes: [{ y: -80, duration: 0.3, ease: 'power2.out' }, { y: 0, duration: 0.3, ease: 'power2.in' }] });
         }
       });
     }
 
-    // ─── CART UI ───
     function updateCartUI() {
       const badge = document.getElementById('cart-badge');
       const totalItems = cart.reduce((sum, c) => sum + c.qty, 0);
@@ -445,8 +375,6 @@
       const totalEl = document.getElementById('cart-total');
       const total = cart.reduce((sum, c) => sum + c.price * c.qty, 0);
       totalEl.textContent = 'Rs.' + total.toLocaleString();
-
-      // Persist cart
       saveCart();
 
       if (cart.length === 0) {
@@ -457,14 +385,14 @@
       itemsContainer.innerHTML = cart.map(item => `
         <div class="flex items-center gap-4 glass rounded-xl p-3">
           <div class="w-12 h-12 rounded-lg flex items-center justify-center overflow-hidden bg-white/[0.03]">
-            <img src="${item.image}" alt="${item.name}" class="h-10 w-10 object-contain" onerror="this.src=''; this.style.display='none'; this.parentElement.innerHTML='<svg width=\\'20\\' height=\\'20\\' fill=\\'none\\' stroke=\\'rgba(255,255,255,0.2)\\' stroke-width=\\'1\\'><rect x=\\'2\\' y=\\'2\\' width=\\'16\\' height=\\'16\\' rx=\\'2\\'/></svg>';">
+            <img src="${item.image}" alt="${item.name}" class="h-10 w-10 object-contain" onerror="this.style.display='none';">
           </div>
           <div class="flex-1 min-w-0">
             <p class="text-sm text-white font-light truncate">${item.name}</p>
             <p class="text-xs text-white/40">${item.volume} &times; ${item.qty}</p>
           </div>
           <div class="text-right">
-            <p class="text-sm text-purex-blue font-heading">Rs.${(item.price * item.qty).toLocaleString()}</p>
+            <p class="text-sm text-red-400 font-heading">Rs.${(item.price * item.qty).toLocaleString()}</p>
             <button class="text-[10px] text-white/30 hover:text-red-400 transition mt-1" onclick="removeFromCart(${item.id})">Remove</button>
           </div>
         </div>
@@ -476,7 +404,7 @@
       updateCartUI();
     }
 
-    // ─── CART SIDEBAR TOGGLE ───
+    // Cart sidebar
     document.getElementById('cart-icon').addEventListener('click', () => toggleCart(true));
     document.getElementById('close-cart').addEventListener('click', () => toggleCart(false));
     document.getElementById('cart-overlay').addEventListener('click', () => toggleCart(false));
@@ -495,33 +423,9 @@
       }
     }
 
-    // ─── FILTERS ───
-    document.querySelectorAll('.filter-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        currentFilter = btn.dataset.filter;
-        renderProducts();
-      });
-    });
-
-    // ─── SEARCH ───
-    document.getElementById('search-input').addEventListener('input', (e) => {
-      currentSearch = e.target.value;
-      renderProducts();
-    });
-
-    // ─── SORT ───
-    document.getElementById('sort-select').addEventListener('change', (e) => {
-      currentSort = e.target.value;
-      renderProducts();
-    });
-
-    // ─── INIT ───
+    // Init
     loadCart();
     renderProducts();
-
-    // WhatsApp pulse animation
     gsap.to('#wa-ping', { scale: 1.5, opacity: 0, duration: 1.5, repeat: -1, ease: 'power2.out' });
   </script>
 </body>
