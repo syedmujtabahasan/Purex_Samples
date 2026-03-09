@@ -2080,12 +2080,12 @@
       img.src = COMPANY.logo;
     })();
 
-    function getNextInvoiceNumber() {
-      const counter = parseInt(localStorage.getItem('purex_invoice_counter') || '0') + 1;
-      localStorage.setItem('purex_invoice_counter', counter.toString());
-      const today = new Date();
-      const d = today.getFullYear().toString() + String(today.getMonth() + 1).padStart(2, '0') + String(today.getDate()).padStart(2, '0');
-      return 'INV-' + d + '-' + String(counter).padStart(3, '0');
+    function getInvoiceNumber(orderId) {
+      // Derive invoice number from order number: PX-20260310-1425 → INV-20260310-1425
+      if (orderId && orderId.startsWith('PX-')) {
+        return 'INV-' + orderId.substring(3);
+      }
+      return 'INV-' + orderId;
     }
 
     function generateInvoice(idx) {
@@ -2138,11 +2138,7 @@
       y = 48;
 
       // ---- INVOICE TITLE ----
-      const invoiceNo = order.invoiceNo || getNextInvoiceNumber();
-      if (!order.invoiceNo) {
-        order.invoiceNo = invoiceNo;
-        saveOrders();
-      }
+      const invoiceNo = getInvoiceNumber(order.id);
 
       doc.setFillColor(245, 247, 250);
       doc.rect(margin, y, cw, 10, 'F');
