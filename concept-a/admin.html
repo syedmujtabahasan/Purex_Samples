@@ -1860,7 +1860,7 @@
         } else if (o.status === 'shipped' || o.status === 'delivered') {
           actionsHtml = `
             <div class="flex items-center gap-2 mt-2">
-              <p class="text-[10px] text-white/30 flex-1">${o.status === 'shipped' ? '📦 Shipped' : '✅ Delivered'}</p>
+              <p class="text-[10px] ${o.status === 'shipped' ? 'text-white/30' : 'text-emerald-400'} flex-1">${o.status === 'shipped' ? '📦 Shipped' : '✅ Delivered'}</p>
               <button onclick="generateInvoice(${idx})" class="text-[10px] px-3 py-1.5 rounded-lg bg-purex-blue/20 text-purex-blue hover:bg-purex-blue/30 transition font-light flex items-center gap-1">
                 <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 1v3H1l4 4 4-4H7V1z"/><path d="M1 9h8"/></svg>
                 Invoice PDF
