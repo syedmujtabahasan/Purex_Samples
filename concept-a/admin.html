@@ -24,6 +24,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: #0a0e17; color: #f7f7f7; font-family: 'Inter', sans-serif; overflow-x: hidden; }
@@ -1847,7 +1848,23 @@
         } else if (isPending) {
           actionsHtml = `<p class="text-[10px] text-white/20 mt-2 italic">No item details — record sales manually</p>`;
         } else if (o.status === 'confirmed') {
-          actionsHtml = `<p class="text-[10px] text-emerald-400/50 mt-2">✓ Confirmed — ${hasItems ? o.itemDetails.length + ' items recorded as sales' : 'sales recorded'}</p>`;
+          actionsHtml = `
+            <div class="flex items-center gap-2 mt-2">
+              <p class="text-[10px] text-emerald-400/50 flex-1">✓ Confirmed — ${hasItems ? o.itemDetails.length + ' items recorded as sales' : 'sales recorded'}</p>
+              <button onclick="generateInvoice(${idx})" class="text-[10px] px-3 py-1.5 rounded-lg bg-purex-blue/20 text-purex-blue hover:bg-purex-blue/30 transition font-light flex items-center gap-1">
+                <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 1v3H1l4 4 4-4H7V1z"/><path d="M1 9h8"/></svg>
+                Invoice PDF
+              </button>
+            </div>`;
+        } else if (o.status === 'shipped' || o.status === 'delivered') {
+          actionsHtml = `
+            <div class="flex items-center gap-2 mt-2">
+              <p class="text-[10px] text-white/30 flex-1">${o.status === 'shipped' ? '📦 Shipped' : '✅ Delivered'}</p>
+              <button onclick="generateInvoice(${idx})" class="text-[10px] px-3 py-1.5 rounded-lg bg-purex-blue/20 text-purex-blue hover:bg-purex-blue/30 transition font-light flex items-center gap-1">
+                <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 1v3H1l4 4 4-4H7V1z"/><path d="M1 9h8"/></svg>
+                Invoice PDF
+              </button>
+            </div>`;
         }
 
         return `
@@ -2015,6 +2032,350 @@
       const card = document.getElementById('order-card-' + idx);
       if (card) {
         gsap.fromTo(card, { borderColor: 'rgba(77,158,213,0.3)' }, { borderColor: 'rgba(255,255,255,0.08)', duration: 1 });
+      }
+    }
+
+    // ==================== INVOICE PDF ====================
+
+    // Company info for invoices
+    const COMPANY = {
+      name: 'PUREX CHEMICALS',
+      tagline: 'Har Ghar Ki Zaroorat',
+      phone: '+92 340 0145796',
+      email: 'purexchemicals@gmail.com',
+      address: 'Lahore, Punjab, Pakistan',
+      ntn: '________', // Fill when registered
+      strn: '________', // Fill when registered
+      logo: '../assets/purex_logo.png'
+    };
+
+    // Cache logo as base64
+    let logoBase64 = null;
+    (function preloadLogo() {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = function() {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        canvas.getContext('2d').drawImage(img, 0, 0);
+        logoBase64 = canvas.toDataURL('image/png');
+      };
+      img.src = COMPANY.logo;
+    })();
+
+    function getNextInvoiceNumber() {
+      const counter = parseInt(localStorage.getItem('purex_invoice_counter') || '0') + 1;
+      localStorage.setItem('purex_invoice_counter', counter.toString());
+      const today = new Date();
+      const d = today.getFullYear().toString() + String(today.getMonth() + 1).padStart(2, '0') + String(today.getDate()).padStart(2, '0');
+      return 'INV-' + d + '-' + String(counter).padStart(3, '0');
+    }
+
+    function generateInvoice(idx) {
+      const order = orders[idx];
+      if (!order) return;
+
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+      const pw = 210; // page width
+      const margin = 15;
+      const cw = pw - margin * 2; // content width
+      let y = 15;
+
+      // Colors
+      const blue = [77, 158, 213]; // #4d9ed5
+      const dark = [10, 14, 23];   // #0a0e17
+      const gray = [120, 120, 130];
+      const lightGray = [200, 200, 210];
+
+      // ---- HEADER BAR ----
+      doc.setFillColor(...dark);
+      doc.rect(0, 0, pw, 42, 'F');
+
+      // Logo
+      if (logoBase64) {
+        try { doc.addImage(logoBase64, 'PNG', margin, 6, 30, 30); } catch(e) {}
+      }
+
+      // Company Name
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(20);
+      doc.setFont('helvetica', 'bold');
+      doc.text('PUREX CHEMICALS', margin + 35, 18);
+
+      // Tagline
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'italic');
+      doc.setTextColor(...blue);
+      doc.text(COMPANY.tagline, margin + 35, 24);
+
+      // Contact info (right aligned)
+      doc.setFontSize(7);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(200, 200, 210);
+      doc.text(COMPANY.phone, pw - margin, 12, { align: 'right' });
+      doc.text(COMPANY.email, pw - margin, 17, { align: 'right' });
+      doc.text(COMPANY.address, pw - margin, 22, { align: 'right' });
+      doc.text('NTN: ' + COMPANY.ntn + '  |  STRN: ' + COMPANY.strn, pw - margin, 27, { align: 'right' });
+
+      y = 48;
+
+      // ---- INVOICE TITLE ----
+      const invoiceNo = order.invoiceNo || getNextInvoiceNumber();
+      if (!order.invoiceNo) {
+        order.invoiceNo = invoiceNo;
+        saveOrders();
+      }
+
+      doc.setFillColor(245, 247, 250);
+      doc.rect(margin, y, cw, 10, 'F');
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...dark);
+      doc.text('INVOICE', margin + 3, y + 7);
+
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(...gray);
+      doc.text(invoiceNo, pw - margin - 3, y + 7, { align: 'right' });
+
+      y += 16;
+
+      // ---- ORDER & INVOICE DETAILS (two columns) ----
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...dark);
+      doc.text('Invoice Details', margin, y);
+      doc.text('Bill To', margin + 95, y);
+
+      y += 5;
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(...gray);
+      doc.setFontSize(8);
+
+      // Left column
+      const leftLines = [
+        ['Invoice No:', invoiceNo],
+        ['Order No:', order.id || 'N/A'],
+        ['Date:', order.date || new Date().toISOString().split('T')[0]],
+        ['Status:', (order.status || 'pending').charAt(0).toUpperCase() + (order.status || 'pending').slice(1)],
+        ['Channel:', order.channel || 'WhatsApp'],
+      ];
+
+      leftLines.forEach(([label, val]) => {
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(...gray);
+        doc.text(label, margin, y);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...dark);
+        doc.text(val, margin + 25, y);
+        y += 4.5;
+      });
+
+      // Right column (reset y)
+      let ry = y - (leftLines.length * 4.5);
+      const rightLines = [
+        ['Customer:', order.customer || 'N/A'],
+        ['Phone:', order.phone || 'N/A'],
+        ['City:', order.city || 'N/A'],
+        ['Address:', order.address || 'N/A'],
+      ];
+
+      rightLines.forEach(([label, val]) => {
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(...gray);
+        doc.text(label, margin + 95, ry);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...dark);
+        // Truncate long address
+        const maxW = cw - 95 - 20;
+        const txt = doc.splitTextToSize(val, maxW);
+        doc.text(txt[0], margin + 115, ry);
+        ry += 4.5;
+      });
+
+      y = Math.max(y, ry) + 6;
+
+      // ---- ITEMS TABLE ----
+      const items = order.itemDetails || [];
+      const colX = {
+        sr: margin,
+        desc: margin + 10,
+        sku: margin + 85,
+        qty: margin + 110,
+        rate: margin + 125,
+        amount: pw - margin
+      };
+
+      // Table header
+      doc.setFillColor(...blue);
+      doc.rect(margin, y, cw, 8, 'F');
+      doc.setFontSize(7.5);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(255, 255, 255);
+      doc.text('Sr#', colX.sr + 2, y + 5.5);
+      doc.text('Description', colX.desc, y + 5.5);
+      doc.text('SKU', colX.sku, y + 5.5);
+      doc.text('Qty', colX.qty, y + 5.5);
+      doc.text('Rate', colX.rate, y + 5.5);
+      doc.text('Amount', colX.amount - 2, y + 5.5, { align: 'right' });
+      y += 10;
+
+      // Table rows
+      let subtotal = 0;
+      doc.setFontSize(7.5);
+
+      items.forEach((item, i) => {
+        const rowTotal = (item.price || 0) * item.qty;
+        subtotal += rowTotal;
+
+        // Zebra striping
+        if (i % 2 === 0) {
+          doc.setFillColor(248, 249, 252);
+          doc.rect(margin, y - 1, cw, 7, 'F');
+        }
+
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(...dark);
+        doc.text(String(i + 1), colX.sr + 2, y + 4);
+        doc.setFont('helvetica', 'bold');
+        doc.text((item.name || 'Product').substring(0, 40), colX.desc, y + 4);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(...gray);
+        doc.text(item.sku || '-', colX.sku, y + 4);
+        doc.setTextColor(...dark);
+        doc.text(String(item.qty), colX.qty, y + 4);
+        doc.text('Rs.' + (item.price || 0).toLocaleString(), colX.rate, y + 4);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Rs.' + rowTotal.toLocaleString(), colX.amount - 2, y + 4, { align: 'right' });
+        y += 7;
+      });
+
+      // ---- TOTALS ----
+      y += 2;
+      doc.setDrawColor(...lightGray);
+      doc.line(margin + 110, y, pw - margin, y);
+      y += 5;
+
+      // Subtotal
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(...gray);
+      doc.text('Subtotal:', margin + 125, y);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...dark);
+      doc.text('Rs. ' + subtotal.toLocaleString(), pw - margin - 2, y, { align: 'right' });
+      y += 5;
+
+      // Sales Tax (GST 18%)
+      const gstRate = 0; // Set to 0.18 when GST registered
+      const gstAmount = Math.round(subtotal * gstRate);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(...gray);
+      doc.text('Sales Tax (GST ' + (gstRate * 100) + '%):', margin + 125, y);
+      doc.setTextColor(...dark);
+      doc.text('Rs. ' + gstAmount.toLocaleString(), pw - margin - 2, y, { align: 'right' });
+      y += 5;
+
+      // Delivery
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(...gray);
+      doc.text('Delivery:', margin + 125, y);
+      doc.setTextColor(...dark);
+      doc.text('TBD', pw - margin - 2, y, { align: 'right' });
+      y += 2;
+
+      // Grand Total
+      doc.setDrawColor(...blue);
+      doc.setLineWidth(0.5);
+      doc.line(margin + 110, y, pw - margin, y);
+      y += 6;
+      doc.setFillColor(...dark);
+      doc.rect(margin + 110, y - 4, cw - 110, 10, 'F');
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(255, 255, 255);
+      doc.text('GRAND TOTAL', margin + 113, y + 3);
+      doc.text('Rs. ' + (subtotal + gstAmount).toLocaleString(), pw - margin - 4, y + 3, { align: 'right' });
+      y += 14;
+
+      // ---- PAYMENT INFO ----
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...dark);
+      doc.text('Payment Method:', margin, y);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(...gray);
+      doc.text(order.channel === 'WhatsApp' ? 'Cash on Delivery (COD)' : (order.channel || 'Cash'), margin + 32, y);
+      y += 8;
+
+      // ---- TERMS ----
+      doc.setDrawColor(...lightGray);
+      doc.line(margin, y, pw - margin, y);
+      y += 5;
+      doc.setFontSize(7);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...dark);
+      doc.text('Terms & Conditions:', margin, y);
+      y += 4;
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(...gray);
+      const terms = [
+        '1. Goods once sold will not be returned unless defective or damaged during delivery.',
+        '2. Payment is due upon delivery (COD) unless otherwise agreed.',
+        '3. Prices are inclusive of all applicable taxes unless stated otherwise.',
+        '4. For complaints or queries, contact us at ' + COMPANY.phone + ' or ' + COMPANY.email,
+      ];
+      terms.forEach(t => {
+        doc.text(t, margin, y);
+        y += 3.8;
+      });
+
+      y += 6;
+
+      // ---- SIGNATURE AREA ----
+      doc.setDrawColor(...lightGray);
+      doc.setLineWidth(0.3);
+
+      // Authorized signature (left)
+      doc.line(margin, y + 10, margin + 50, y + 10);
+      doc.setFontSize(7);
+      doc.setTextColor(...gray);
+      doc.text('Authorized Signature / Stamp', margin, y + 14);
+
+      // Customer signature (right)
+      doc.line(pw - margin - 50, y + 10, pw - margin, y + 10);
+      doc.text('Customer Signature', pw - margin - 50, y + 14);
+
+      y += 22;
+
+      // ---- FOOTER ----
+      doc.setDrawColor(...blue);
+      doc.setLineWidth(0.8);
+      doc.line(margin, y, pw - margin, y);
+      y += 4;
+
+      doc.setFontSize(7);
+      doc.setFont('helvetica', 'italic');
+      doc.setTextColor(...gray);
+      doc.text('This is a computer-generated invoice and does not require a physical signature.', pw / 2, y, { align: 'center' });
+      y += 4;
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(...blue);
+      doc.text('PUREX CHEMICALS — Quality You Can Trust', pw / 2, y, { align: 'center' });
+      y += 3;
+      doc.setTextColor(...gray);
+      doc.text('For complaints & support: ' + COMPANY.phone + ' | ' + COMPANY.email, pw / 2, y, { align: 'center' });
+
+      // Save PDF
+      doc.save(invoiceNo + '_' + (order.customer || 'customer').replace(/\s+/g, '_') + '.pdf');
+
+      // Flash animation
+      const card = document.getElementById('order-card-' + idx);
+      if (card) {
+        gsap.fromTo(card, { borderColor: 'rgba(77,158,213,0.5)', boxShadow: '0 0 15px rgba(77,158,213,0.15)' },
+          { borderColor: 'rgba(255,255,255,0.08)', boxShadow: 'none', duration: 1.2 });
       }
     }
 
