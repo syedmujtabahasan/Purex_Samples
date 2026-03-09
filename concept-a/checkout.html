@@ -589,14 +589,14 @@
       const email = document.getElementById('field-email').value.trim();
       const notes = document.getElementById('field-notes').value.trim();
 
-      // Generate order number
+      // Generate order number (PX-YYYYMMDD-001 sequential)
       const now = new Date();
       const datePart = now.getFullYear().toString() +
         String(now.getMonth() + 1).padStart(2, '0') +
         String(now.getDate()).padStart(2, '0');
-      const timePart = String(now.getHours()).padStart(2, '0') +
-        String(now.getMinutes()).padStart(2, '0');
-      const orderNumber = 'PX-' + datePart + '-' + timePart;
+      const orderCounter = parseInt(localStorage.getItem('purex_order_counter') || '0') + 1;
+      localStorage.setItem('purex_order_counter', orderCounter.toString());
+      const orderNumber = 'PX-' + datePart + '-' + String(orderCounter).padStart(3, '0');
 
       const subtotal = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
 
