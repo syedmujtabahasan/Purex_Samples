@@ -1,0 +1,58 @@
+# ==================== PUREX API — .HTACCESS ====================
+# All requests route through index.php. Internal files are blocked.
+
+RewriteEngine On
+
+# ---- Disable directory browsing ----
+Options -Indexes -ExecCGI
+
+# ---- Pass Authorization header through Apache rewrites ----
+# Required because Apache strips the Authorization header on rewritten URLs.
+# Without this, JWT Bearer tokens would never reach PHP.
+RewriteCond %{HTTP:Authorization} .
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+# Fallback: SetEnvIf catches cases where RewriteRule doesn't set the var
+SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
+
+# ---- Block .env files ----
+<FilesMatch "^\.env">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
+
+# ---- Block ALL PHP files that are NOT index.php ----
+# This is the nuclear option: only index.php should ever execute.
+# seed.php, migrate_*.php, reset_*.php, and any future utility scripts
+# are all blocked without needing individual rules.
+<FilesMatch "^(?!index\.php$).+\.php$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
+
+# ---- Block direct access to internal directories ----
+# These contain PHP includes that should NEVER be URL-accessible.
+# Even if someone guesses the path, Apache returns 403 Forbidden.
+RewriteRule ^config(/.*)?$ - [F,L]
+RewriteRule ^helpers(/.*)?$ - [F,L]
+RewriteRule ^middleware(/.*)?$ - [F,L]
+RewriteRule ^routes(/.*)?$ - [F,L]
+RewriteRule ^logs(/.*)?$ - [F,L]
+
+# ---- Route all API requests through index.php ----
+# This is the front-controller pattern: every URL that doesn't match
+# a real file gets routed to index.php, which parses the URL and
+# dispatches to the correct route handler.
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php?url=$1 [QSA,L]

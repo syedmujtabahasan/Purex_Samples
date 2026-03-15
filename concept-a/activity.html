@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/png" href="../assets/purex_icon.png">
+  <title>Activity Log — PUREX Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { theme: { extend: { colors: { purex: { blue: '#4d9ed5', dark: '#0a0e17', light: '#f7f7f7' } }, fontFamily: { heading: ['"Plus Jakarta Sans"', 'sans-serif'], body: ['"Inter"', 'sans-serif'] } } } }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="js/api-client.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #0a0e17; color: #f7f7f7; font-family: 'Inter', sans-serif; overflow-x: hidden; visibility: hidden; }
+    body.authenticated { visibility: visible; }
+    .glass { background: rgba(77, 158, 213, 0.05); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.08); }
+    .glass-strong { background: rgba(255,255,255,0.04); backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px); border: 1px solid rgba(255,255,255,0.1); }
+    .grain { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; opacity: 0.03; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E"); }
+    .bento-card { transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease, border-color 0.3s ease; }
+    .bento-card:hover { transform: translateY(-2px); box-shadow: 0 10px 40px rgba(77,158,213,0.08); border-color: rgba(77,158,213,0.15); }
+    .sidebar-link { transition: all 0.2s ease; }
+    .sidebar-link:hover, .sidebar-link.active { background: rgba(77,158,213,0.08); color: #4d9ed5; }
+    .sidebar-link.active { border-right: 2px solid #4d9ed5; }
+    #sidebar.collapsed { width: 64px; }
+    #sidebar.collapsed .sidebar-text, #sidebar.collapsed .sidebar-brand-text, #sidebar.collapsed .sidebar-user-info { display: none; }
+    #sidebar.collapsed nav a { justify-content: center; padding-left: 0; padding-right: 0; }
+    #sidebar.collapsed nav a svg { margin: 0; }
+    #sidebar.collapsed .p-6 { padding-left: 12px; padding-right: 12px; }
+    #sidebar.collapsed .px-6 { padding-left: 12px; padding-right: 12px; }
+    #sidebar.collapsed .px-3 { padding-left: 8px; padding-right: 8px; }
+    #sidebar.collapsed .p-4 { padding-left: 8px; padding-right: 8px; }
+    #sidebar.collapsed .px-2 { padding-left: 0; padding-right: 0; justify-content: center; }
+    #sidebar.collapsed #sidebar-toggle-icon { transform: rotate(180deg); }
+    .main-content-shift { transition: margin-left 0.3s ease; }
+    input:focus, select:focus { outline: none; border-color: #4d9ed5 !important; box-shadow: 0 0 0 2px rgba(77,158,213,0.15); }
+    select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23ffffff40' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
+  </style>
+</head>
+<body>
+  <div class="grain"></div>
+  <div class="flex min-h-screen">
+    <aside id="sidebar" class="hidden lg:flex flex-col w-64 border-r border-white/5 glass-strong fixed h-full z-40 transition-all duration-300">
+      <button id="sidebar-toggle" onclick="toggleSidebar()" class="absolute -right-3 top-5 w-6 h-6 rounded-full glass-strong border border-white/10 flex items-center justify-center text-white/40 hover:text-purex-blue hover:border-purex-blue/30 transition z-50 cursor-pointer"><svg id="sidebar-toggle-icon" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <div class="px-6 pt-4 pb-2"></div>
+      <div class="p-6 pt-2 border-b border-white/5"><a href="/" class="flex items-center gap-3 group"><img src="../assets/purex_icon.png" alt="Purex" class="w-8 h-8 object-contain transition-transform duration-300 group-hover:scale-110"><div class="sidebar-brand-text"><div class="flex items-baseline"><span class="font-heading text-sm font-light tracking-[0.3em] text-white">PURE</span><span class="font-heading text-lg font-light text-purex-blue">X</span></div><p class="text-[9px] tracking-[0.2em] text-white/30 -mt-0.5">ADMIN PANEL</p></div></a></div>
+      <nav class="flex-1 py-4 px-3 space-y-1 overflow-y-auto overflow-x-hidden">
+        <a href="/admin.html" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-white/50">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><rect x="2" y="2" width="6" height="6" rx="1"/><rect x="10" y="2" width="6" height="6" rx="1"/><rect x="2" y="10" width="6" height="6" rx="1"/><rect x="10" y="10" width="6" height="6" rx="1"/></svg>
+          <span class="sidebar-text">Dashboard</span>
+        </a>
+        <a href="/" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-white/50">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><path d="M3 9l6-6 6 6"/><path d="M5 7v7a1 1 0 001 1h6a1 1 0 001-1V7"/></svg>
+          <span class="sidebar-text">Home</span>
+        </a>
+        <a href="/shop.html" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-white/50">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><path d="M4 4h10v12H4z"/><path d="M7 4V2h4v2M7 8h4"/></svg>
+          <span class="sidebar-text">Shop</span>
+        </a>
+        <a href="/sale.html" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-red-400/70">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><path d="M9 2l2 4h4l-3 3 1 5-4-3-4 3 1-5-3-3h4z"/></svg>
+          <span class="sidebar-text">Sale</span>
+        </a>
+        <a href="/admin.html#products-section" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-white/50">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><rect x="2" y="3" width="14" height="12" rx="1"/><path d="M2 7h14"/><path d="M6 3v4"/></svg>
+          <span class="sidebar-text">Products</span>
+        </a>
+        <a href="/admin.html#orders-section" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-white/50">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><path d="M2 2l4 14 3-6 6-3z"/></svg>
+          <span class="sidebar-text">Orders</span>
+        </a>
+        <a href="/admin.html#inventory-section" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-white/50">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><path d="M2 14l4-6 3 3 5-7"/></svg>
+          <span class="sidebar-text">Inventory</span>
+        </a>
+        <a href="/admin.html#sales-section" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-white/50">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><path d="M2 16V6l4 4 4-6 4 3 4-5v14z"/></svg>
+          <span class="sidebar-text">Sales</span>
+        </a>
+        <a href="/admin.html#profit-section" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-white/50">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><path d="M9 2v14M6 5h5a2 2 0 010 4H6M7 9h4a2 2 0 010 4H6"/></svg>
+          <span class="sidebar-text">Profits</span>
+        </a>
+        <div class="border-t border-white/5 my-2 mx-2"></div>
+        <a href="/suppliers.html" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-white/50">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><path d="M2 3h16v4H2zM4 7v8a1 1 0 001 1h8a1 1 0 001-1V7"/><path d="M7 10h4"/></svg>
+          <span class="sidebar-text">Suppliers</span>
+        </a>
+        <a href="/admin.html#invoice-archive-section" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-white/50">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><path d="M4 2h8l3 3v12a1 1 0 01-1 1H4a1 1 0 01-1-1V3a1 1 0 011-1z"/><path d="M7 8h4M7 11h4M7 14h2"/></svg>
+          <span class="sidebar-text">Invoices</span>
+        </a>
+        <a href="/customers.html" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-white/50">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><path d="M9 9a3 3 0 100-6 3 3 0 000 6zM2 16c0-3 3-5 7-5s7 2 7 5"/></svg>
+          <span class="sidebar-text">Customers</span>
+        </a>
+        <div id="admin-only-nav">
+          <div class="border-t border-white/5 my-2 mx-2"></div>
+          <a href="/users.html" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-white/50">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><path d="M12 12a4 4 0 10-8 0 4 4 0 008 0zM16 8a3 3 0 100-6"/><path d="M2 20c0-3 2.5-5 6-5s6 2 6 5"/><path d="M16 11c2 0 4 1.5 4 4"/></svg>
+            <span class="sidebar-text">Users</span>
+          </a>
+          <a href="/activity.html" class="sidebar-link active flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg>
+            <span class="sidebar-text">Activity Log</span>
+          </a>
+          <a href="/audit.html" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light tracking-wide text-white/50 hover:text-white hover:bg-white/[0.04] transition-all admin-only-link">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><path d="M9 1v3l2 1.5"/><circle cx="9" cy="9" r="7"/><path d="M1 15h16M4 15v-1.5M14 15v-1.5"/></svg>
+            <span class="sidebar-text">Audit</span>
+          </a>
+          <a href="/admin.html#settings" onclick="localStorage.setItem('purex_open_settings','1')" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light tracking-wide text-white/50 hover:text-white hover:bg-white/[0.04] transition-all admin-only-link">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><circle cx="9" cy="9" r="2"/><path d="M9 1v2M9 15v2M1 9h2M15 9h2M3.05 3.05l1.41 1.41M13.54 13.54l1.41 1.41M3.05 14.95l1.41-1.41M13.54 4.46l1.41-1.41"/></svg>
+            <span class="sidebar-text">Settings</span>
+          </a>
+        </div>
+      </nav>
+      <div class="p-4 border-t border-white/5"><div class="flex items-center gap-3 px-2"><div id="sidebar-avatar" class="w-8 h-8 rounded-full bg-purex-blue/20 flex items-center justify-center text-xs text-purex-blue font-heading shrink-0">AD</div><div class="sidebar-user-info"><p id="sidebar-user-name" class="text-xs text-white font-light">Admin</p><p id="sidebar-user-role" class="text-[10px] text-white/30">Admin</p></div><button onclick="logActivity('Logged out',''); sessionStorage.removeItem('purex_admin'); sessionStorage.removeItem('purex_session'); safeRedirect('/login.html');" class="ml-auto p-2 rounded-lg hover:bg-red-500/10 transition text-white/30 hover:text-red-400" title="Logout"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button></div></div>
+    </aside>
+
+    <div class="lg:hidden fixed top-0 left-0 right-0 z-50 glass-strong border-b border-white/5 px-4 py-3 flex items-center justify-between">
+      <a href="/" class="flex items-center gap-2"><img src="../assets/purex_icon.png" alt="Purex" class="w-6 h-6 object-contain"><span class="font-heading text-sm font-light tracking-wider text-white">PUREX</span></a>
+      <button class="p-2 text-white/50" onclick="document.getElementById('mobile-nav').classList.toggle('hidden')"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 5h14M3 10h14M3 15h14"/></svg></button>
+    </div>
+    <div id="mobile-nav" class="hidden lg:hidden fixed top-14 left-0 right-0 z-50 glass-strong border-b border-white/5 p-4 space-y-2">
+      <a href="/admin.html" class="block px-4 py-2 text-sm text-white/50 rounded-lg">Dashboard</a>
+      <a href="/activity.html" class="block px-4 py-2 text-sm text-purex-blue rounded-lg bg-purex-blue/5">Activity Log</a>
+      <button onclick="sessionStorage.removeItem('purex_admin'); sessionStorage.removeItem('purex_session'); safeRedirect('/login.html');" class="block w-full text-left px-4 py-2 text-sm text-red-400/70 rounded-lg">Logout</button>
+    </div>
+
+    <main id="main-content" class="flex-1 lg:ml-64 pt-14 lg:pt-0 main-content-shift">
+      <header class="sticky top-0 lg:top-0 z-30 glass-strong border-b border-white/5 px-6 py-4 flex items-center justify-between">
+        <div><h1 class="font-heading text-xl font-light text-white">Activity Log</h1><p class="text-xs text-white/30 mt-0.5">Track who did what and when</p></div>
+        <a href="/admin.html" class="text-xs text-white/30 hover:text-white/60 transition hidden md:block">&larr; Dashboard</a>
+      </header>
+      <div class="p-4 md:p-6 space-y-4 md:space-y-6">
+        <div id="activity-section" class="bento-card glass-strong rounded-2xl p-4 md:p-6">
+          <div class="flex items-center justify-between mb-5">
+            <div><h3 class="font-heading text-sm font-light text-white">Activity Log</h3><p class="text-[10px] text-white/30 mt-0.5">Track who did what and when</p></div>
+            <div class="flex items-center gap-2">
+              <button onclick="clearActivityLog()" class="text-[10px] px-2 py-1 rounded-lg bg-red-500/10 text-red-400/60 hover:text-red-400 transition font-light">Clear</button>
+              <select id="activity-filter" onchange="renderActivityLog()" class="text-[10px] bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-white/50 font-light appearance-none cursor-pointer">
+                <option value="all" class="bg-[#0a0e17]">All Users</option>
+              </select>
+            </div>
+          </div>
+          <div class="space-y-2 max-h-[70vh] overflow-y-auto" id="activity-list"></div>
+          <p id="no-activity-msg" class="hidden text-xs text-white/20 text-center py-4">No activity recorded yet.</p>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    function toggleSidebar() { const s = document.getElementById('sidebar'); const m = document.getElementById('main-content'); const c = s.classList.toggle('collapsed'); m.style.marginLeft = c ? '64px' : ''; localStorage.setItem('purex_sidebar_collapsed', c ? '1' : '0'); }
+    if (localStorage.getItem('purex_sidebar_collapsed') === '1') { document.getElementById('sidebar').classList.add('collapsed'); document.getElementById('main-content').style.marginLeft = '64px'; }
+
+    if (!sessionStorage.getItem('purex_admin') && !sessionStorage.getItem('purex_session') && !sessionStorage.getItem('purex_token')) { safeRedirect('/login.html'); throw new Error('Not authenticated'); }
+    document.body.classList.add('authenticated');
+
+    function apiHeaders() { const h = { 'Content-Type': 'application/json' }; const t = sessionStorage.getItem('purex_token'); if (t) h['Authorization'] = 'Bearer ' + t; return h; }
+    let currentUser = { name: 'Admin', role: 'admin', permissions: {} };
+    try { const s = JSON.parse(sessionStorage.getItem('purex_session') || '{}'); if (s.name) currentUser = s; } catch(e) {}
+    const isAdmin = currentUser.role === 'admin';
+
+    // Admin-only check
+    if (!isAdmin) { safeRedirect('/admin.html'); throw new Error('Admin only'); }
+
+    function logActivity(action, detail) {
+      fetch('/api/activity', { method: 'POST', headers: apiHeaders(), body: JSON.stringify({ action, detail: detail || '' }) }).catch(() => {});
+      try { const log = JSON.parse(localStorage.getItem('purex_activity_log') || '[]'); log.unshift({ id: Date.now(), user: currentUser.name, role: currentUser.role, action, detail: detail || '', timestamp: new Date().toISOString() }); if (log.length > 500) log.length = 500; localStorage.setItem('purex_activity_log', JSON.stringify(log)); } catch(e) {}
+    }
+
+    const initials = currentUser.name.split(' ').map(w => w[0]).join('').toUpperCase().substring(0, 2) || 'U';
+    document.getElementById('sidebar-avatar').textContent = initials;
+    document.getElementById('sidebar-user-name').textContent = currentUser.name;
+    document.getElementById('sidebar-user-role').textContent = 'Admin';
+
+    gsap.registerPlugin();
+    gsap.from('.bento-card', { opacity: 0, y: 20, duration: 0.5, stagger: 0.08, delay: 0.1, ease: 'power3.out' });
+
+    function getActivityLog() { try { return JSON.parse(localStorage.getItem('purex_activity_log') || '[]'); } catch(e) { return []; } }
+
+    function renderActivityLog() {
+      const log = getActivityLog();
+      const filter = document.getElementById('activity-filter').value;
+      const filtered = filter === 'all' ? log : log.filter(e => e.user === filter);
+      const container = document.getElementById('activity-list');
+      const noMsg = document.getElementById('no-activity-msg');
+
+      // Populate user filter dropdown
+      const filterEl = document.getElementById('activity-filter');
+      const uniqueUsers = [...new Set(log.map(e => e.user))];
+      const currentVal = filterEl.value;
+      filterEl.innerHTML = '<option value="all" class="bg-[#0a0e17]">All Users</option>' + uniqueUsers.map(u => `<option value="${u}" class="bg-[#0a0e17]" ${u === currentVal ? 'selected' : ''}>${u}</option>`).join('');
+
+      if (filtered.length === 0) { container.innerHTML = ''; noMsg.classList.remove('hidden'); return; }
+      noMsg.classList.add('hidden');
+
+      container.innerHTML = filtered.slice(0, 200).map(e => {
+        const time = new Date(e.timestamp);
+        const timeStr = time.toLocaleDateString('en-PK', { day: '2-digit', month: 'short' }) + ' ' + time.toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit', hour12: true });
+        const roleBadge = e.role === 'admin' ? '<span class="text-[8px] px-1 py-0.5 rounded bg-purex-blue/10 text-purex-blue">Admin</span>' : '<span class="text-[8px] px-1 py-0.5 rounded bg-amber-500/10 text-amber-400">Editor</span>';
+        return `<div class="flex items-start gap-3 py-2 border-b border-white/5"><div class="flex-1 min-w-0"><div class="flex items-center gap-1.5 mb-0.5"><span class="text-[10px] text-white/60 font-light">${e.user}</span>${roleBadge}</div><p class="text-[10px] text-white/40">${e.action}${e.detail ? ' — <span class="text-white/25">' + e.detail + '</span>' : ''}</p></div><span class="text-[9px] text-white/20 whitespace-nowrap">${timeStr}</span></div>`;
+      }).join('');
+    }
+
+    function clearActivityLog() {
+      if (!confirm('Clear all activity history?')) return;
+      localStorage.setItem('purex_activity_log', '[]');
+      renderActivityLog();
+    }
+
+    // API sync for activity log
+    async function syncFromAPI() {
+      try {
+        const res = await fetch('/api/activity', { headers: apiHeaders() });
+        if (!res.ok) return;
+        const apiLog = await res.json();
+        if (Array.isArray(apiLog) && apiLog.length > 0) {
+          const log = apiLog.map(a => ({ id: a.id, user: a.user_name, role: a.user_role, action: a.action, detail: a.detail || '', timestamp: a.created_at }));
+          localStorage.setItem('purex_activity_log', JSON.stringify(log));
+        }
+        renderActivityLog();
+      } catch(e) { console.log('API not available:', e.message); }
+    }
+
+    renderActivityLog();
+    syncFromAPI();
+
+    // Auto-refresh every 10 seconds
+    setInterval(renderActivityLog, 10000);
+  </script>
+</body>
+</html>

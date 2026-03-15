@@ -1,2 +1,51 @@
-*.pdf
+# ==================== PUREX .GITIGNORE ====================
+
+# Secrets — NEVER commit
+api/.env
+api/logs/*.log
+SESSION_CONTEXT.md
+conversation_extract.txt
+
+# AI/editor tooling
 .claude/
+*.pdf
+
+# Old product photos at root level (not part of the app)
+/products/
+
+# Old bridge files
+gemini-bridge/
+
+# Old root redirect stub (not concept-a/index.html)
+/index.html
+
+# Backups (contain old credentials)
+backups/
+
+# Build/gen scripts (internal tooling)
+gen_*.py
+backup_local.sh
+migration_scanner.php
+
+# Word docs / change logs (not deployable code)
+*.docx
+changes-*.md
+
+# Internal planning docs (contain credentials/architecture details)
+BACKEND_PLAN.md
+DEPLOYMENT_GUIDE.md
+PRODUCTION_PLAN.md
+SECURITY_REPORT.md
+HANDOVER_CHECKLIST.md
+PRE_DEPLOYMENT_PACKAGE.md
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Misc non-deployable
+*.zip
+/co-founder_salman.jpeg
+letterhead.svg
+logo_guide_preview.png
+new_purex_letterhead.*

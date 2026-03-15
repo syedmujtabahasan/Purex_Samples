@@ -113,14 +113,14 @@
   <!-- ─── NAVBAR ─── -->
   <nav class="fixed top-0 w-full z-50 glass-strong" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
     <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-      <a href="index.html" class="flex items-center gap-3 group">
+      <a href="/" class="flex items-center gap-3 group">
         <img src="../assets/purex_icon.png" alt="Purex" class="w-9 h-9 object-contain transition-transform duration-300 group-hover:scale-110">
         <div class="flex items-baseline">
           <span class="font-heading text-base font-light tracking-[0.3em] text-white">PURE</span>
           <span class="font-heading text-xl font-light text-purex-blue">X</span>
         </div>
       </a>
-      <a href="shop.html" class="flex items-center gap-2 text-sm font-light tracking-wider text-white/60 hover:text-white transition">
+      <a href="/shop.html" class="flex items-center gap-2 text-sm font-light tracking-wider text-white/60 hover:text-white transition">
         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 2L4 8l6 6"/></svg>
         Back to Shop
       </a>
@@ -162,7 +162,7 @@
               <h2 class="font-heading text-xl font-light text-white">Order Review</h2>
               <p class="text-xs text-white/30 mt-1">Review your items before checkout</p>
             </div>
-            <a href="shop.html" class="text-xs text-purex-blue/70 hover:text-purex-blue transition flex items-center gap-1.5">
+            <a href="/shop.html" class="text-xs text-purex-blue/70 hover:text-purex-blue transition flex items-center gap-1.5">
               <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 1v12M1 7h12"/></svg>
               Edit Cart
             </a>
@@ -175,7 +175,7 @@
             </svg>
             <h3 class="font-heading text-lg font-light text-white/40 mb-2">Your cart is empty</h3>
             <p class="text-xs text-white/20 mb-6">Add some products to get started</p>
-            <a href="shop.html" class="btn-primary inline-flex">
+            <a href="/shop.html" class="btn-primary inline-flex">
               <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 2L4 8l6 6"/></svg>
               Browse Products
             </a>
@@ -184,13 +184,23 @@
           <!-- Cart Items -->
           <div id="cart-items-list" class="space-y-3 mb-6"></div>
 
-          <!-- Subtotal -->
+          <!-- Subtotal & Delivery -->
           <div id="cart-subtotal-section" class="border-t border-white/5 pt-5 mt-2">
             <div class="flex justify-between items-center">
-              <span class="text-sm text-white/40">Subtotal</span>
-              <span id="subtotal-amount" class="font-heading text-xl font-light text-purex-blue">Rs.0</span>
+              <span class="text-sm text-white/40">Base Amount</span>
+              <span id="base-amount" class="text-sm text-white/60">Rs.0</span>
             </div>
-            <p class="text-[10px] text-white/20 mt-2">Delivery charges will be confirmed via WhatsApp</p>
+            <div id="checkout-gst-row" class="flex justify-between items-center mt-1"></div>
+            <div class="flex justify-between items-center mt-1">
+              <span class="text-sm text-white/40">Subtotal</span>
+              <span id="subtotal-amount" class="font-heading text-lg font-light text-white/80">Rs.0</span>
+            </div>
+            <div id="checkout-delivery-row" class="flex justify-between items-center mt-2"></div>
+            <div id="checkout-delivery-nudge" class="mt-1"></div>
+            <div class="flex justify-between items-center mt-3 pt-3 border-t border-white/5">
+              <span class="text-sm text-white/60 font-medium">Total</span>
+              <span id="checkout-grand-total" class="font-heading text-xl font-light text-purex-blue">Rs.0</span>
+            </div>
           </div>
 
           <!-- Continue Button -->
@@ -214,63 +224,65 @@
           </div>
 
           <form id="customer-form" class="space-y-5" novalidate>
-            <!-- Full Name -->
-            <div>
-              <label class="form-label">Full Name <span class="required">*</span></label>
-              <input type="text" id="field-name" class="form-input" placeholder="e.g., Ahmed Khan" autocomplete="name" required>
-              <p class="error-text" id="error-name">Please enter your full name</p>
-            </div>
-
-            <!-- Phone -->
-            <div>
-              <label class="form-label">Phone Number <span class="required">*</span></label>
-              <input type="tel" id="field-phone" class="form-input" placeholder="+92 3XX XXXXXXX" autocomplete="tel" required>
-              <p class="error-text" id="error-phone">Enter a valid Pakistani phone number (+92 XXX XXXXXXX)</p>
-            </div>
-
-            <!-- City -->
+            <!-- City (first — controls which fields show) -->
             <div>
               <label class="form-label">City <span class="required">*</span></label>
-              <select id="field-city" class="form-input" required>
+              <select id="field-city" class="form-input" required onchange="handleCityChange(this)">
                 <option value="" disabled selected>Select your city</option>
-                <option value="Karachi">Karachi</option>
-                <option value="Lahore">Lahore</option>
-                <option value="Islamabad">Islamabad</option>
-                <option value="Rawalpindi">Rawalpindi</option>
-                <option value="Faisalabad">Faisalabad</option>
-                <option value="Multan">Multan</option>
-                <option value="Peshawar">Peshawar</option>
-                <option value="Quetta">Quetta</option>
-                <option value="Sialkot">Sialkot</option>
-                <option value="Hyderabad">Hyderabad</option>
-                <option value="Gujranwala">Gujranwala</option>
-                <option value="Other">Other</option>
               </select>
               <p class="error-text" id="error-city">Please select your city</p>
+              <!-- Other city — collect details + WhatsApp -->
+              <div id="other-city-msg" class="hidden mt-3 glass rounded-xl p-4 border border-amber-500/20">
+                <p class="text-sm text-amber-400 mb-1">We don't deliver to your city yet</p>
+                <p class="text-xs text-white/40 mb-3">Fill in your details below and our customer care team will arrange delivery for you via WhatsApp.</p>
+                <div class="space-y-3">
+                  <input type="text" id="other-city-name" class="form-input" placeholder="Your city name *">
+                  <input type="text" id="other-city-customer" class="form-input" placeholder="Your name *">
+                  <input type="tel" id="other-city-phone" class="form-input" placeholder="Phone number *">
+                  <textarea id="other-city-address" class="form-input" rows="2" placeholder="Full address *"></textarea>
+                </div>
+              </div>
             </div>
 
-            <!-- Address -->
-            <div>
-              <label class="form-label">Full Address <span class="required">*</span></label>
-              <textarea id="field-address" class="form-input" rows="3" placeholder="House #, Street, Block, Area..." required></textarea>
-              <p class="error-text" id="error-address">Please enter your delivery address</p>
-            </div>
+            <!-- Regular checkout fields (hidden when Other City selected) -->
+            <div id="regular-checkout-fields">
+              <!-- Full Name -->
+              <div class="mb-5">
+                <label class="form-label">Full Name <span class="required">*</span></label>
+                <input type="text" id="field-name" class="form-input" placeholder="Muhammad Ali" required autocomplete="name">
+                <p class="error-text" id="error-name">Please enter your full name</p>
+              </div>
 
-            <!-- Email (optional) -->
-            <div>
-              <label class="form-label">Email <span class="text-white/20">(optional)</span></label>
-              <input type="email" id="field-email" class="form-input" placeholder="you@email.com" autocomplete="email">
-            </div>
+              <!-- Phone -->
+              <div class="mb-5">
+                <label class="form-label">Phone Number <span class="required">*</span></label>
+                <input type="tel" id="field-phone" class="form-input" placeholder="0300 1234567" required autocomplete="tel">
+                <p class="error-text" id="error-phone">Please enter a valid Pakistani phone number</p>
+              </div>
 
-            <!-- Order Notes (optional) -->
-            <div>
-              <label class="form-label">Order Notes <span class="text-white/20">(optional)</span></label>
-              <textarea id="field-notes" class="form-input" rows="2" placeholder="Any special instructions..."></textarea>
+              <!-- Address -->
+              <div class="mb-5">
+                <label class="form-label">Full Address <span class="required">*</span></label>
+                <textarea id="field-address" class="form-input" rows="3" placeholder="House #, Street, Block, Area..." required></textarea>
+                <p class="error-text" id="error-address">Please enter your delivery address</p>
+              </div>
+
+              <!-- Email (optional) -->
+              <div class="mb-5">
+                <label class="form-label">Email <span class="text-white/20">(optional)</span></label>
+                <input type="email" id="field-email" class="form-input" placeholder="you@email.com" autocomplete="email">
+              </div>
+
+              <!-- Order Notes (optional) -->
+              <div>
+                <label class="form-label">Order Notes <span class="text-white/20">(optional)</span></label>
+                <textarea id="field-notes" class="form-input" rows="2" placeholder="Any special instructions..."></textarea>
+              </div>
             </div>
           </form>
 
           <!-- Actions -->
-          <div class="mt-8 flex flex-col sm:flex-row gap-3 sm:justify-between">
+          <div id="step2-actions" class="mt-8 flex flex-col sm:flex-row gap-3 sm:justify-between">
             <button onclick="goToStep(1)" class="btn-secondary">
               <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 2L4 8l6 6"/></svg>
               Back
@@ -279,6 +291,10 @@
               Place Order
               <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 8h12M10 4l4 4-4 4"/></svg>
             </button>
+            <a id="other-city-whatsapp-btn" href="#" target="_blank" onclick="return buildOtherCityWhatsApp()" class="hidden items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white text-sm px-6 py-3 rounded-full transition font-medium tracking-wider" style="display:none;">
+              <svg width="18" height="18" fill="white" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+              Checkout via Customer Care
+            </a>
           </div>
         </div>
       </section>
@@ -302,9 +318,21 @@
           <div class="glass rounded-xl p-5 text-left mb-6 max-w-md mx-auto">
             <h4 class="font-heading text-xs tracking-widest text-white/40 uppercase mb-4">Order Summary</h4>
             <div id="confirmation-items" class="space-y-2 mb-4"></div>
-            <div class="border-t border-white/5 pt-3 flex justify-between">
-              <span class="text-sm text-white/40">Subtotal</span>
-              <span id="confirmation-total" class="text-sm text-purex-blue font-heading">Rs.0</span>
+            <div class="border-t border-white/5 pt-3 space-y-2">
+              <div class="flex justify-between">
+                <span class="text-xs text-white/30">Base Amount</span>
+                <span id="confirmation-base-amount" class="text-xs text-white/40">Rs.0</span>
+              </div>
+              <div id="confirmation-gst-row" class="flex justify-between"></div>
+              <div class="flex justify-between">
+                <span class="text-sm text-white/40">Subtotal</span>
+                <span id="confirmation-subtotal" class="text-sm text-white/60">Rs.0</span>
+              </div>
+              <div id="confirmation-delivery-row" class="flex justify-between"></div>
+              <div class="flex justify-between pt-2 border-t border-white/5">
+                <span class="text-sm text-white/60 font-medium">Total</span>
+                <span id="confirmation-total" class="text-sm text-purex-blue font-heading">Rs.0</span>
+              </div>
             </div>
           </div>
 
@@ -320,7 +348,7 @@
               <svg width="18" height="18" fill="white" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
               Send Order via WhatsApp
             </a>
-            <a href="shop.html" class="btn-secondary flex-1 justify-center">
+            <a href="/shop.html" class="btn-secondary flex-1 justify-center">
               Continue Shopping
               <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2l6 6-6 6"/></svg>
             </a>
@@ -351,8 +379,10 @@
           <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
         </a>
         <span class="w-px h-4 bg-white/10"></span>
-        <a href="contact.html" class="text-xs text-white/30 hover:text-purex-blue transition font-light tracking-wider">Contact Us</a>
+        <a href="/contact.html" class="text-xs text-white/30 hover:text-purex-blue transition font-light tracking-wider">Contact Us</a>
         <p class="text-xs text-white/20">&copy; 2026 Purex Chemicals</p>
+        <span class="w-px h-4 bg-white/10"></span>
+        <p class="text-[10px] text-white/15">Powered by <a href="mailto:hello@quartermasters.me" class="hover:text-white/30 transition-colors">Quartermasters FZC</a></p>
       </div>
     </div>
   </footer>
@@ -379,9 +409,90 @@
     let orderData = {};
 
     // ═══════════════════════════════════════════════
+    // DELIVERY CITIES
+    // ═══════════════════════════════════════════════
+    const DEFAULT_CITIES = ['Gujranwala', 'Daska', 'Gakhar'];
+    function getDeliveryCities() {
+      const custom = JSON.parse(localStorage.getItem('purex_delivery_cities') || '[]');
+      return [...new Set([...DEFAULT_CITIES, ...custom])];
+    }
+    function populateCityDropdown() {
+      const cities = getDeliveryCities();
+      const sel = document.getElementById('field-city');
+      sel.innerHTML = '<option value="" disabled selected>Select your city</option>' +
+        cities.map(c => '<option value="' + c + '">' + c + '</option>').join('') +
+        '<option value="__other__">Other City</option>';
+    }
+    // ═══════════════════════════════════════════════
+    // GST HELPERS (prices are GST-inclusive)
+    // ═══════════════════════════════════════════════
+    function getGSTRate() {
+      const stored = localStorage.getItem('purex_gst_rate');
+      return stored !== null ? parseFloat(stored) : 0.18;
+    }
+    function calcGST(inclusivePrice) {
+      const rate = getGSTRate();
+      const base = inclusivePrice / (1 + rate);
+      return { base: Math.round(base * 100) / 100, gst: Math.round((inclusivePrice - base) * 100) / 100, rate };
+    }
+    // ═══════════════════════════════════════════════
+    // DELIVERY SETTINGS (from admin settings)
+    // ═══════════════════════════════════════════════
+    function _getSetting(key, fallback) {
+      try { const s = JSON.parse(localStorage.getItem('purex_settings') || '{}'); return s[key] !== undefined && s[key] !== '' ? s[key] : fallback; } catch(e) { return fallback; }
+    }
+    function getDeliveryFee() { return parseFloat(_getSetting('deliveryFee', 350)); }
+    function getFreeThreshold() { return parseFloat(_getSetting('freeThreshold', 3000)); }
+
+    function handleCityChange(sel) {
+      const msg = document.getElementById('other-city-msg');
+      const regularFields = document.getElementById('regular-checkout-fields');
+      const placeBtn = document.getElementById('place-order-btn');
+      const waBtn = document.getElementById('other-city-whatsapp-btn');
+      if (sel.value === '__other__') {
+        msg.classList.remove('hidden');
+        regularFields.style.display = 'none';
+        placeBtn.style.display = 'none';
+        waBtn.style.display = 'inline-flex';
+      } else {
+        msg.classList.add('hidden');
+        regularFields.style.display = '';
+        placeBtn.style.display = '';
+        waBtn.style.display = 'none';
+      }
+    }
+    function buildOtherCityWhatsApp() {
+      const cityName = document.getElementById('other-city-customer').value.trim();
+      const phone = document.getElementById('other-city-phone').value.trim();
+      const city = document.getElementById('other-city-name').value.trim();
+      const address = document.getElementById('other-city-address').value.trim();
+      if (!cityName || !phone || !city || !address) {
+        alert('Please fill in all your details (name, phone, city, address)');
+        return false;
+      }
+      const subtotal = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+      let text = '*Order Request (Outside Delivery Area)*\n\n';
+      text += '*Customer:* ' + cityName + '\n';
+      text += '*Phone:* ' + phone + '\n';
+      text += '*City:* ' + city + '\n';
+      text += '*Address:* ' + address + '\n\n';
+      text += '*Items:*\n';
+      cart.forEach(item => {
+        text += '- ' + item.name + (item.sku ? ' [' + item.sku + ']' : '') + (item.volume ? ' (' + item.volume + ')' : '') + ' x' + item.qty + ' = Rs.' + (item.price * item.qty).toLocaleString() + '\n';
+      });
+      const _gstOc = calcGST(subtotal);
+      text += '\n*Base Amount: Rs.' + Math.round(_gstOc.base).toLocaleString() + '*\n';
+      text += '*GST (' + (_gstOc.rate * 100) + '%): Rs.' + Math.round(_gstOc.gst).toLocaleString() + '*\n';
+      text += '*Subtotal: Rs.' + subtotal.toLocaleString() + '*\n\nPlease arrange delivery to my city. Thank you!';
+      document.getElementById('other-city-whatsapp-btn').href = 'https://wa.me/923400145796?text=' + encodeURIComponent(text);
+      return true;
+    }
+
+    // ═══════════════════════════════════════════════
     // INIT — Load cart from localStorage
     // ═══════════════════════════════════════════════
     function init() {
+      populateCityDropdown();
       try {
         const saved = localStorage.getItem('purex_cart');
         if (saved) {
@@ -444,7 +555,31 @@
       `).join('');
 
       const subtotal = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+      const gstBreakdown = calcGST(subtotal);
+      document.getElementById('base-amount').textContent = 'Rs.' + Math.round(gstBreakdown.base).toLocaleString();
+      document.getElementById('checkout-gst-row').innerHTML =
+        '<span class="text-xs text-white/30">GST (' + (gstBreakdown.rate * 100) + '%)</span>' +
+        '<span class="text-xs text-white/40">Rs.' + Math.round(gstBreakdown.gst).toLocaleString() + '</span>';
       document.getElementById('subtotal-amount').textContent = 'Rs.' + subtotal.toLocaleString();
+
+      // Delivery fee logic
+      const FREE_THRESHOLD = getFreeThreshold();
+      const DELIVERY_FEE = getDeliveryFee();
+      const isFree = subtotal >= FREE_THRESHOLD;
+      const deliveryCharge = isFree ? 0 : DELIVERY_FEE;
+      const grandTotal = subtotal + deliveryCharge;
+
+      const deliveryRow = document.getElementById('checkout-delivery-row');
+      const deliveryNudge = document.getElementById('checkout-delivery-nudge');
+      if (isFree) {
+        deliveryRow.innerHTML = '<span class="text-sm text-white/40">Delivery</span><span class="text-sm"><span class="line-through text-white/30 mr-1">Rs.' + DELIVERY_FEE + '</span><span class="text-emerald-400 font-medium">FREE</span></span>';
+        deliveryNudge.innerHTML = '';
+      } else {
+        const remaining = FREE_THRESHOLD - subtotal;
+        deliveryRow.innerHTML = '<span class="text-sm text-white/40">Delivery</span><span class="text-sm text-white/60">Rs.' + DELIVERY_FEE + '</span>';
+        deliveryNudge.innerHTML = '<p class="text-[10px] text-amber-400">Add Rs.' + remaining.toLocaleString() + ' more for free delivery!</p><a href="/shop.html" class="inline-block mt-2 text-xs text-purex-blue underline hover:text-white transition-colors tracking-wider">Shop More</a>';
+      }
+      document.getElementById('checkout-grand-total').textContent = 'Rs.' + grandTotal.toLocaleString();
     }
 
     function updateQty(index, delta) {
@@ -548,7 +683,7 @@
 
       // City
       const city = document.getElementById('field-city').value;
-      if (!city) {
+      if (!city || city === '__other__') {
         document.getElementById('field-city').classList.add('error');
         document.getElementById('error-city').classList.add('show');
         valid = false;
@@ -575,61 +710,67 @@
       return cleaned.replace(/^(\+92)(\d{3})(\d{7})$/, '$1 $2 $3');
     }
 
-    function placeOrder() {
+    async function placeOrder() {
       if (!validateForm()) {
-        // Shake the button for feedback
         gsap.to('#place-order-btn', { x: -8, duration: 0.08, yoyo: true, repeat: 5, ease: 'power2.inOut' });
         return;
       }
 
-      // Collect form data
       const name = document.getElementById('field-name').value.trim();
       const phone = formatPhone(document.getElementById('field-phone').value.trim());
       const city = document.getElementById('field-city').value;
       const address = document.getElementById('field-address').value.trim();
       const email = document.getElementById('field-email').value.trim();
       const notes = document.getElementById('field-notes').value.trim();
-
-      // Generate order number (PX-YYYYMMDD-001 sequential)
       const now = new Date();
-      const datePart = now.getFullYear().toString() +
-        String(now.getMonth() + 1).padStart(2, '0') +
-        String(now.getDate()).padStart(2, '0');
-      const orderCounter = parseInt(localStorage.getItem('purex_order_counter') || '0') + 1;
-      localStorage.setItem('purex_order_counter', orderCounter.toString());
-      const orderNumber = 'PX-' + datePart + '-' + String(orderCounter).padStart(3, '0');
-
       const subtotal = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+      const FREE_THRESHOLD = getFreeThreshold();
+      const DELIVERY_FEE = getDeliveryFee();
+      const isFreeDelivery = subtotal >= FREE_THRESHOLD;
+      const deliveryCharge = isFreeDelivery ? 0 : DELIVERY_FEE;
+      const grandTotal = subtotal + deliveryCharge;
 
-      orderData = {
-        orderNumber,
-        items: [...cart],
-        subtotal,
-        customer: { name, phone, city, address, email, notes },
-        timestamp: now.toISOString()
-      };
+      // Try API first, always fall back to localStorage
+      let orderNumber = '';
+      let apiSaved = false;
+      try {
+        const res = await fetch('/api/orders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            customer_name: name, phone, email, city, address, notes,
+            total: grandTotal, channel: 'WhatsApp',
+            items: cart.map(c => ({ id: c.id, product_id: c.id, name: c.name, sku: c.sku || '', volume: c.volume || '', price: c.price, qty: c.qty, buy_price: c.buyPrice || 0 }))
+          })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.order_number) {
+            orderNumber = data.order_number;
+            apiSaved = true;
+          }
+        }
+      } catch(e) {
+        // Network error — will fall through to localStorage below
+      }
 
-      // Save order to localStorage (admin orders list)
+      // Always save to localStorage (so admin sees it even if API saved to DB)
+      if (!orderNumber) {
+        const datePart = now.getFullYear().toString() + String(now.getMonth() + 1).padStart(2, '0') + String(now.getDate()).padStart(2, '0');
+        const orderCounter = parseInt(localStorage.getItem('purex_order_counter') || '0') + 1;
+        localStorage.setItem('purex_order_counter', orderCounter.toString());
+        orderNumber = 'PX-' + datePart + '-' + String(orderCounter).padStart(3, '0');
+      }
       try {
         const orders = JSON.parse(localStorage.getItem('purex_orders') || '[]');
-        orders.push({
-          id: orderNumber,
-          customer: name,
-          phone: phone,
-          city: city,
-          address: address,
-          email: email || '',
-          notes: notes || '',
-          items: cart.length,
-          itemDetails: cart.map(c => ({ id: c.id, name: c.name, sku: c.sku || '', volume: c.volume || '', price: c.price, qty: c.qty, buyPrice: c.buyPrice || 0 })),
-          total: subtotal,
-          status: 'pending',
-          channel: 'WhatsApp',
-          date: now.toISOString().split('T')[0],
-          timestamp: now.toISOString()
-        });
+        const _gstBk = calcGST(subtotal);
+        orders.push({ id: orderNumber, customer: name, phone, city, address, email: email || '', notes: notes || '', items: cart.length, itemDetails: cart.map(c => ({ id: c.id, name: c.name, sku: c.sku || '', volume: c.volume || '', price: c.price, qty: c.qty, buyPrice: c.buyPrice || 0 })), total: grandTotal, subtotal: subtotal, deliveryFee: deliveryCharge, gstRate: getGSTRate(), gstAmount: Math.round(_gstBk.gst), baseSubtotal: Math.round(_gstBk.base), status: 'pending', channel: 'WhatsApp', date: now.toISOString().split('T')[0], timestamp: now.toISOString(), apiSaved: apiSaved });
         localStorage.setItem('purex_orders', JSON.stringify(orders));
-      } catch (e) { console.error('Order save failed:', e); }
+      } catch(e2) {}
+
+      const gstRate = getGSTRate();
+      const gstBreakdown = calcGST(subtotal);
+      orderData = { orderNumber, items: [...cart], subtotal, deliveryFee: deliveryCharge, grandTotal, gstRate: gstRate, gstAmount: Math.round(gstBreakdown.gst), baseSubtotal: Math.round(gstBreakdown.base), customer: { name, phone, city, address, email, notes }, timestamp: now.toISOString() };
 
       // Clear cart
       localStorage.removeItem('purex_cart');
@@ -665,7 +806,7 @@
     // STEP 3: CONFIRMATION
     // ═══════════════════════════════════════════════
     function renderStep3() {
-      const { orderNumber, items, subtotal, customer } = orderData;
+      const { orderNumber, items, subtotal, deliveryFee, grandTotal, customer } = orderData;
 
       // Order number
       document.getElementById('order-number-display').textContent = orderNumber;
@@ -678,8 +819,26 @@
         </div>
       `).join('');
 
-      // Total
-      document.getElementById('confirmation-total').textContent = 'Rs.' + subtotal.toLocaleString();
+      // GST breakdown
+      const gstBreakdown = calcGST(subtotal);
+      document.getElementById('confirmation-base-amount').textContent = 'Rs.' + Math.round(gstBreakdown.base).toLocaleString();
+      document.getElementById('confirmation-gst-row').innerHTML =
+        '<span class="text-xs text-white/30">GST (' + (gstBreakdown.rate * 100) + '%)</span>' +
+        '<span class="text-xs text-white/40">Rs.' + Math.round(gstBreakdown.gst).toLocaleString() + '</span>';
+
+      // Subtotal
+      document.getElementById('confirmation-subtotal').textContent = 'Rs.' + subtotal.toLocaleString();
+
+      // Delivery
+      const deliveryRow = document.getElementById('confirmation-delivery-row');
+      if (deliveryFee === 0) {
+        deliveryRow.innerHTML = '<span class="text-sm text-white/40">Delivery</span><span class="text-sm"><span class="line-through text-white/30 mr-1">Rs.' + getDeliveryFee() + '</span><span class="text-emerald-400 font-medium">FREE</span></span>';
+      } else {
+        deliveryRow.innerHTML = '<span class="text-sm text-white/40">Delivery</span><span class="text-sm text-white/60">Rs.' + deliveryFee.toLocaleString() + '</span>';
+      }
+
+      // Grand Total
+      document.getElementById('confirmation-total').textContent = 'Rs.' + grandTotal.toLocaleString();
 
       // Customer details
       document.getElementById('confirmation-customer').innerHTML = `
@@ -697,7 +856,16 @@
       items.forEach(item => {
         whatsappText += `- ${item.name}${item.sku ? ' [' + item.sku + ']' : ''} ${item.volume ? '(' + item.volume + ')' : ''} x${item.qty} = Rs.${(item.price * item.qty).toLocaleString()}\n`;
       });
-      whatsappText += `\n*Subtotal: Rs.${subtotal.toLocaleString()}*\n\n`;
+      const _gstWa = calcGST(subtotal);
+      whatsappText += `\n*Base Amount: Rs.${Math.round(_gstWa.base).toLocaleString()}*\n`;
+      whatsappText += `*GST (${_gstWa.rate * 100}%): Rs.${Math.round(_gstWa.gst).toLocaleString()}*\n`;
+      whatsappText += `*Subtotal: Rs.${subtotal.toLocaleString()}*\n`;
+      if (deliveryFee === 0) {
+        whatsappText += `*Delivery: ~~Rs.${getDeliveryFee()}~~ FREE (order over Rs.${getFreeThreshold().toLocaleString()})*\n`;
+      } else {
+        whatsappText += `*Delivery: Rs.${deliveryFee.toLocaleString()}*\n`;
+      }
+      whatsappText += `*Total: Rs.${grandTotal.toLocaleString()}*\n\n`;
       whatsappText += `*Customer:* ${customer.name}\n`;
       whatsappText += `*Phone:* ${customer.phone}\n`;
       whatsappText += `*City:* ${customer.city}\n`;

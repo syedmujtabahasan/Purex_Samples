@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html><head><title>Debug</title></head>
+<body style="background:#0a0e17;color:white;font-family:monospace;padding:20px;">
+<h2>Admin Debug</h2>
+<pre id="output">Loading...</pre>
+<script>
+const out = document.getElementById('output');
+function log(msg) { out.textContent += msg + '\n'; }
+
+log('Session token: ' + (sessionStorage.getItem('purex_token') ? 'EXISTS' : 'MISSING'));
+log('Session admin: ' + sessionStorage.getItem('purex_admin'));
+log('Session data: ' + (sessionStorage.getItem('purex_session') ? 'EXISTS' : 'MISSING'));
+log('---');
+
+// Test localStorage products
+const stored = localStorage.getItem('purex_products');
+if (stored) {
+  try {
+    const p = JSON.parse(stored);
+    log('localStorage products: ' + p.length);
+  } catch(e) { log('localStorage parse error: ' + e.message); }
+} else {
+  log('localStorage products: EMPTY (will use defaults)');
+}
+
+// Test API
+fetch('/api/products')
+  .then(r => r.json())
+  .then(d => {
+    log('API /api/products: ' + d.length + ' products');
+    log('First: ' + (d[0] ? d[0].name : 'none'));
+  })
+  .catch(e => log('API error: ' + e.message));
+
+// Test auth API
+const token = sessionStorage.getItem('purex_token');
+if (token) {
+  fetch('/api/orders', { headers: { 'Authorization': 'Bearer ' + token } })
+    .then(r => { log('API /api/orders status: ' + r.status); return r.json(); })
+    .then(d => log('Orders: ' + (Array.isArray(d) ? d.length : JSON.stringify(d))))
+    .catch(e => log('Orders error: ' + e.message));
+}
+</script>
+</body></html>

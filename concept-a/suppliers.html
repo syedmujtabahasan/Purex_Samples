@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/png" href="../assets/purex_icon.png">
+  <title>Suppliers — PUREX Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            purex: { blue: '#4d9ed5', dark: '#0a0e17', light: '#f7f7f7' },
+          },
+          fontFamily: {
+            heading: ['"Plus Jakarta Sans"', 'sans-serif'],
+            body: ['"Inter"', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="js/api-client.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #0a0e17; color: #f7f7f7; font-family: 'Inter', sans-serif; overflow-x: hidden; visibility: hidden; }
+    body.authenticated { visibility: visible; }
+    .glass { background: rgba(77, 158, 213, 0.05); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.08); }
+    .glass-strong { background: rgba(255,255,255,0.04); backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px); border: 1px solid rgba(255,255,255,0.1); }
+    .grain { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; opacity: 0.03; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E"); }
+    .text-gradient { background: linear-gradient(135deg, #4d9ed5, #7bb8e0, #4d9ed5); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .bento-card { transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease, border-color 0.3s ease; }
+    .bento-card:hover { transform: translateY(-2px); box-shadow: 0 10px 40px rgba(77,158,213,0.08); border-color: rgba(77,158,213,0.15); }
+    .sidebar-link { transition: all 0.2s ease; }
+    .sidebar-link:hover, .sidebar-link.active { background: rgba(77,158,213,0.08); color: #4d9ed5; }
+    .sidebar-link.active { border-right: 2px solid #4d9ed5; }
+    #sidebar.collapsed { width: 64px; }
+    #sidebar.collapsed .sidebar-text, #sidebar.collapsed .sidebar-brand-text, #sidebar.collapsed .sidebar-user-info { display: none; }
+    #sidebar.collapsed nav a { justify-content: center; padding-left: 0; padding-right: 0; }
+    #sidebar.collapsed nav a svg { margin: 0; }
+    #sidebar.collapsed .p-6 { padding-left: 12px; padding-right: 12px; }
+    #sidebar.collapsed .px-6 { padding-left: 12px; padding-right: 12px; }
+    #sidebar.collapsed .px-3 { padding-left: 8px; padding-right: 8px; }
+    #sidebar.collapsed .p-4 { padding-left: 8px; padding-right: 8px; }
+    #sidebar.collapsed .px-2 { padding-left: 0; padding-right: 0; justify-content: center; }
+    #sidebar.collapsed #sidebar-toggle-icon { transform: rotate(180deg); }
+    .main-content-shift { transition: margin-left 0.3s ease; }
+    .table-row { transition: background 0.2s ease; }
+    .table-row:hover { background: rgba(77,158,213,0.04); }
+    .modal-overlay { transition: opacity 0.3s ease; }
+    .modal-panel { transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s ease; }
+    .modal-overlay.hidden { opacity: 0; pointer-events: none; }
+    .modal-overlay.hidden .modal-panel { transform: scale(0.95) translateY(10px); opacity: 0; }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: #4d9ed5 !important; box-shadow: 0 0 0 2px rgba(77,158,213,0.15); }
+    select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23ffffff40' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; }
+    .btn-export { display: inline-flex; align-items: center; gap: 5px; padding: 5px 12px; border-radius: 8px; font-size: 10px; letter-spacing: 0.05em; color: rgba(255,255,255,0.45); background: rgba(255,255,255,0.04); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.07); cursor: pointer; transition: all 0.25s ease; white-space: nowrap; }
+    .btn-export:hover { color: rgba(255,255,255,0.7); background: rgba(77,158,213,0.1); border-color: rgba(77,158,213,0.2); }
+    .btn-export svg { opacity: 0.5; }
+    .btn-export:hover svg { opacity: 0.8; }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.15); }
+  </style>
+</head>
+<body>
+  <div class="grain"></div>
+
+  <div class="flex min-h-screen">
+    <!-- SIDEBAR -->
+    <aside id="sidebar" class="hidden lg:flex flex-col w-64 border-r border-white/5 glass-strong fixed h-full z-40 transition-all duration-300">
+      <button id="sidebar-toggle" onclick="toggleSidebar()" class="absolute -right-3 top-5 w-6 h-6 rounded-full glass-strong border border-white/10 flex items-center justify-center text-white/40 hover:text-purex-blue hover:border-purex-blue/30 transition z-50 cursor-pointer" title="Toggle Sidebar">
+        <svg id="sidebar-toggle-icon" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <div class="px-6 pt-4 pb-2"></div>
+      <div class="p-6 pt-2 border-b border-white/5">
+        <a href="/" class="flex items-center gap-3 group">
+          <img src="../assets/purex_icon.png" alt="Purex" class="w-8 h-8 object-contain transition-transform duration-300 group-hover:scale-110">
+          <div class="sidebar-brand-text">
+            <div class="flex items-baseline">
+              <span class="font-heading text-sm font-light tracking-[0.3em] text-white">PURE</span>
+              <span class="font-heading text-lg font-light text-purex-blue">X</span>
+            </div>
+            <p class="text-[9px] tracking-[0.2em] text-white/30 -mt-0.5">ADMIN PANEL</p>
+          </div>
+        </a>
+      </div>
+
+      <nav class="flex-1 py-4 px-3 space-y-1 overflow-y-auto overflow-x-hidden">
+        <a href="/admin.html" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-white/50">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><rect x="2" y="2" width="6" height="6" rx="1"/><rect x="10" y="2" width="6" height="6" rx="1"/><rect x="2" y="10" width="6" height="6" rx="1"/><rect x="10" y="10" width="6" height="6" rx="1"/></svg>
+          <span class="sidebar-text">Dashboard</span>
+        </a>
+        <a href="/" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-white/50">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><path d="M3 9l6-6 6 6"/><path d="M5 7v7a1 1 0 001 1h6a1 1 0 001-1V7"/></svg>
+          <span class="sidebar-text">Home</span>
+        </a>
+        <a href="/shop.html" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-white/50">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><path d="M4 4h10v12H4z"/><path d="M7 4V2h4v2M7 8h4"/></svg>
+          <span class="sidebar-text">Shop</span>
+        </a>
+        <a href="/sale.html" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-red-400/70">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><path d="M9 2l2 4h4l-3 3 1 5-4-3-4 3 1-5-3-3h4z"/></svg>
+          <span class="sidebar-text">Sale</span>
+        </a>
+        <a href="/admin.html#products-section" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-white/50">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><rect x="2" y="3" width="14" height="12" rx="1"/><path d="M2 7h14"/><path d="M6 3v4"/></svg>
+          <span class="sidebar-text">Products</span>
+        </a>
+        <a href="/admin.html#orders-section" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-white/50">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><path d="M2 2l4 14 3-6 6-3z"/></svg>
+          <span class="sidebar-text">Orders</span>
+        </a>
+        <a href="/admin.html#inventory-section" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-white/50">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><path d="M2 14l4-6 3 3 5-7"/></svg>
+          <span class="sidebar-text">Inventory</span>
+        </a>
+        <a href="/admin.html#sales-section" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-white/50">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><path d="M2 16V6l4 4 4-6 4 3 4-5v14z"/></svg>
+          <span class="sidebar-text">Sales</span>
+        </a>
+        <a href="/admin.html#profit-section" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-white/50">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><path d="M9 2v14M6 5h5a2 2 0 010 4H6M7 9h4a2 2 0 010 4H6"/></svg>
+          <span class="sidebar-text">Profits</span>
+        </a>
+        <div class="border-t border-white/5 my-2 mx-2"></div>
+        <a href="/suppliers.html" class="sidebar-link active flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><path d="M2 3h16v4H2zM4 7v8a1 1 0 001 1h8a1 1 0 001-1V7"/><path d="M7 10h4"/></svg>
+          <span class="sidebar-text">Suppliers</span>
+        </a>
+        <a href="/admin.html#invoice-archive-section" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-white/50">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><path d="M4 2h8l3 3v12a1 1 0 01-1 1H4a1 1 0 01-1-1V3a1 1 0 011-1z"/><path d="M7 8h4M7 11h4M7 14h2"/></svg>
+          <span class="sidebar-text">Invoices</span>
+        </a>
+        <a href="/customers.html" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-white/50">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><path d="M9 9a3 3 0 100-6 3 3 0 000 6zM2 16c0-3 3-5 7-5s7 2 7 5"/></svg>
+          <span class="sidebar-text">Customers</span>
+        </a>
+        <div id="admin-only-nav">
+          <div class="border-t border-white/5 my-2 mx-2"></div>
+          <a href="/users.html" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-white/50">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><path d="M12 12a4 4 0 10-8 0 4 4 0 008 0zM16 8a3 3 0 100-6"/><path d="M2 20c0-3 2.5-5 6-5s6 2 6 5"/><path d="M16 11c2 0 4 1.5 4 4"/></svg>
+            <span class="sidebar-text">Users</span>
+          </a>
+          <a href="/activity.html" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-white/50">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg>
+            <span class="sidebar-text">Activity Log</span>
+          </a>
+          <a href="/audit.html" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light tracking-wide text-white/50 hover:text-white hover:bg-white/[0.04] transition-all admin-only-link">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><path d="M9 1v3l2 1.5"/><circle cx="9" cy="9" r="7"/><path d="M1 15h16M4 15v-1.5M14 15v-1.5"/></svg>
+            <span class="sidebar-text">Audit</span>
+          </a>
+          <a href="/admin.html#settings" onclick="localStorage.setItem('purex_open_settings','1')" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light tracking-wide text-white/50 hover:text-white hover:bg-white/[0.04] transition-all admin-only-link">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><circle cx="9" cy="9" r="2"/><path d="M9 1v2M9 15v2M1 9h2M15 9h2M3.05 3.05l1.41 1.41M13.54 13.54l1.41 1.41M3.05 14.95l1.41-1.41M13.54 4.46l1.41-1.41"/></svg>
+            <span class="sidebar-text">Settings</span>
+          </a>
+        </div>
+      </nav>
+
+      <div class="p-4 border-t border-white/5">
+        <div class="flex items-center gap-3 px-2">
+          <div id="sidebar-avatar" class="w-8 h-8 rounded-full bg-purex-blue/20 flex items-center justify-center text-xs text-purex-blue font-heading shrink-0">AD</div>
+          <div class="sidebar-user-info">
+            <p id="sidebar-user-name" class="text-xs text-white font-light">Admin</p>
+            <p id="sidebar-user-role" class="text-[10px] text-white/30">Admin</p>
+          </div>
+          <button onclick="logActivity('Logged out',''); sessionStorage.removeItem('purex_admin'); sessionStorage.removeItem('purex_session'); safeRedirect('/login.html');" class="ml-auto p-2 rounded-lg hover:bg-red-500/10 transition text-white/30 hover:text-red-400" title="Logout">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MOBILE HEADER -->
+    <div class="lg:hidden fixed top-0 left-0 right-0 z-50 glass-strong border-b border-white/5 px-4 py-3 flex items-center justify-between">
+      <a href="/" class="flex items-center gap-2">
+        <img src="../assets/purex_icon.png" alt="Purex" class="w-6 h-6 object-contain">
+        <span class="font-heading text-sm font-light tracking-wider text-white">PUREX</span>
+      </a>
+      <button id="mobile-menu-btn" class="p-2 text-white/50" onclick="document.getElementById('mobile-nav').classList.toggle('hidden')">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 5h14M3 10h14M3 15h14"/></svg>
+      </button>
+    </div>
+    <div id="mobile-nav" class="hidden lg:hidden fixed top-14 left-0 right-0 z-50 glass-strong border-b border-white/5 p-4 space-y-2">
+      <a href="/admin.html" class="block px-4 py-2 text-sm text-white/50 rounded-lg">Dashboard</a>
+      <a href="/suppliers.html" class="block px-4 py-2 text-sm text-purex-blue rounded-lg bg-purex-blue/5">Suppliers</a>
+      <a href="/customers.html" class="block px-4 py-2 text-sm text-white/50 rounded-lg">Customers</a>
+      <button onclick="sessionStorage.removeItem('purex_admin'); sessionStorage.removeItem('purex_session'); safeRedirect('/login.html');" class="block w-full text-left px-4 py-2 text-sm text-red-400/70 rounded-lg hover:bg-red-500/10 transition">Logout</button>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <main id="main-content" class="flex-1 lg:ml-64 pt-14 lg:pt-0 main-content-shift">
+      <header class="sticky top-0 lg:top-0 z-30 glass-strong border-b border-white/5 px-6 py-4 flex items-center justify-between">
+        <div>
+          <h1 class="font-heading text-xl font-light text-white">Suppliers Management</h1>
+          <p class="text-xs text-white/30 mt-0.5">Manage suppliers and purchase invoices</p>
+        </div>
+        <div class="flex items-center gap-4">
+          <a href="/admin.html" class="text-xs text-white/30 hover:text-white/60 transition hidden md:block">&larr; Dashboard</a>
+        </div>
+      </header>
+
+      <div class="p-4 md:p-6 space-y-4 md:space-y-6">
+
+        <!-- Suppliers Section -->
+        <div id="suppliers-section" class="bento-card glass-strong rounded-2xl p-4 md:p-6">
+          <div class="flex items-center justify-between mb-5">
+            <div>
+              <h3 class="font-heading text-sm font-light text-white">Suppliers & Purchase Invoices</h3>
+              <p class="text-[10px] text-white/30 mt-0.5">Track supplier records and incoming purchase invoices</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="exportSuppliersCSV()" class="btn-export">
+                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2v7M3 6l3 3 3-3"/><path d="M2 10v1h8v-1"/></svg>
+                Export
+              </button>
+              <button onclick="openSupplierModal()" class="text-[10px] px-3 py-1.5 rounded-lg bg-purex-blue/20 text-purex-blue hover:bg-purex-blue/30 transition font-light">+ Add Supplier</button>
+            </div>
+          </div>
+
+          <div id="suppliers-list" class="space-y-3 mb-5"></div>
+          <p id="no-suppliers-msg" class="hidden text-xs text-white/20 text-center py-4">No suppliers added yet.</p>
+
+          <!-- Supplier Invoices Section -->
+          <div class="border-t border-white/5 pt-5 mt-2">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h4 class="font-heading text-xs font-light text-white">Purchase Invoices</h4>
+                <p class="text-[10px] text-white/25 mt-0.5">Record incoming invoices from suppliers</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <button onclick="openSupplierInvoiceModal()" class="text-[10px] px-3 py-1.5 rounded-lg bg-amber-500/15 text-amber-400 hover:bg-amber-500/25 transition font-light">+ New Invoice</button>
+                <select id="sinv-filter" onchange="renderSupplierInvoices()" class="text-[10px] bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-white/50 font-light appearance-none cursor-pointer">
+                  <option value="all" class="bg-[#0a0e17]">All Suppliers</option>
+                </select>
+                <select id="sinv-status-filter" onchange="renderSupplierInvoices()" class="text-[10px] bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-white/50 font-light appearance-none cursor-pointer">
+                  <option value="all" class="bg-[#0a0e17]">All Status</option>
+                  <option value="draft" class="bg-[#0a0e17]">Draft</option>
+                  <option value="posted" class="bg-[#0a0e17]">Posted</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs">
+                <thead>
+                  <tr class="text-white/30 border-b border-white/5">
+                    <th class="text-left pb-2 font-light">Invoice #</th>
+                    <th class="text-left pb-2 font-light">Date</th>
+                    <th class="text-left pb-2 font-light">Supplier</th>
+                    <th class="text-right pb-2 font-light">Amount</th>
+                    <th class="text-center pb-2 font-light">Photo</th>
+                    <th class="text-center pb-2 font-light">Status</th>
+                    <th class="text-left pb-2 font-light hidden md:table-cell">Added By</th>
+                    <th class="text-center pb-2 font-light w-24">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="sinv-tbody"></tbody>
+              </table>
+            </div>
+            <p id="no-sinv-msg" class="hidden text-xs text-white/20 text-center py-4">No purchase invoices recorded.</p>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- SUPPLIER MODAL -->
+  <div id="supplier-modal" class="modal-overlay hidden fixed inset-0 z-50 flex items-center justify-center p-4" style="background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);">
+    <div class="glass-strong rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between mb-5">
+        <h3 id="supplier-modal-title" class="font-heading text-sm font-light text-white">Add Supplier</h3>
+        <button onclick="closeSupplierModal()" class="text-white/30 hover:text-white/60 transition">&times;</button>
+      </div>
+      <div class="space-y-3">
+        <input type="hidden" id="sup-edit-id" value="" />
+        <div>
+          <label class="text-[10px] text-white/40 tracking-wider block mb-1">SUPPLIER / COMPANY NAME *</label>
+          <input id="sup-name" type="text" required placeholder="e.g. Ali Chemicals Pvt Ltd" class="w-full rounded-lg px-3 py-2 text-xs bg-white/5 border border-white/10 text-white/80 font-light" />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-[10px] text-white/40 tracking-wider block mb-1">CONTACT PERSON</label>
+            <input id="sup-contact" type="text" placeholder="Name" class="w-full rounded-lg px-3 py-2 text-xs bg-white/5 border border-white/10 text-white/80 font-light" />
+          </div>
+          <div>
+            <label class="text-[10px] text-white/40 tracking-wider block mb-1">PHONE *</label>
+            <input id="sup-phone" type="tel" required placeholder="03XX XXXXXXX" class="w-full rounded-lg px-3 py-2 text-xs bg-white/5 border border-white/10 text-white/80 font-light" />
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-[10px] text-white/40 tracking-wider block mb-1">EMAIL</label>
+            <input id="sup-email" type="email" placeholder="email@company.com" class="w-full rounded-lg px-3 py-2 text-xs bg-white/5 border border-white/10 text-white/80 font-light" />
+          </div>
+          <div>
+            <label class="text-[10px] text-white/40 tracking-wider block mb-1">CITY</label>
+            <input id="sup-city" type="text" placeholder="City" class="w-full rounded-lg px-3 py-2 text-xs bg-white/5 border border-white/10 text-white/80 font-light" />
+          </div>
+        </div>
+        <div>
+          <label class="text-[10px] text-white/40 tracking-wider block mb-1">ADDRESS</label>
+          <input id="sup-address" type="text" placeholder="Full address" class="w-full rounded-lg px-3 py-2 text-xs bg-white/5 border border-white/10 text-white/80 font-light" />
+        </div>
+        <div>
+          <label class="text-[10px] text-white/40 tracking-wider block mb-1">PRODUCTS SUPPLIED</label>
+          <input id="sup-products" type="text" placeholder="e.g. Raw chemicals, Bottles, Labels" class="w-full rounded-lg px-3 py-2 text-xs bg-white/5 border border-white/10 text-white/80 font-light" />
+        </div>
+        <div>
+          <label class="text-[10px] text-white/40 tracking-wider block mb-1">NOTES</label>
+          <textarea id="sup-notes" rows="2" placeholder="Payment terms, credit days, etc." class="w-full rounded-lg px-3 py-2 text-xs bg-white/5 border border-white/10 text-white/80 font-light resize-none"></textarea>
+        </div>
+        <button onclick="saveSupplier()" class="w-full py-2.5 rounded-lg text-xs font-light tracking-wider transition-all duration-300" style="background: rgba(77,158,213,0.15); border: 1px solid rgba(77,158,213,0.3); color: #4d9ed5;">Save Supplier</button>
+        <p id="sup-feedback" class="text-[10px] text-center transition-opacity" style="opacity:0;">&nbsp;</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUPPLIER INVOICE MODAL -->
+  <div id="sinv-modal" class="modal-overlay hidden fixed inset-0 z-50 flex items-center justify-center p-4" style="background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);">
+    <div class="glass-strong rounded-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between mb-5">
+        <h3 id="sinv-modal-title" class="font-heading text-sm font-light text-white">New Purchase Invoice</h3>
+        <button onclick="closeSupplierInvoiceModal()" class="text-white/30 hover:text-white/60 transition">&times;</button>
+      </div>
+      <div class="space-y-3">
+        <input type="hidden" id="sinv-edit-id" value="" />
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-[10px] text-white/40 tracking-wider block mb-1">INVOICE NUMBER *</label>
+            <input id="sinv-number" type="text" required readonly class="w-full rounded-lg px-3 py-2 text-xs bg-white/5 border border-white/10 text-white/80 font-light" />
+          </div>
+          <div>
+            <label class="text-[10px] text-white/40 tracking-wider block mb-1">INVOICE DATE *</label>
+            <input id="sinv-date" type="date" required class="w-full rounded-lg px-3 py-2 text-xs bg-white/5 border border-white/10 text-white/80 font-light" />
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-[10px] text-white/40 tracking-wider block mb-1">SUPPLIER *</label>
+            <select id="sinv-supplier" required class="w-full rounded-lg px-3 py-2 text-xs bg-white/5 border border-white/10 text-white/60 font-light appearance-none cursor-pointer">
+              <option value="" class="bg-[#0a0e17]">Select supplier...</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-[10px] text-white/40 tracking-wider block mb-1">TOTAL AMOUNT (Rs.) *</label>
+            <input id="sinv-amount" type="number" required min="0" placeholder="0" class="w-full rounded-lg px-3 py-2 text-xs bg-white/5 border border-white/10 text-white/80 font-light" />
+          </div>
+        </div>
+        <div>
+          <label class="text-[10px] text-white/40 tracking-wider block mb-1">LINE ITEMS <span class="text-white/20">(optional)</span></label>
+          <div id="sinv-items-list" class="space-y-2 mb-2"></div>
+          <button type="button" onclick="addInvoiceLineItem()" class="text-[10px] px-2 py-1 rounded bg-white/5 text-white/30 hover:text-white/50 transition">+ Add Item</button>
+        </div>
+        <div>
+          <label class="text-[10px] text-white/40 tracking-wider block mb-1">DESCRIPTION / NOTES</label>
+          <textarea id="sinv-desc" rows="2" placeholder="What was purchased, payment method, etc." class="w-full rounded-lg px-3 py-2 text-xs bg-white/5 border border-white/10 text-white/80 font-light resize-none"></textarea>
+        </div>
+        <div>
+          <label class="text-[10px] text-white/40 tracking-wider block mb-1">INVOICE PHOTOS <span class="text-white/20">(max 2MB each)</span></label>
+          <div class="flex items-center gap-3">
+            <label class="cursor-pointer glass rounded-lg px-3 py-2 text-[10px] text-white/40 hover:text-white/60 hover:border-white/20 transition flex items-center gap-1.5">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              Upload Photos
+              <input id="sinv-photo-input" type="file" accept="image/*" multiple class="hidden" onchange="handleInvoicePhotos(this)" />
+            </label>
+            <span id="sinv-photo-name" class="text-[10px] text-white/25">No files</span>
+          </div>
+          <div id="sinv-photos-preview" class="mt-2 flex flex-wrap gap-2"></div>
+        </div>
+        <div class="flex gap-2">
+          <button onclick="saveSupplierInvoice('draft')" class="flex-1 py-2.5 rounded-lg text-xs font-light tracking-wider transition-all duration-300 bg-white/5 border border-white/10 text-white/50 hover:text-white/70">
+            Save as Draft
+          </button>
+          <button onclick="saveSupplierInvoice('posted')" class="flex-1 py-2.5 rounded-lg text-xs font-light tracking-wider transition-all duration-300" style="background: rgba(77,158,213,0.15); border: 1px solid rgba(77,158,213,0.3); color: #4d9ed5;">
+            Post Invoice
+          </button>
+        </div>
+        <p id="sinv-feedback" class="text-[10px] text-center transition-opacity" style="opacity:0;">&nbsp;</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- INVOICE PHOTO FULL VIEW (Gallery) -->
+  <div id="sinv-photo-fullview" class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4 cursor-pointer" style="background: rgba(0,0,0,0.85);" onclick="if(event.target===this)this.classList.add('hidden')">
+    <button id="sinv-gallery-prev" class="hidden absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition z-10 cursor-pointer" onclick="event.stopPropagation();navigateInvoiceGallery(-1)">&#8249;</button>
+    <img id="sinv-photo-full-img" src="" alt="Invoice Photo" class="max-w-full max-h-[90vh] rounded-xl object-contain" />
+    <button id="sinv-gallery-next" class="hidden absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition z-10 cursor-pointer" onclick="event.stopPropagation();navigateInvoiceGallery(1)">&#8250;</button>
+    <span id="sinv-gallery-counter" class="absolute bottom-6 left-1/2 -translate-x-1/2 text-xs text-white/50"></span>
+  </div>
+
+  <!-- SUPPLIER HISTORY MODAL -->
+  <div id="supplier-history-modal" class="modal-overlay hidden fixed inset-0 z-50 flex items-center justify-center p-4" style="background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);">
+    <div class="glass-strong rounded-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between mb-5">
+        <div>
+          <h3 id="sh-title" class="font-heading text-sm font-light text-white">Supplier History</h3>
+          <p id="sh-subtitle" class="text-[10px] text-white/30 mt-0.5"></p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="sh-add-invoice-btn" class="text-[10px] px-3 py-1.5 rounded-lg bg-amber-500/15 text-amber-400 hover:bg-amber-500/25 transition font-light">+ Upload Invoice</button>
+          <button onclick="closeSupplierHistory()" class="text-white/30 hover:text-white/60 transition text-lg">&times;</button>
+        </div>
+      </div>
+      <div id="sh-info" class="glass rounded-xl p-4 mb-4"></div>
+      <div id="sh-stats" class="grid grid-cols-3 gap-3 mb-4"></div>
+      <div class="mb-2">
+        <p class="text-[10px] text-white/40 tracking-wider mb-3">SUPPLY HISTORY</p>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-xs">
+          <thead>
+            <tr class="text-white/30 border-b border-white/5">
+              <th class="text-left pb-2 font-light">Invoice #</th>
+              <th class="text-left pb-2 font-light">Date</th>
+              <th class="text-right pb-2 font-light">Amount</th>
+              <th class="text-center pb-2 font-light">Photo</th>
+              <th class="text-center pb-2 font-light">Status</th>
+              <th class="text-left pb-2 font-light">Added By</th>
+              <th class="text-center pb-2 font-light w-20">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="sh-invoices-tbody"></tbody>
+        </table>
+      </div>
+      <p id="sh-no-invoices" class="hidden text-xs text-white/20 text-center py-6">No invoices yet for this supplier. Click "+ Upload Invoice" to add one.</p>
+    </div>
+  </div>
+
+  <script>
+    // ==================== SIDEBAR TOGGLE ====================
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const main = document.getElementById('main-content');
+      const isCollapsed = sidebar.classList.toggle('collapsed');
+      main.style.marginLeft = isCollapsed ? '64px' : '';
+      localStorage.setItem('purex_sidebar_collapsed', isCollapsed ? '1' : '0');
+    }
+    if (localStorage.getItem('purex_sidebar_collapsed') === '1') {
+      document.getElementById('sidebar').classList.add('collapsed');
+      document.getElementById('main-content').style.marginLeft = '64px';
+    }
+
+    // ==================== AUTH CHECK ====================
+    if (!sessionStorage.getItem('purex_admin') && !sessionStorage.getItem('purex_session') && !sessionStorage.getItem('purex_token')) {
+      safeRedirect('/login.html');
+      throw new Error('Not authenticated');
+    }
+    document.body.classList.add('authenticated');
+
+    function apiHeaders() {
+      const h = { 'Content-Type': 'application/json' };
+      const token = sessionStorage.getItem('purex_token');
+      if (token) h['Authorization'] = 'Bearer ' + token;
+      return h;
+    }
+
+    let currentUser = { name: 'Admin', role: 'admin', permissions: {} };
+    try { const sess = JSON.parse(sessionStorage.getItem('purex_session') || '{}'); if (sess.name) currentUser = sess; } catch(e) {}
+    const isAdmin = currentUser.role === 'admin';
+    const userPerms = currentUser.permissions || {};
+    function hasPermission(perm) { if (isAdmin) return true; return userPerms[perm] === true; }
+
+    // Activity logging
+    function logActivity(action, detail) {
+      fetch('/api/activity', { method: 'POST', headers: apiHeaders(), body: JSON.stringify({ action, detail: detail || '' }) }).catch(() => {});
+      try {
+        const log = JSON.parse(localStorage.getItem('purex_activity_log') || '[]');
+        log.unshift({ id: Date.now(), user: currentUser.name, role: currentUser.role, action, detail: detail || '', timestamp: new Date().toISOString() });
+        if (log.length > 500) log.length = 500;
+        localStorage.setItem('purex_activity_log', JSON.stringify(log));
+      } catch(e) {}
+    }
+
+    // User info in sidebar
+    const initials = currentUser.name.split(' ').map(w => w[0]).join('').toUpperCase().substring(0, 2) || 'U';
+    document.getElementById('sidebar-avatar').textContent = initials;
+    document.getElementById('sidebar-user-name').textContent = currentUser.name;
+    document.getElementById('sidebar-user-role').textContent = isAdmin ? 'Admin' : 'Editor';
+    if (!isAdmin) document.getElementById('admin-only-nav').style.display = 'none';
+
+    gsap.registerPlugin();
+    gsap.from('.bento-card', { opacity: 0, y: 20, duration: 0.5, stagger: 0.08, delay: 0.1, ease: 'power3.out' });
+
+    // ==================== CSV HELPER ====================
+    function downloadCSV(data, filename) {
+      const csv = data.map(row => row.map(cell => {
+        const str = String(cell);
+        return str.includes(',') || str.includes('"') ? '"' + str.replace(/"/g, '""') + '"' : str;
+      }).join(',')).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = filename; a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // ==================== DEFAULT DATA ====================
+    const DEFAULT_SUPPLIERS = [
+      { id: 1, name: 'Ali Chemicals', phone: '0321-4567890', email: 'ali@chemicals.pk', products: 'Cleaning Acid, Bleach', address: 'Multan Road, Gujranwala', notes: 'Reliable bulk supplier' },
+      { id: 2, name: 'Karachi Soap Works', phone: '0300-1234567', email: 'info@karachisoap.pk', products: 'Soap, Detergent Bars', address: 'SITE Area, Karachi', notes: 'Monthly supply contract' },
+      { id: 3, name: 'Punjab Chemicals Ltd', phone: '0333-9876543', email: 'sales@punjabchem.pk', products: 'Neel, Whitener, Bleach', address: 'Industrial Area, Faisalabad', notes: 'Best rates on whiteners' },
+      { id: 4, name: 'Raza Traders', phone: '0345-6543210', email: 'raza.traders@gmail.com', products: 'Packaging, Labels, Bottles', address: 'Anarkali, Gujranwala', notes: 'Packaging materials only' },
+      { id: 5, name: 'National Fragrance Co', phone: '0312-7778899', email: 'orders@nationalfrag.pk', products: 'Fragrance Oils, Surfactants', address: 'Korangi, Karachi', notes: 'Raw material supplier' }
+    ];
+
+    // ==================== SUPPLIERS ====================
+    function loadSuppliers() {
+      try { const stored = localStorage.getItem('purex_suppliers'); if (stored) { const arr = JSON.parse(stored); if (arr.length > 0) return arr; } } catch(e) {}
+      return JSON.parse(JSON.stringify(DEFAULT_SUPPLIERS));
+    }
+    let suppliers = loadSuppliers();
+    if (!localStorage.getItem('purex_suppliers') || JSON.parse(localStorage.getItem('purex_suppliers') || '[]').length === 0) { saveSuppliersToDB(); }
+
+    function saveSuppliersToDB() { localStorage.setItem('purex_suppliers', JSON.stringify(suppliers)); }
+
+    let apiAvailable = false;
+    function apiSaveSupplier(s, isNew) {
+      if (!apiAvailable) return;
+      const body = { name: s.name, phone: s.phone, email: s.email || '', products: s.products || '', address: s.address || '', notes: s.notes || '' };
+      if (isNew) { fetch('/api/suppliers', { method: 'POST', headers: apiHeaders(), body: JSON.stringify(body) }).then(r=>r.json()).then(d=>{ if(d&&d.data&&d.data.id) s.id=d.data.id; }).catch(()=>{}); }
+      else { fetch('/api/suppliers/' + s.id, { method: 'PUT', headers: apiHeaders(), body: JSON.stringify(body) }).catch(()=>{}); }
+    }
+    function apiDeleteSupplier(id) { if (apiAvailable) fetch('/api/suppliers/' + id, { method: 'DELETE', headers: apiHeaders() }).catch(()=>{}); }
+
+    function showFeedback(elId, msg, success) {
+      const fb = document.getElementById(elId);
+      fb.textContent = msg;
+      fb.style.color = success ? '#34d399' : '#f87171';
+      fb.style.opacity = '1';
+      setTimeout(() => { fb.style.opacity = '0'; }, 2500);
+    }
+
+    function openSupplierModal(editId) {
+      document.getElementById('supplier-modal').classList.remove('hidden');
+      document.getElementById('sup-edit-id').value = editId || '';
+      document.getElementById('supplier-modal-title').textContent = editId ? 'Edit Supplier' : 'Add Supplier';
+      if (editId) {
+        const s = suppliers.find(x => x.id == editId);
+        if (s) {
+          document.getElementById('sup-name').value = s.name || '';
+          document.getElementById('sup-contact').value = s.contact || '';
+          document.getElementById('sup-phone').value = s.phone || '';
+          document.getElementById('sup-email').value = s.email || '';
+          document.getElementById('sup-city').value = s.city || '';
+          document.getElementById('sup-address').value = s.address || '';
+          document.getElementById('sup-products').value = s.products || '';
+          document.getElementById('sup-notes').value = s.notes || '';
+        }
+      } else {
+        ['sup-name','sup-contact','sup-phone','sup-email','sup-city','sup-address','sup-products','sup-notes'].forEach(id => { document.getElementById(id).value = ''; });
+      }
+      gsap.from('#supplier-modal .glass-strong', { scale: 0.9, opacity: 0, duration: 0.3, ease: 'back.out(1.5)' });
+    }
+    function closeSupplierModal() { document.getElementById('supplier-modal').classList.add('hidden'); }
+
+    function saveSupplier() {
+      const name = document.getElementById('sup-name').value.trim();
+      const phone = document.getElementById('sup-phone').value.trim();
+      if (!name || !phone) { showFeedback('sup-feedback', 'Name and phone are required.', false); return; }
+      const editId = document.getElementById('sup-edit-id').value;
+      const data = { name, phone, contact: document.getElementById('sup-contact').value.trim(), email: document.getElementById('sup-email').value.trim(), city: document.getElementById('sup-city').value.trim(), address: document.getElementById('sup-address').value.trim(), products: document.getElementById('sup-products').value.trim(), notes: document.getElementById('sup-notes').value.trim() };
+      if (editId) {
+        const s = suppliers.find(x => x.id == editId);
+        if (s) { Object.assign(s, data); apiSaveSupplier(s, false); }
+        logActivity('Updated supplier', name);
+      } else {
+        data.id = Date.now(); data.createdAt = new Date().toISOString(); data.invoiceCount = 0; data.totalPurchased = 0;
+        suppliers.push(data);
+        apiSaveSupplier(data, true);
+        logActivity('Added supplier', name);
+      }
+      saveSuppliersToDB(); renderSuppliers(); populateSupplierDropdowns(); closeSupplierModal();
+    }
+
+    function deleteSupplier(id) {
+      if (!isAdmin) { alert('Only admin can delete suppliers.'); return; }
+      const s = suppliers.find(x => x.id == id);
+      if (!s || !confirm('Delete supplier "' + s.name + '"?')) return;
+      apiDeleteSupplier(id);
+      suppliers = suppliers.filter(x => x.id != id);
+      saveSuppliersToDB(); renderSuppliers(); populateSupplierDropdowns();
+      logActivity('Deleted supplier', s.name);
+    }
+
+    function renderSuppliers() {
+      const container = document.getElementById('suppliers-list');
+      const noMsg = document.getElementById('no-suppliers-msg');
+      if (suppliers.length === 0) { container.innerHTML = ''; noMsg.classList.remove('hidden'); return; }
+      noMsg.classList.add('hidden');
+      container.innerHTML = suppliers.map(s => {
+        const invCount = supplierInvoices.filter(i => i.supplierId == s.id).length;
+        const postedTotal = supplierInvoices.filter(i => i.supplierId == s.id && i.status === 'posted').reduce((sum, i) => sum + (i.amount || 0), 0);
+        const draftCount = supplierInvoices.filter(i => i.supplierId == s.id && i.status === 'draft').length;
+        return `
+        <div class="glass rounded-xl p-3 transition hover:border-purex-blue/20 cursor-pointer group" onclick="openSupplierHistory(${s.id})">
+          <div class="flex items-center justify-between mb-1">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg bg-purex-blue/10 flex items-center justify-center text-[10px] text-purex-blue font-heading">${s.name.substring(0, 2).toUpperCase()}</div>
+              <div>
+                <span class="text-xs text-white/80 font-light group-hover:text-purex-blue transition">${s.name}</span>
+                ${s.city ? '<span class="text-[9px] text-white/25 ml-1.5">' + s.city + '</span>' : ''}
+              </div>
+            </div>
+            <div class="flex items-center gap-1" onclick="event.stopPropagation()">
+              <button onclick="openSupplierModal(${s.id})" class="text-[10px] px-1.5 py-0.5 rounded bg-white/5 text-white/30 hover:text-white/60 transition">Edit</button>
+              ${isAdmin ? '<button onclick="deleteSupplier(' + s.id + ')" class="text-[10px] px-1.5 py-0.5 rounded bg-red-500/5 text-red-400/40 hover:text-red-400 transition">&times;</button>' : ''}
+            </div>
+          </div>
+          <div class="flex items-center gap-3 text-[10px] text-white/30 ml-9">
+            <span>${s.phone}</span>
+            ${s.contact ? '<span>&middot; ' + s.contact + '</span>' : ''}
+            ${s.products ? '<span>&middot; ' + s.products + '</span>' : ''}
+          </div>
+          <div class="flex items-center gap-3 text-[10px] text-white/20 mt-1 ml-9">
+            <span>${invCount} invoice${invCount !== 1 ? 's' : ''}</span>
+            ${draftCount > 0 ? '<span class="text-amber-400/50">' + draftCount + ' draft</span>' : ''}
+            <span>Rs. ${postedTotal.toLocaleString()} total</span>
+            <span class="ml-auto text-purex-blue/40 group-hover:text-purex-blue/70 transition text-[9px]">View History &rarr;</span>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    let currentSupplierHistoryId = null;
+    function openSupplierHistory(supplierId) {
+      currentSupplierHistoryId = supplierId;
+      const s = suppliers.find(x => x.id == supplierId);
+      if (!s) return;
+      document.getElementById('supplier-history-modal').classList.remove('hidden');
+      document.getElementById('sh-title').textContent = s.name;
+      document.getElementById('sh-subtitle').textContent = (s.city || '') + (s.contact ? ' — ' + s.contact : '');
+      document.getElementById('sh-add-invoice-btn').onclick = function() { openSupplierInvoiceModal(); setTimeout(() => { document.getElementById('sinv-supplier').value = supplierId; }, 100); };
+      document.getElementById('sh-info').innerHTML = `<div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-[10px]"><div><p class="text-white/30 mb-0.5">Phone</p><p class="text-white/70 font-light">${s.phone || '-'}</p></div><div><p class="text-white/30 mb-0.5">Email</p><p class="text-white/70 font-light">${s.email || '-'}</p></div><div><p class="text-white/30 mb-0.5">Products</p><p class="text-white/70 font-light">${s.products || '-'}</p></div><div><p class="text-white/30 mb-0.5">Address</p><p class="text-white/70 font-light">${s.address || '-'}</p></div></div>${s.notes ? '<p class="text-[10px] text-white/25 mt-2 italic">' + s.notes + '</p>' : ''}`;
+      const allInvs = supplierInvoices.filter(i => i.supplierId == supplierId);
+      const postedInvs = allInvs.filter(i => i.status === 'posted');
+      const draftInvs = allInvs.filter(i => i.status === 'draft');
+      const totalAmount = postedInvs.reduce((sum, i) => sum + (i.amount || 0), 0);
+      const lastInv = allInvs.sort((a, b) => (b.date || '').localeCompare(a.date || ''))[0];
+      document.getElementById('sh-stats').innerHTML = `<div class="glass rounded-xl p-3 text-center"><p class="text-lg font-heading font-light text-white">${allInvs.length}</p><p class="text-[10px] text-white/30">Total Invoices</p>${draftInvs.length > 0 ? '<p class="text-[9px] text-amber-400/60 mt-0.5">' + draftInvs.length + ' draft</p>' : ''}</div><div class="glass rounded-xl p-3 text-center"><p class="text-lg font-heading font-light text-white">Rs. ${totalAmount.toLocaleString()}</p><p class="text-[10px] text-white/30">Total Purchased</p></div><div class="glass rounded-xl p-3 text-center"><p class="text-sm font-heading font-light text-white">${lastInv ? lastInv.date : '-'}</p><p class="text-[10px] text-white/30">Last Invoice</p></div>`;
+      renderSupplierHistoryInvoices(supplierId);
+      gsap.from('#supplier-history-modal .glass-strong', { scale: 0.95, opacity: 0, duration: 0.3, ease: 'back.out(1.5)' });
+    }
+    function closeSupplierHistory() { document.getElementById('supplier-history-modal').classList.add('hidden'); currentSupplierHistoryId = null; }
+
+    function renderSupplierHistoryInvoices(supplierId) {
+      const invs = supplierInvoices.filter(i => i.supplierId == supplierId).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+      const tbody = document.getElementById('sh-invoices-tbody');
+      const noMsg = document.getElementById('sh-no-invoices');
+      if (invs.length === 0) { tbody.innerHTML = ''; noMsg.classList.remove('hidden'); return; }
+      noMsg.classList.add('hidden');
+      tbody.innerHTML = invs.map(inv => {
+        const isDraft = inv.status === 'draft';
+        const statusBadge = isDraft ? '<span class="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-400">Draft</span>' : '<span class="text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400">Posted</span>';
+        const invPhotos = inv.photos && inv.photos.length ? inv.photos : (inv.photo ? [inv.photo] : []);
+        const photoBtn = invPhotos.length ? `<button onclick="viewInvoicePhotoFull(supplierInvoices.find(x=>x.id==${inv.id}).photos||[supplierInvoices.find(x=>x.id==${inv.id}).photo], 0)" class="text-[9px] text-purex-blue hover:underline">${invPhotos.length > 1 ? invPhotos.length + ' Photos' : 'View'}</button>` : '<span class="text-[9px] text-white/15">-</span>';
+        let actions = '';
+        if (isDraft) { actions = `<button onclick="openSupplierInvoiceModal(${inv.id})" class="text-[10px] px-1.5 py-0.5 rounded bg-white/5 text-white/30 hover:text-white/60 transition">Edit</button><button onclick="postSupplierInvoice(${inv.id}); renderSupplierHistoryInvoices(${supplierId}); renderSuppliers();" class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400/60 hover:text-emerald-400 transition">Post</button>${isAdmin ? '<button onclick="deleteSupplierInvoice(' + inv.id + '); renderSupplierHistoryInvoices(' + supplierId + '); renderSuppliers();" class="text-[10px] px-1.5 py-0.5 rounded bg-red-500/5 text-red-400/40 hover:text-red-400 transition">&times;</button>' : ''}`; }
+        else if (isAdmin) { actions = `<button onclick="openSupplierInvoiceModal(${inv.id})" class="text-[10px] px-1.5 py-0.5 rounded bg-white/5 text-white/30 hover:text-white/60 transition">Edit</button><button onclick="deleteSupplierInvoice(${inv.id}); renderSupplierHistoryInvoices(${supplierId}); renderSuppliers();" class="text-[10px] px-1.5 py-0.5 rounded bg-red-500/5 text-red-400/40 hover:text-red-400 transition">&times;</button>`; }
+        else { actions = '<span class="text-[9px] text-white/15">Locked</span>'; }
+        const hasItems = inv.items && inv.items.length > 0;
+        const itemsHtml = hasItems ? `<tr class="sh-items-row-${inv.id} hidden"><td colspan="7" class="py-2 pl-4"><div class="glass rounded-lg p-2"><table class="w-full text-[10px]"><thead><tr class="text-white/25"><th class="text-left font-light pb-1">Item</th><th class="text-center font-light pb-1">Qty</th><th class="text-right font-light pb-1">Rate</th><th class="text-right font-light pb-1">Total</th></tr></thead><tbody>${inv.items.map(it => `<tr class="text-white/50 border-t border-white/5"><td class="py-1">${it.description}</td><td class="py-1 text-center">${it.qty}</td><td class="py-1 text-right">Rs.${(it.rate || 0).toLocaleString()}</td><td class="py-1 text-right">Rs.${((it.qty || 0) * (it.rate || 0)).toLocaleString()}</td></tr>`).join('')}</tbody></table></div>${inv.description ? '<p class="text-[10px] text-white/25 mt-1.5 italic">' + inv.description + '</p>' : ''}</td></tr>` : '';
+        return `<tr class="border-b border-white/5 hover:bg-white/[0.02] transition ${isDraft ? 'opacity-70' : ''}"><td class="py-2.5 text-xs font-light"><button onclick="document.querySelectorAll('.sh-items-row-${inv.id}').forEach(r=>r.classList.toggle('hidden'))" class="text-purex-blue font-mono hover:underline">${inv.invoiceNumber}</button>${hasItems ? '<span class="text-[9px] text-white/20 ml-1">(' + inv.items.length + ' items)</span>' : ''}</td><td class="py-2.5 text-xs text-white/50 font-light">${inv.date}</td><td class="py-2.5 text-xs text-white/70 font-light text-right">Rs. ${(inv.amount || 0).toLocaleString()}</td><td class="py-2.5 text-center">${photoBtn}</td><td class="py-2.5 text-center">${statusBadge}</td><td class="py-2.5 text-[10px] text-white/25 font-light">${inv.addedBy || '-'}</td><td class="py-2.5 text-center"><div class="flex items-center justify-center gap-1">${actions}</div></td></tr>${itemsHtml}`;
+      }).join('');
+    }
+
+    function exportSuppliersCSV() {
+      if (!hasPermission('exportData')) { alert('No export permission.'); return; }
+      const header = ['Name', 'Contact', 'Phone', 'Email', 'City', 'Address', 'Products', 'Invoices', 'Total Purchased', 'Notes'];
+      const rows = suppliers.map(s => [s.name, s.contact || '', s.phone, s.email || '', s.city || '', s.address || '', s.products || '', s.invoiceCount || 0, s.totalPurchased || 0, (s.notes || '').replace(/,/g, ';')]);
+      downloadCSV([header, ...rows], 'purex-suppliers.csv');
+    }
+
+    // ==================== SUPPLIER INVOICES ====================
+    function loadSupplierInvoices() { try { return JSON.parse(localStorage.getItem('purex_supplier_invoices') || '[]'); } catch(e) { return []; } }
+    let supplierInvoices = loadSupplierInvoices();
+    function saveSupplierInvoicesToDB() { localStorage.setItem('purex_supplier_invoices', JSON.stringify(supplierInvoices)); }
+    function apiSaveInvoice(inv, isNew) {
+      if (!apiAvailable) return;
+      const body = { invoice_number: inv.invoiceNumber, invoice_date: inv.date, supplier_id: inv.supplierId, supplier_name: inv.supplierName || '', amount: inv.amount || 0, description: inv.description || '', status: inv.status || 'draft', items: (inv.items || []).map(i => ({ description: i.item, qty: i.qty, unit_price: i.rate })) };
+      if (isNew) { fetch('/api/invoices', { method: 'POST', headers: apiHeaders(), body: JSON.stringify(body) }).then(r=>r.json()).then(d=>{ if(d&&d.data&&d.data.id) inv.id=d.data.id; }).catch(()=>{}); }
+      else { fetch('/api/invoices/' + inv.id, { method: 'PUT', headers: apiHeaders(), body: JSON.stringify(body) }).catch(()=>{}); }
+    }
+    function apiDeleteInvoice(id) { if (apiAvailable) fetch('/api/invoices/' + id, { method: 'DELETE', headers: apiHeaders() }).catch(()=>{}); }
+    function apiPostInvoice(id) { if (apiAvailable) fetch('/api/invoices/' + id + '/post', { method: 'PATCH', headers: apiHeaders() }).catch(()=>{}); }
+
+    let sinvLineItems = [];
+    let sinvPhotos = [];
+    let sinvGalleryPhotos = [];
+    let sinvGalleryIndex = 0;
+
+    // ==================== LOAD PRODUCTS (for line item dropdowns) ====================
+    function loadProducts() {
+      try { const stored = localStorage.getItem('purex_products'); if (stored) { const arr = JSON.parse(stored); if (arr.length > 0) return arr; } } catch(e) {}
+      return [];
+    }
+    let products = loadProducts();
+
+    function populateSupplierDropdowns() {
+      const select = document.getElementById('sinv-supplier');
+      const val = select.value;
+      select.innerHTML = '<option value="" class="bg-[#0a0e17]">Select supplier...</option>' + suppliers.map(s => `<option value="${s.id}" class="bg-[#0a0e17]">${s.name}</option>`).join('');
+      if (val) select.value = val;
+      const filter = document.getElementById('sinv-filter');
+      const fval = filter.value;
+      filter.innerHTML = '<option value="all" class="bg-[#0a0e17]">All Suppliers</option>' + suppliers.map(s => `<option value="${s.id}" class="bg-[#0a0e17]">${s.name}</option>`).join('');
+      if (fval) filter.value = fval;
+    }
+
+    function generateInvoiceNumber() {
+      const today = new Date().toISOString().split('T')[0].replace(/-/g, '');
+      let maxNum = 0;
+      supplierInvoices.forEach(inv => {
+        const num = inv.invoiceNumber || '';
+        if (num.includes(today)) {
+          const parts = num.split('-');
+          const last = parseInt(parts[parts.length - 1]) || 0;
+          if (last > maxNum) maxNum = last;
+        }
+      });
+      return 'SINV-' + today + '-' + String(maxNum + 1).padStart(3, '0');
+    }
+
+    function openSupplierInvoiceModal(editId) {
+      document.getElementById('sinv-modal').classList.remove('hidden');
+      document.getElementById('sinv-edit-id').value = editId || '';
+      document.getElementById('sinv-modal-title').textContent = editId ? 'Edit Purchase Invoice' : 'New Purchase Invoice';
+      sinvLineItems = []; sinvPhotos = [];
+      populateSupplierDropdowns();
+      if (editId) {
+        const inv = supplierInvoices.find(x => x.id == editId);
+        if (inv) {
+          document.getElementById('sinv-number').value = inv.invoiceNumber || '';
+          document.getElementById('sinv-date').value = inv.date || '';
+          document.getElementById('sinv-supplier').value = inv.supplierId || '';
+          document.getElementById('sinv-amount').value = inv.amount || '';
+          document.getElementById('sinv-desc').value = inv.description || '';
+          sinvLineItems = inv.items ? inv.items.map(it => ({...it})) : [];
+          sinvPhotos = inv.photos ? [...inv.photos] : (inv.photo ? [inv.photo] : []);
+        }
+      } else {
+        document.getElementById('sinv-number').value = generateInvoiceNumber();
+        document.getElementById('sinv-date').value = new Date().toISOString().split('T')[0];
+        document.getElementById('sinv-supplier').value = '';
+        document.getElementById('sinv-amount').value = '';
+        document.getElementById('sinv-desc').value = '';
+      }
+      renderInvoiceLineItems(); updateInvoicePhotosPreview();
+      gsap.from('#sinv-modal .glass-strong', { scale: 0.9, opacity: 0, duration: 0.3, ease: 'back.out(1.5)' });
+    }
+    function closeSupplierInvoiceModal() { document.getElementById('sinv-modal').classList.add('hidden'); }
+
+    function addInvoiceLineItem() { sinvLineItems.push({ description: '', qty: 1, rate: 0, productId: null }); renderInvoiceLineItems(); }
+    function removeInvoiceLineItem(idx) { sinvLineItems.splice(idx, 1); renderInvoiceLineItems(); updateInvoiceTotalFromItems(); }
+
+    function sinvSelectProduct(idx, productId) {
+      const product = products.find(p => p.id == productId);
+      if (product) {
+        sinvLineItems[idx].productId = product.id;
+        sinvLineItems[idx].description = product.name + (product.volume ? ' ' + product.volume : '');
+        sinvLineItems[idx].sku = product.sku || '';
+        sinvLineItems[idx].volume = product.volume || '';
+        sinvLineItems[idx].rate = product.buyPrice || product.buy_price || 0;
+      } else {
+        sinvLineItems[idx].productId = null;
+        sinvLineItems[idx].description = '';
+        sinvLineItems[idx].rate = 0;
+      }
+      renderInvoiceLineItems();
+      updateInvoiceTotalFromItems();
+    }
+
+    function sinvUpdateQty(idx, val) {
+      sinvLineItems[idx].qty = parseInt(val) || 1;
+      renderInvoiceLineItems();
+      updateInvoiceTotalFromItems();
+    }
+
+    function sinvUpdateRate(idx, val) {
+      sinvLineItems[idx].rate = parseInt(val) || 0;
+      renderInvoiceLineItems();
+      updateInvoiceTotalFromItems();
+    }
+
+    function updateInvoiceTotalFromItems() {
+      const total = sinvLineItems.reduce((sum, item) => sum + (item.qty || 1) * (item.rate || 0), 0);
+      document.getElementById('sinv-amount').value = total || '';
+    }
+
+    function renderInvoiceLineItems() {
+      const container = document.getElementById('sinv-items-list');
+      const productOptions = products.map(p => {
+        const label = p.name + (p.volume ? ' — ' + p.volume : '') + (p.sku ? ' (' + p.sku + ')' : '');
+        return { id: p.id, label, buyPrice: p.buyPrice || p.buy_price || 0 };
+      });
+      container.innerHTML = sinvLineItems.map((item, i) => {
+        const optionsHtml = '<option value="" class="bg-[#0d1117]">Select product...</option>' +
+          productOptions.map(p => `<option value="${p.id}" class="bg-[#0d1117]" ${item.productId == p.id ? 'selected' : ''}>${p.label}</option>`).join('');
+        const lineTotal = (item.qty || 1) * (item.rate || 0);
+        return `<div class="flex gap-1.5 items-center">
+          <select onchange="sinvSelectProduct(${i}, this.value)" class="flex-1 rounded-lg px-2 py-1.5 text-[10px] border border-white/10 text-white/70 font-light appearance-none cursor-pointer" style="background:#0d1117;color:#e2e8f0">
+            ${optionsHtml}
+          </select>
+          <input type="number" value="${item.qty}" min="1" onchange="sinvUpdateQty(${i}, this.value)" class="w-12 rounded-lg px-2 py-1.5 text-[10px] bg-white/5 border border-white/10 text-white/70 font-light text-center" placeholder="Qty" />
+          <input type="number" value="${item.rate}" min="0" onchange="sinvUpdateRate(${i}, this.value)" class="w-16 rounded-lg px-2 py-1.5 text-[10px] bg-white/5 border border-white/10 text-white/70 font-light text-right" placeholder="Rate" />
+          <span class="text-[9px] text-white/30 w-16 text-right">${lineTotal > 0 ? 'Rs.' + lineTotal.toLocaleString() : ''}</span>
+          <button onclick="removeInvoiceLineItem(${i})" class="text-red-400/40 hover:text-red-400 text-xs">&times;</button>
+        </div>`;
+      }).join('');
+    }
+
+    // ==================== MULTI-PHOTO HANDLING ====================
+    function handleInvoicePhotos(input) {
+      const files = Array.from(input.files);
+      if (!files.length) return;
+      let rejected = 0;
+      files.forEach(file => {
+        if (file.size > 2 * 1024 * 1024) { rejected++; return; }
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          sinvPhotos.push(e.target.result);
+          updateInvoicePhotosPreview();
+        };
+        reader.readAsDataURL(file);
+      });
+      if (rejected) showFeedback('sinv-feedback', rejected + ' photo(s) skipped (over 2MB).', false);
+      input.value = '';
+    }
+
+    function removeInvoicePhoto(idx) {
+      sinvPhotos.splice(idx, 1);
+      updateInvoicePhotosPreview();
+    }
+
+    function updateInvoicePhotosPreview() {
+      const container = document.getElementById('sinv-photos-preview');
+      const nameEl = document.getElementById('sinv-photo-name');
+      if (sinvPhotos.length) {
+        nameEl.textContent = sinvPhotos.length + ' photo' + (sinvPhotos.length > 1 ? 's' : '') + ' attached';
+        container.innerHTML = sinvPhotos.map((src, i) => `
+          <div class="relative group">
+            <img src="${src}" class="w-20 h-20 rounded-lg object-cover border border-white/10 cursor-pointer" onclick="viewInvoicePhotoFull(sinvPhotos, ${i})" />
+            <button onclick="removeInvoicePhoto(${i})" class="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-red-500/80 text-white text-[10px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition">&times;</button>
+          </div>
+        `).join('');
+      } else {
+        nameEl.textContent = 'No files';
+        container.innerHTML = '';
+      }
+    }
+
+    function viewInvoicePhotoFull(photosArr, idx) {
+      if (typeof photosArr === 'string') { photosArr = [photosArr]; idx = 0; }
+      sinvGalleryPhotos = photosArr;
+      sinvGalleryIndex = idx || 0;
+      renderGalleryView();
+      document.getElementById('sinv-photo-fullview').classList.remove('hidden');
+    }
+
+    function renderGalleryView() {
+      document.getElementById('sinv-photo-full-img').src = sinvGalleryPhotos[sinvGalleryIndex];
+      const prev = document.getElementById('sinv-gallery-prev');
+      const next = document.getElementById('sinv-gallery-next');
+      const counter = document.getElementById('sinv-gallery-counter');
+      if (sinvGalleryPhotos.length > 1) {
+        prev.classList.toggle('hidden', sinvGalleryIndex === 0);
+        next.classList.toggle('hidden', sinvGalleryIndex === sinvGalleryPhotos.length - 1);
+        counter.textContent = (sinvGalleryIndex + 1) + ' / ' + sinvGalleryPhotos.length;
+      } else {
+        prev.classList.add('hidden');
+        next.classList.add('hidden');
+        counter.textContent = '';
+      }
+    }
+
+    function navigateInvoiceGallery(dir) {
+      sinvGalleryIndex = Math.max(0, Math.min(sinvGalleryPhotos.length - 1, sinvGalleryIndex + dir));
+      renderGalleryView();
+    }
+
+    function saveSupplierInvoice(status) {
+      const invoiceNumber = document.getElementById('sinv-number').value.trim();
+      const date = document.getElementById('sinv-date').value;
+      const supplierId = document.getElementById('sinv-supplier').value;
+      const amount = parseInt(document.getElementById('sinv-amount').value) || 0;
+      if (!invoiceNumber || !date || !supplierId || !amount) { showFeedback('sinv-feedback', 'Invoice #, date, supplier, and amount are required.', false); return; }
+
+      // If posting, check capacity limits before saving
+      if (status === 'posted') {
+        const editIdCheck = document.getElementById('sinv-edit-id').value;
+        const isRepost = editIdCheck && supplierInvoices.find(x => x.id == editIdCheck)?._wasPosted;
+        if (!isRepost) {
+          const overCap = [];
+          sinvLineItems.filter(i => i.productId).forEach(item => {
+            const product = products.find(p => p.id == item.productId);
+            if (product && product.capacity) {
+              const newStock = (product.stock || 0) + (item.qty || 0);
+              if (newStock > product.capacity) {
+                overCap.push(product.name + (product.volume ? ' ' + product.volume : '') + ': stock would be ' + newStock + ' / capacity ' + product.capacity);
+              }
+            }
+          });
+          if (overCap.length > 0) {
+            showFeedback('sinv-feedback', 'Cannot post — stock would exceed capacity for: ' + overCap.join(', ') + '. Increase capacity in Product Management first.', false);
+            return;
+          }
+        }
+      }
+
+      const supplier = suppliers.find(s => s.id == supplierId);
+      const editId = document.getElementById('sinv-edit-id').value;
+      let savedInv = null;
+      if (editId) {
+        const inv = supplierInvoices.find(x => x.id == editId);
+        if (inv) {
+          if (inv.status === 'posted' && !isAdmin) { alert('This invoice is posted. Only admin can edit posted invoices.'); return; }
+          const wasPosted = inv.status === 'posted';
+          inv.invoiceNumber = invoiceNumber; inv.date = date; inv.supplierId = parseInt(supplierId);
+          inv.supplierName = supplier ? supplier.name : 'Unknown'; inv.amount = amount;
+          inv.description = document.getElementById('sinv-desc').value.trim();
+          inv.items = sinvLineItems.filter(i => i.description); inv.photos = sinvPhotos.length ? [...sinvPhotos] : []; inv.photo = sinvPhotos[0] || null;
+          inv.status = status; inv.lastEditedBy = currentUser.name; inv.lastEditedAt = new Date().toISOString();
+          inv._wasPosted = wasPosted;
+          savedInv = inv;
+          logActivity('Updated supplier invoice', invoiceNumber + ' (' + status + ')');
+        }
+      } else {
+        const newInv = { id: Date.now(), invoiceNumber, date, supplierId: parseInt(supplierId), supplierName: supplier ? supplier.name : 'Unknown', amount, description: document.getElementById('sinv-desc').value.trim(), items: sinvLineItems.filter(i => i.description), photos: sinvPhotos.length ? [...sinvPhotos] : [], photo: sinvPhotos[0] || null, status, addedBy: currentUser.name, addedAt: new Date().toISOString(), lastEditedBy: currentUser.name, lastEditedAt: new Date().toISOString() };
+        supplierInvoices.push(newInv);
+        savedInv = newInv;
+        logActivity('Added supplier invoice', invoiceNumber + ' Rs.' + amount.toLocaleString() + ' (' + status + ')');
+      }
+
+      // Auto-add stock when posting (not re-saving already posted)
+      if (status === 'posted' && savedInv && savedInv.items && savedInv.items.length > 0) {
+        const wasPosted = savedInv._wasPosted;
+        if (!wasPosted) {
+          let stockUpdated = [];
+          savedInv.items.forEach(item => {
+            if (item.productId) {
+              const product = products.find(p => p.id == item.productId);
+              if (product) {
+                product.stock = (product.stock || 0) + (item.qty || 0);
+                stockUpdated.push(product.name + ' +' + item.qty);
+              }
+            }
+          });
+          if (stockUpdated.length > 0) {
+            localStorage.setItem('purex_products', JSON.stringify(products));
+            // Sync to API if available
+            if (apiAvailable) {
+              savedInv.items.forEach(item => {
+                if (item.productId) {
+                  const product = products.find(p => p.id == item.productId);
+                  if (product) fetch('/api/products/' + product.id, { method: 'PUT', headers: apiHeaders(), body: JSON.stringify(product) }).catch(() => {});
+                }
+              });
+            }
+            logActivity('Stock added from purchase', savedInv.invoiceNumber + ': ' + stockUpdated.join(', '));
+          }
+        }
+      }
+
+      if (savedInv) delete savedInv._wasPosted;
+      updateSupplierTotals(); saveSupplierInvoicesToDB(); renderSupplierInvoices(); renderSuppliers();
+      if (currentSupplierHistoryId) { renderSupplierHistoryInvoices(currentSupplierHistoryId); openSupplierHistory(currentSupplierHistoryId); }
+      closeSupplierInvoiceModal();
+    }
+
+    function updateSupplierTotals() {
+      suppliers.forEach(s => {
+        const invs = supplierInvoices.filter(i => i.supplierId == s.id && i.status === 'posted');
+        s.invoiceCount = invs.length; s.totalPurchased = invs.reduce((sum, i) => sum + (i.amount || 0), 0);
+      });
+      saveSuppliersToDB();
+    }
+
+    function deleteSupplierInvoice(id) {
+      if (!isAdmin) { alert('Only admin can delete posted invoices.'); return; }
+      const inv = supplierInvoices.find(x => x.id == id);
+      if (!inv || !confirm('Delete invoice "' + inv.invoiceNumber + '"?')) return;
+
+      // Reverse stock if posted invoice had line items with products
+      if (inv.status === 'posted' && inv.items && inv.items.length > 0) {
+        let stockReverted = [];
+        inv.items.forEach(item => {
+          if (item.productId) {
+            const product = products.find(p => p.id == item.productId);
+            if (product) {
+              product.stock = Math.max(0, (product.stock || 0) - (item.qty || 0));
+              stockReverted.push(product.name + ' -' + item.qty);
+              if (apiAvailable) fetch('/api/products/' + product.id, { method: 'PUT', headers: apiHeaders(), body: JSON.stringify(product) }).catch(() => {});
+            }
+          }
+        });
+        if (stockReverted.length > 0) {
+          localStorage.setItem('purex_products', JSON.stringify(products));
+          logActivity('Stock reverted from deleted invoice', inv.invoiceNumber + ': ' + stockReverted.join(', '));
+        }
+      }
+
+      supplierInvoices = supplierInvoices.filter(x => x.id != id);
+      updateSupplierTotals(); saveSupplierInvoicesToDB(); renderSupplierInvoices(); renderSuppliers();
+      logActivity('Deleted supplier invoice', inv.invoiceNumber);
+    }
+
+    function postSupplierInvoice(id) {
+      const inv = supplierInvoices.find(x => x.id == id);
+      if (!inv) return;
+
+      // Check capacity BEFORE posting
+      if (inv.items && inv.items.length > 0) {
+        const overCap = [];
+        inv.items.forEach(item => {
+          if (item.productId) {
+            const product = products.find(p => p.id == item.productId);
+            if (product && product.capacity) {
+              const newStock = (product.stock || 0) + (item.qty || 0);
+              if (newStock > product.capacity) {
+                overCap.push(product.name + (product.volume ? ' ' + product.volume : '') + ': stock would be ' + newStock + ' / capacity ' + product.capacity);
+              }
+            }
+          }
+        });
+        if (overCap.length > 0) {
+          alert('Cannot post — stock would exceed capacity for:\n\n' + overCap.join('\n') + '\n\nIncrease capacity in Product Management first.');
+          return;
+        }
+      }
+
+      inv.status = 'posted'; inv.postedBy = currentUser.name; inv.postedAt = new Date().toISOString();
+
+      // Auto-add stock from line items
+      if (inv.items && inv.items.length > 0) {
+        let stockUpdated = [];
+        inv.items.forEach(item => {
+          if (item.productId) {
+            const product = products.find(p => p.id == item.productId);
+            if (product) {
+              product.stock = (product.stock || 0) + (item.qty || 0);
+              if (product.capacity && product.stock > product.capacity) {
+                product.capacity = product.stock;
+              }
+              stockUpdated.push(product.name + ' +' + item.qty);
+              if (apiAvailable) fetch('/api/products/' + product.id, { method: 'PUT', headers: apiHeaders(), body: JSON.stringify(product) }).catch(() => {});
+            }
+          }
+        });
+        if (stockUpdated.length > 0) {
+          localStorage.setItem('purex_products', JSON.stringify(products));
+          logActivity('Stock added from purchase', inv.invoiceNumber + ': ' + stockUpdated.join(', '));
+        }
+      }
+
+      saveSupplierInvoicesToDB(); updateSupplierTotals(); renderSupplierInvoices(); renderSuppliers();
+      apiPostInvoice(inv.id);
+      logActivity('Posted supplier invoice', inv.invoiceNumber);
+    }
+
+    function renderSupplierInvoices() {
+      const filterSup = document.getElementById('sinv-filter').value;
+      const filterStatus = document.getElementById('sinv-status-filter').value;
+      let filtered = supplierInvoices.filter(inv => { if (filterSup !== 'all' && inv.supplierId != filterSup) return false; if (filterStatus !== 'all' && inv.status !== filterStatus) return false; return true; });
+      filtered.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+      const tbody = document.getElementById('sinv-tbody');
+      const noMsg = document.getElementById('no-sinv-msg');
+      if (filtered.length === 0) { tbody.innerHTML = ''; noMsg.classList.remove('hidden'); return; }
+      noMsg.classList.add('hidden');
+      tbody.innerHTML = filtered.map(inv => {
+        const isDraft = inv.status === 'draft';
+        const statusBadge = isDraft ? '<span class="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-400">Draft</span>' : '<span class="text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400">Posted</span>';
+        const invPhotos = inv.photos && inv.photos.length ? inv.photos : (inv.photo ? [inv.photo] : []);
+        const photoBtn = invPhotos.length ? `<button onclick="viewInvoicePhotoFull(supplierInvoices.find(x=>x.id==${inv.id}).photos||[supplierInvoices.find(x=>x.id==${inv.id}).photo], 0)" class="text-[9px] text-purex-blue hover:underline">${invPhotos.length > 1 ? invPhotos.length + ' Photos' : 'View'}</button>` : '<span class="text-[9px] text-white/15">-</span>';
+        let actions = '';
+        if (isDraft) { actions = `<button onclick="openSupplierInvoiceModal(${inv.id})" class="text-[10px] px-1.5 py-0.5 rounded bg-white/5 text-white/30 hover:text-white/60 transition">Edit</button><button onclick="postSupplierInvoice(${inv.id})" class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400/60 hover:text-emerald-400 transition">Post</button>${isAdmin ? '<button onclick="deleteSupplierInvoice(' + inv.id + ')" class="text-[10px] px-1.5 py-0.5 rounded bg-red-500/5 text-red-400/40 hover:text-red-400 transition">&times;</button>' : ''}`; }
+        else if (isAdmin) { actions = `<button onclick="openSupplierInvoiceModal(${inv.id})" class="text-[10px] px-1.5 py-0.5 rounded bg-white/5 text-white/30 hover:text-white/60 transition">Edit</button><button onclick="deleteSupplierInvoice(${inv.id})" class="text-[10px] px-1.5 py-0.5 rounded bg-red-500/5 text-red-400/40 hover:text-red-400 transition">&times;</button>`; }
+        else { actions = '<span class="text-[9px] text-white/15">Locked</span>'; }
+        return `<tr class="border-b border-white/5 hover:bg-white/[0.02] transition ${isDraft ? 'opacity-70' : ''}"><td class="py-2.5 text-xs text-purex-blue font-mono font-light">${inv.invoiceNumber}</td><td class="py-2.5 text-xs text-white/50 font-light">${inv.date}</td><td class="py-2.5 text-xs text-white/60 font-light">${inv.supplierName || '-'}</td><td class="py-2.5 text-xs text-white/70 font-light text-right">Rs. ${(inv.amount || 0).toLocaleString()}</td><td class="py-2.5 text-center">${photoBtn}</td><td class="py-2.5 text-center">${statusBadge}</td><td class="py-2.5 text-[10px] text-white/25 font-light hidden md:table-cell">${inv.addedBy || '-'}</td><td class="py-2.5 text-center"><div class="flex items-center justify-center gap-1">${actions}</div></td></tr>`;
+      }).join('');
+    }
+
+    // ==================== API SYNC ====================
+    async function syncFromAPI() {
+      try {
+        const testRes = await fetch('/api/suppliers', { headers: apiHeaders() });
+        if (!testRes.ok) return;
+        apiAvailable = true;
+        const apiSup = await testRes.json();
+        if (Array.isArray(apiSup) && apiSup.length > 0) {
+          suppliers = apiSup.map(s => ({ id: Number(s.id), name: s.name, phone: s.phone || '', email: s.email || '', products: s.products || '', address: s.address || '', notes: s.notes || '' }));
+          localStorage.setItem('purex_suppliers', JSON.stringify(suppliers));
+        }
+        // Also sync products for line item dropdowns
+        try {
+          const prodRes = await fetch('/api/products', { headers: apiHeaders() });
+          if (prodRes.ok) {
+            const apiProd = await prodRes.json();
+            if (Array.isArray(apiProd) && apiProd.length > 0) {
+              products = apiProd.map(p => ({ id: Number(p.id), name: p.name, sku: p.sku || '', volume: p.volume || '', buyPrice: Number(p.buy_price || p.buyPrice || 0), stock: Number(p.stock || 0), capacity: Number(p.capacity || 100) }));
+            }
+          }
+        } catch(e) {}
+        const invRes = await fetch('/api/invoices', { headers: apiHeaders() });
+        if (invRes.ok) {
+          const apiInv = await invRes.json();
+          if (Array.isArray(apiInv)) {
+            supplierInvoices = apiInv.map(inv => ({ id: inv.id, invoiceNumber: inv.invoice_number, date: inv.invoice_date, supplierId: Number(inv.supplier_id), supplierName: inv.supplier_name || '', amount: Number(inv.amount || 0), description: inv.description || '', status: inv.status || 'draft', addedBy: inv.added_by || '', lastEditedBy: inv.last_edited_by || '', items: (inv.items || []).map(it => ({ item: it.description || '', description: it.description || '', productId: it.product_id ? Number(it.product_id) : null, qty: Number(it.qty || 1), rate: Number(it.unit_price || 0), total: Number(it.total || 0) })) }));
+            localStorage.setItem('purex_supplier_invoices', JSON.stringify(supplierInvoices));
+          }
+        }
+        renderSuppliers(); populateSupplierDropdowns(); renderSupplierInvoices();
+      } catch(e) { console.log('API not available:', e.message); }
+    }
+
+    // ==================== INIT ====================
+    renderSuppliers();
+    populateSupplierDropdowns();
+    renderSupplierInvoices();
+    syncFromAPI();
+
+    // Close modals on overlay click / Escape
+    document.getElementById('supplier-modal').addEventListener('click', function(e) { if (e.target === this) closeSupplierModal(); });
+    document.getElementById('sinv-modal').addEventListener('click', function(e) { if (e.target === this) closeSupplierInvoiceModal(); });
+    document.getElementById('supplier-history-modal').addEventListener('click', function(e) { if (e.target === this) closeSupplierHistory(); });
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        if (!document.getElementById('supplier-modal').classList.contains('hidden')) closeSupplierModal();
+        if (!document.getElementById('sinv-modal').classList.contains('hidden')) closeSupplierInvoiceModal();
+        if (!document.getElementById('supplier-history-modal').classList.contains('hidden')) closeSupplierHistory();
+        if (!document.getElementById('sinv-photo-fullview').classList.contains('hidden')) document.getElementById('sinv-photo-fullview').classList.add('hidden');
+      }
+    });
+  </script>
+</body>
+</html>

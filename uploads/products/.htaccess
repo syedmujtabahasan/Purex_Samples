@@ -1,0 +1,7 @@
+# Inherit parent rules. This file exists as a backstop
+# in case the parent .htaccess is deleted or misconfigured.
+php_flag engine off
+Options -Indexes -ExecCGI
+<FilesMatch "\.(ph(p[0-9]?|t|tml|ps)|cgi|pl|py|sh)$">
+  Require all denied
+</FilesMatch>

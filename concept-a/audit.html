@@ -1,0 +1,2150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/png" href="../assets/purex_icon.png">
+  <title>Audit &amp; Reports — PUREX Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: { purex: { blue: '#4d9ed5', dark: '#0a0e17', light: '#f7f7f7' } },
+          fontFamily: { heading: ['"Plus Jakarta Sans"', 'sans-serif'], body: ['"Inter"', 'sans-serif'] }
+        }
+      }
+    }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/svg2pdf.js@2.2.4/dist/svg2pdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+  <script src="js/api-client.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #0a0e17; color: #f7f7f7; font-family: 'Inter', sans-serif; overflow-x: hidden; visibility: hidden; }
+    body.authenticated { visibility: visible; }
+    .glass { background: rgba(77,158,213,0.05); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.08); }
+    .glass-strong { background: rgba(255,255,255,0.04); backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px); border: 1px solid rgba(255,255,255,0.1); }
+    .grain { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; opacity: 0.03; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E"); }
+    .bento-card { transition: transform 0.3s cubic-bezier(0.22,1,0.36,1), box-shadow 0.3s ease, border-color 0.3s ease; }
+    .bento-card:hover { transform: translateY(-2px); box-shadow: 0 10px 40px rgba(77,158,213,0.08); border-color: rgba(77,158,213,0.15); }
+    .sidebar-link { transition: all 0.2s ease; }
+    .sidebar-link:hover, .sidebar-link.active { background: rgba(77,158,213,0.08); color: #4d9ed5; }
+    .sidebar-link.active { border-right: 2px solid #4d9ed5; }
+    #sidebar.collapsed { width: 64px; }
+    #sidebar.collapsed .sidebar-text, #sidebar.collapsed .sidebar-brand-text, #sidebar.collapsed .sidebar-user-info { display: none; }
+    #sidebar.collapsed nav a { justify-content: center; padding-left: 0; padding-right: 0; }
+    #sidebar.collapsed nav a svg { margin: 0; }
+    #sidebar.collapsed .p-6 { padding-left: 12px; padding-right: 12px; }
+    #sidebar.collapsed .px-6 { padding-left: 12px; padding-right: 12px; }
+    #sidebar.collapsed .px-3 { padding-left: 8px; padding-right: 8px; }
+    #sidebar.collapsed .p-4 { padding-left: 8px; padding-right: 8px; }
+    #sidebar.collapsed .px-2 { padding-left: 0; padding-right: 0; justify-content: center; }
+    #sidebar.collapsed #sidebar-toggle-icon { transform: rotate(180deg); }
+    .main-content-shift { transition: margin-left 0.3s ease; }
+    input:focus, select:focus { outline: none; border-color: #4d9ed5 !important; box-shadow: 0 0 0 2px rgba(77,158,213,0.15); }
+    select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23ffffff40' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.15); }
+
+    /* Tab pills */
+    .tab-pill { padding: 6px 16px; border-radius: 999px; font-size: 11px; letter-spacing: 0.04em; font-weight: 400; color: rgba(255,255,255,0.4); background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); cursor: pointer; transition: all 0.25s ease; white-space: nowrap; }
+    .tab-pill:hover { color: rgba(255,255,255,0.6); background: rgba(77,158,213,0.08); }
+    .tab-pill.active { color: #fff; background: rgba(77,158,213,0.2); border-color: rgba(77,158,213,0.35); box-shadow: 0 0 14px rgba(77,158,213,0.12); }
+
+    /* Date range pills */
+    .date-pill { padding: 5px 13px; border-radius: 999px; font-size: 10px; letter-spacing: 0.04em; color: rgba(255,255,255,0.4); background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); cursor: pointer; transition: all 0.25s ease; white-space: nowrap; }
+    .date-pill:hover { color: rgba(255,255,255,0.6); background: rgba(77,158,213,0.08); }
+    .date-pill.active { color: #fff; background: rgba(77,158,213,0.22); border-color: rgba(77,158,213,0.38); box-shadow: 0 0 12px rgba(77,158,213,0.12); }
+
+    /* Category filter pills (audit trail) */
+    .cat-pill { padding: 4px 12px; border-radius: 999px; font-size: 10px; color: rgba(255,255,255,0.35); background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); cursor: pointer; transition: all 0.2s ease; white-space: nowrap; }
+    .cat-pill:hover { color: rgba(255,255,255,0.55); background: rgba(77,158,213,0.07); }
+    .cat-pill.active { color: #4d9ed5; background: rgba(77,158,213,0.12); border-color: rgba(77,158,213,0.25); }
+
+    /* Export buttons */
+    .btn-export { display: inline-flex; align-items: center; gap: 5px; padding: 5px 12px; border-radius: 8px; font-size: 10px; letter-spacing: 0.05em; color: rgba(255,255,255,0.45); background: rgba(255,255,255,0.04); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.07); cursor: pointer; transition: all 0.25s ease; white-space: nowrap; }
+    .btn-export:hover { color: rgba(255,255,255,0.7); background: rgba(77,158,213,0.1); border-color: rgba(77,158,213,0.2); }
+    .btn-export svg { opacity: 0.5; transition: opacity 0.2s; }
+    .btn-export:hover svg { opacity: 0.8; }
+
+    /* KPI cards */
+    .kpi-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); border-radius: 16px; padding: 18px 20px; transition: all 0.3s cubic-bezier(0.22,1,0.36,1); }
+    .kpi-card:hover { border-color: rgba(77,158,213,0.2); background: rgba(77,158,213,0.04); transform: translateY(-2px); box-shadow: 0 8px 32px rgba(77,158,213,0.07); }
+
+    /* Tables */
+    .audit-table { width: 100%; border-collapse: collapse; }
+    .audit-table th { font-size: 10px; font-weight: 500; letter-spacing: 0.08em; color: rgba(255,255,255,0.3); text-transform: uppercase; padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,0.06); text-align: left; white-space: nowrap; background: rgba(255,255,255,0.02); }
+    .audit-table td { font-size: 11px; color: rgba(255,255,255,0.6); padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: middle; }
+    .audit-table tr:hover td { background: rgba(77,158,213,0.03); }
+    .audit-table tr:last-child td { border-bottom: none; }
+    .audit-table .total-row td { background: rgba(77,158,213,0.06); color: rgba(255,255,255,0.8); font-weight: 500; border-top: 1px solid rgba(77,158,213,0.15); }
+    .audit-table .discrepancy td { background: rgba(239,68,68,0.05); }
+    .audit-table .discrepancy td:first-child { border-left: 2px solid rgba(239,68,68,0.4); }
+
+    /* Table wrapper */
+    .table-wrap { overflow-x: auto; border-radius: 12px; }
+    .table-wrap::-webkit-scrollbar { height: 4px; }
+    .table-wrap::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.06); border-radius: 2px; }
+
+    /* Sticky header in table */
+    .sticky-head th { position: sticky; top: 0; z-index: 2; }
+
+    /* Tab panels */
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* Badge */
+    .badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 999px; font-size: 9px; letter-spacing: 0.06em; font-weight: 500; }
+    .badge-green { background: rgba(16,185,129,0.12); color: #34d399; border: 1px solid rgba(16,185,129,0.2); }
+    .badge-blue { background: rgba(77,158,213,0.12); color: #4d9ed5; border: 1px solid rgba(77,158,213,0.2); }
+    .badge-amber { background: rgba(245,158,11,0.12); color: #fbbf24; border: 1px solid rgba(245,158,11,0.2); }
+    .badge-red { background: rgba(239,68,68,0.12); color: #f87171; border: 1px solid rgba(239,68,68,0.2); }
+    .badge-purple { background: rgba(139,92,246,0.12); color: #a78bfa; border: 1px solid rgba(139,92,246,0.2); }
+    .badge-gray { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.4); border: 1px solid rgba(255,255,255,0.08); }
+
+    /* Loading spinner */
+    .spinner { width: 28px; height: 28px; border: 2px solid rgba(77,158,213,0.15); border-top-color: #4d9ed5; border-radius: 50%; animation: spin 0.7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Empty state */
+    .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48px 24px; gap: 10px; }
+    .empty-state svg { opacity: 0.15; }
+    .empty-state p { font-size: 12px; color: rgba(255,255,255,0.25); }
+
+    /* Storage bar */
+    .storage-bar-bg { height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden; }
+    .storage-bar-fill { height: 100%; border-radius: 2px; background: linear-gradient(90deg, #4d9ed5, #7bb8e0); transition: width 0.6s ease; }
+
+    /* Tampered badge */
+    .tampered-badge { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.25); padding: 2px 7px; border-radius: 6px; font-size: 9px; font-weight: 600; letter-spacing: 0.08em; }
+
+    /* Dropdown */
+    .dropdown-menu { position: absolute; right: 0; top: calc(100% + 6px); min-width: 140px; background: rgba(15,18,30,0.97); backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; overflow: hidden; z-index: 100; box-shadow: 0 16px 48px rgba(0,0,0,0.4); }
+    .dropdown-menu button { display: flex; align-items: center; gap: 8px; width: 100%; padding: 9px 14px; font-size: 11px; color: rgba(255,255,255,0.55); background: transparent; border: none; cursor: pointer; transition: all 0.15s ease; }
+    .dropdown-menu button:hover { background: rgba(77,158,213,0.1); color: #fff; }
+
+    /* Ambient glow */
+    .ambient-glow { position: fixed; top: -20%; right: -10%; width: 600px; height: 600px; background: radial-gradient(circle, rgba(77,158,213,0.04) 0%, transparent 70%); pointer-events: none; z-index: 0; }
+  </style>
+</head>
+<body>
+  <div class="grain"></div>
+  <div class="ambient-glow"></div>
+
+  <div class="flex min-h-screen">
+
+    <!-- SIDEBAR -->
+    <aside id="sidebar" class="hidden lg:flex flex-col w-64 border-r border-white/5 glass-strong fixed h-full z-40 transition-all duration-300">
+      <button id="sidebar-toggle" onclick="toggleSidebar()" class="absolute -right-3 top-5 w-6 h-6 rounded-full glass-strong border border-white/10 flex items-center justify-center text-white/40 hover:text-purex-blue hover:border-purex-blue/30 transition z-50 cursor-pointer" title="Toggle Sidebar">
+        <svg id="sidebar-toggle-icon" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <div class="px-6 pt-4 pb-2"></div>
+      <div class="p-6 pt-2 border-b border-white/5">
+        <a href="/" class="flex items-center gap-3 group">
+          <img src="../assets/purex_icon.png" alt="Purex" class="w-8 h-8 object-contain transition-transform duration-300 group-hover:scale-110">
+          <div class="sidebar-brand-text">
+            <div class="flex items-baseline"><span class="font-heading text-sm font-light tracking-[0.3em] text-white">PURE</span><span class="font-heading text-lg font-light text-purex-blue">X</span></div>
+            <p class="text-[9px] tracking-[0.2em] text-white/30 -mt-0.5">ADMIN PANEL</p>
+          </div>
+        </a>
+      </div>
+      <nav class="flex-1 py-4 px-3 space-y-1 overflow-y-auto overflow-x-hidden">
+        <a href="/admin.html" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-white/50">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><rect x="2" y="2" width="6" height="6" rx="1"/><rect x="10" y="2" width="6" height="6" rx="1"/><rect x="2" y="10" width="6" height="6" rx="1"/><rect x="10" y="10" width="6" height="6" rx="1"/></svg>
+          <span class="sidebar-text">Dashboard</span>
+        </a>
+        <a href="/" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-white/50">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><path d="M3 9l6-6 6 6"/><path d="M5 7v7a1 1 0 001 1h6a1 1 0 001-1V7"/></svg>
+          <span class="sidebar-text">Home</span>
+        </a>
+        <a href="/shop.html" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-white/50">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><path d="M4 4h10v12H4z"/><path d="M7 4V2h4v2M7 8h4"/></svg>
+          <span class="sidebar-text">Shop</span>
+        </a>
+        <a href="/sale.html" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-red-400/70">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><path d="M9 2l2 4h4l-3 3 1 5-4-3-4 3 1-5-3-3h4z"/></svg>
+          <span class="sidebar-text">Sale</span>
+        </a>
+        <a href="/admin.html#products-section" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-white/50">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><rect x="2" y="3" width="14" height="12" rx="1"/><path d="M2 7h14"/><path d="M6 3v4"/></svg>
+          <span class="sidebar-text">Products</span>
+        </a>
+        <a href="/admin.html#orders-section" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-white/50">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><path d="M2 2l4 14 3-6 6-3z"/></svg>
+          <span class="sidebar-text">Orders</span>
+        </a>
+        <a href="/admin.html#inventory-section" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-white/50">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><path d="M2 14l4-6 3 3 5-7"/></svg>
+          <span class="sidebar-text">Inventory</span>
+        </a>
+        <a href="/admin.html#sales-section" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-white/50">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><path d="M2 16V6l4 4 4-6 4 3 4-5v14z"/></svg>
+          <span class="sidebar-text">Sales</span>
+        </a>
+        <a href="/admin.html#profit-section" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-white/50">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><path d="M9 2v14M6 5h5a2 2 0 010 4H6M7 9h4a2 2 0 010 4H6"/></svg>
+          <span class="sidebar-text">Profits</span>
+        </a>
+        <div class="border-t border-white/5 my-2 mx-2"></div>
+        <a href="/suppliers.html" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-white/50">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><path d="M2 3h16v4H2zM4 7v8a1 1 0 001 1h8a1 1 0 001-1V7"/><path d="M7 10h4"/></svg>
+          <span class="sidebar-text">Suppliers</span>
+        </a>
+        <a href="/admin.html#invoice-archive-section" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-white/50">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><path d="M4 2h8l3 3v12a1 1 0 01-1 1H4a1 1 0 01-1-1V3a1 1 0 011-1z"/><path d="M7 8h4M7 11h4M7 14h2"/></svg>
+          <span class="sidebar-text">Invoices</span>
+        </a>
+        <a href="/customers.html" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-white/50">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><path d="M9 9a3 3 0 100-6 3 3 0 000 6zM2 16c0-3 3-5 7-5s7 2 7 5"/></svg>
+          <span class="sidebar-text">Customers</span>
+        </a>
+        <div class="border-t border-white/5 my-2 mx-2"></div>
+        <a href="/users.html" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-white/50">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><path d="M12 12a4 4 0 10-8 0 4 4 0 008 0zM16 8a3 3 0 100-6"/><path d="M2 20c0-3 2.5-5 6-5s6 2 6 5"/><path d="M16 11c2 0 4 1.5 4 4"/></svg>
+          <span class="sidebar-text">Users</span>
+        </a>
+        <a href="/activity.html" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-white/50">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg>
+          <span class="sidebar-text">Activity Log</span>
+        </a>
+        <a href="/audit.html" class="sidebar-link active flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><path d="M9 12l2 2 4-4"/><path d="M5 7H3a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-2"/><rect x="7" y="2" width="8" height="6" rx="1" ry="1"/></svg>
+          <span class="sidebar-text">Audit &amp; Reports</span>
+        </a>
+        <a href="/admin.html#settings" onclick="localStorage.setItem('purex_open_settings','1')" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-white/50">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><circle cx="9" cy="9" r="2"/><path d="M9 1v2M9 15v2M1 9h2M15 9h2M3.05 3.05l1.41 1.41M13.54 13.54l1.41 1.41M3.05 14.95l1.41-1.41M13.54 4.46l1.41-1.41"/></svg>
+          <span class="sidebar-text">Settings</span>
+        </a>
+      </nav>
+      <div class="p-4 border-t border-white/5">
+        <div class="flex items-center gap-3 px-2">
+          <div id="sidebar-avatar" class="w-8 h-8 rounded-full bg-purex-blue/20 flex items-center justify-center text-xs text-purex-blue font-heading shrink-0">AD</div>
+          <div class="sidebar-user-info">
+            <p id="sidebar-user-name" class="text-xs text-white font-light">Admin</p>
+            <p id="sidebar-user-role" class="text-[10px] text-white/30">Admin</p>
+          </div>
+          <button id="logout-btn" class="ml-auto p-2 rounded-lg hover:bg-red-500/10 transition text-white/30 hover:text-red-400" title="Logout">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MOBILE TOPBAR -->
+    <div class="lg:hidden fixed top-0 left-0 right-0 z-50 glass-strong border-b border-white/5 px-4 py-3 flex items-center justify-between">
+      <a href="/" class="flex items-center gap-2">
+        <img src="../assets/purex_icon.png" alt="Purex" class="w-6 h-6 object-contain">
+        <span class="font-heading text-sm font-light tracking-wider text-white">PUREX</span>
+      </a>
+      <button class="p-2 text-white/50" onclick="document.getElementById('mobile-nav').classList.toggle('hidden')">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 5h14M3 10h14M3 15h14"/></svg>
+      </button>
+    </div>
+    <div id="mobile-nav" class="hidden lg:hidden fixed top-14 left-0 right-0 z-50 glass-strong border-b border-white/5 p-4 space-y-2">
+      <a href="/admin.html" class="block px-4 py-2 text-sm text-white/50 rounded-lg">Dashboard</a>
+      <a href="/customers.html" class="block px-4 py-2 text-sm text-white/50 rounded-lg">Customers</a>
+      <a href="/suppliers.html" class="block px-4 py-2 text-sm text-white/50 rounded-lg">Suppliers</a>
+      <a href="/activity.html" class="block px-4 py-2 text-sm text-white/50 rounded-lg">Activity</a>
+      <a href="/audit.html" class="block px-4 py-2 text-sm text-purex-blue rounded-lg bg-purex-blue/5">Audit &amp; Reports</a>
+      <button id="mobile-logout-btn" class="block w-full text-left px-4 py-2 text-sm text-red-400/70 rounded-lg">Logout</button>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <main id="main-content" class="flex-1 lg:ml-64 pt-14 lg:pt-0 main-content-shift relative z-10">
+
+      <!-- HEADER -->
+      <header class="sticky top-0 lg:top-0 z-30 glass-strong border-b border-white/5 px-4 md:px-6 py-4 flex items-start md:items-center justify-between gap-3">
+        <div>
+          <h1 class="font-heading text-xl font-light text-white flex items-center gap-2">
+            <svg width="20" height="20" fill="none" stroke="#4d9ed5" stroke-width="1.5" class="shrink-0"><path d="M9 12l2 2 4-4"/><path d="M5 7H3a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-2"/><rect x="7" y="2" width="8" height="6" rx="1" ry="1"/></svg>
+            Audit &amp; Reports
+          </h1>
+          <p class="text-xs text-white/30 mt-0.5">Immutable financial records &amp; compliance reports</p>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+          <!-- Storage indicator -->
+          <div class="hidden md:block text-right mr-2">
+            <p class="text-[9px] text-white/30 mb-1">Storage used</p>
+            <div class="storage-bar-bg w-24"><div id="storage-bar" class="storage-bar-fill" style="width:0%"></div></div>
+            <p id="storage-label" class="text-[9px] text-white/20 mt-0.5">— KB</p>
+          </div>
+          <!-- Export All dropdown -->
+          <div class="relative" id="export-all-wrap">
+            <button onclick="toggleExportAllMenu()" class="btn-export text-xs px-3 py-2 rounded-xl">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Export All
+              <svg width="9" height="9" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+            </button>
+            <div id="export-all-menu" class="dropdown-menu hidden">
+              <button onclick="exportAllPDF()">
+                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                All as PDF
+              </button>
+              <button onclick="exportAllExcel()">
+                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+                All as Excel
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div class="p-4 md:p-6 space-y-5">
+
+        <!-- DATE RANGE FILTER BAR -->
+        <div class="bento-card glass-strong rounded-2xl p-4">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="text-[10px] text-white/30 mr-1 shrink-0">Period:</span>
+            <button class="date-pill" data-range="today" onclick="setDateRange('today', this)">Today</button>
+            <button class="date-pill" data-range="week" onclick="setDateRange('week', this)">This Week</button>
+            <button class="date-pill" data-range="month" onclick="setDateRange('month', this)">This Month</button>
+            <button class="date-pill" data-range="quarter" onclick="setDateRange('quarter', this)">This Quarter</button>
+            <button class="date-pill" data-range="year" onclick="setDateRange('year', this)">This Year</button>
+            <button class="date-pill active" data-range="all" onclick="setDateRange('all', this)">All Time</button>
+            <button class="date-pill" data-range="custom" onclick="setDateRange('custom', this)">Custom</button>
+            <div id="custom-date-inputs" class="hidden flex items-center gap-2 ml-1">
+              <input type="date" id="date-from" class="text-[10px] bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-white/60" onchange="applyCustomRange()">
+              <span class="text-[10px] text-white/30">to</span>
+              <input type="date" id="date-to" class="text-[10px] bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-white/60" onchange="applyCustomRange()">
+            </div>
+            <span id="range-label" class="ml-auto text-[10px] text-white/25 hidden md:block"></span>
+          </div>
+        </div>
+
+        <!-- TAB NAVIGATION -->
+        <div class="overflow-x-auto pb-1">
+          <div class="flex items-center gap-2 min-w-max">
+            <button class="tab-pill active" data-tab="financial" onclick="switchTab('financial', this)">Financial Summary</button>
+            <button class="tab-pill" data-tab="sales" onclick="switchTab('sales', this)">Sales Report</button>
+            <button class="tab-pill" data-tab="stock" onclick="switchTab('stock', this)">Stock Audit</button>
+            <button class="tab-pill" data-tab="purchases" onclick="switchTab('purchases', this)">Purchase / Supplier</button>
+            <button class="tab-pill" data-tab="returns" onclick="switchTab('returns', this)">Returns &amp; Cancellations</button>
+            <button class="tab-pill" data-tab="invoices" onclick="switchTab('invoices', this)">Invoice Registry</button>
+            <button class="tab-pill" data-tab="trail" onclick="switchTab('trail', this)">
+              Audit Trail
+              <span id="trail-badge" class="ml-1 text-[9px] px-1.5 py-0.5 rounded-full bg-purex-blue/20 text-purex-blue">0</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- ===================== TAB 1: FINANCIAL SUMMARY ===================== -->
+        <div id="tab-financial" class="tab-panel active space-y-5">
+          <div class="bento-card glass-strong rounded-2xl p-4 md:p-6">
+            <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
+              <div>
+                <h3 class="font-heading text-sm font-light text-white">Financial Summary</h3>
+                <p id="fin-range-label" class="text-[10px] text-white/30 mt-0.5">Loading...</p>
+              </div>
+              <div class="flex gap-2">
+                <button class="btn-export" onclick="exportSectionPDF('financial')">
+                  <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>PDF
+                </button>
+                <button class="btn-export" onclick="exportSectionExcel('financial')">
+                  <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>Excel
+                </button>
+              </div>
+            </div>
+            <div id="fin-kpi-grid" class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+              <!-- populated by JS -->
+            </div>
+            <div id="fin-secondary-grid" class="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <!-- populated by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- ===================== TAB 2: SALES REPORT ===================== -->
+        <div id="tab-sales" class="tab-panel space-y-5">
+          <div class="bento-card glass-strong rounded-2xl p-4 md:p-6">
+            <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
+              <div>
+                <h3 class="font-heading text-sm font-light text-white">Sales Report</h3>
+                <p id="sales-count-label" class="text-[10px] text-white/30 mt-0.5">All transactions in selected period</p>
+              </div>
+              <div class="flex gap-2">
+                <button class="btn-export" onclick="exportSectionPDF('sales')">
+                  <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>PDF
+                </button>
+                <button class="btn-export" onclick="exportSectionExcel('sales')">
+                  <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>Excel
+                </button>
+              </div>
+            </div>
+            <div class="table-wrap max-h-[60vh] overflow-y-auto">
+              <table class="audit-table sticky-head" id="sales-table">
+                <thead>
+                  <tr>
+                    <th>Date</th><th>Order / Txn #</th><th>Customer</th><th>Items</th>
+                    <th>Subtotal</th><th>Delivery</th><th>Total</th><th>Channel</th><th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="sales-tbody"></tbody>
+              </table>
+              <div id="sales-empty" class="empty-state hidden">
+                <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1" viewBox="0 0 24 24"><path d="M3 6h12l-1 9H4L3 6z"/><path d="M6 6V4a3 3 0 016 0v2"/></svg>
+                <p>No sales found for the selected period.</p>
+              </div>
+            </div>
+            <div id="sales-totals" class="mt-3 pt-3 border-t border-white/5 flex flex-wrap gap-5 text-[11px] text-white/50"></div>
+          </div>
+        </div>
+
+        <!-- ===================== TAB 3: STOCK AUDIT ===================== -->
+        <div id="tab-stock" class="tab-panel space-y-5">
+          <div class="bento-card glass-strong rounded-2xl p-4 md:p-6">
+            <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
+              <div>
+                <h3 class="font-heading text-sm font-light text-white">Stock Audit</h3>
+                <p class="text-[10px] text-white/30 mt-0.5">Inventory reconciliation — discrepancies highlighted in red</p>
+              </div>
+              <div class="flex gap-2">
+                <button class="btn-export" onclick="exportSectionPDF('stock')">
+                  <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>PDF
+                </button>
+                <button class="btn-export" onclick="exportSectionExcel('stock')">
+                  <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>Excel
+                </button>
+              </div>
+            </div>
+            <div class="table-wrap max-h-[60vh] overflow-y-auto">
+              <table class="audit-table sticky-head" id="stock-table">
+                <thead>
+                  <tr>
+                    <th>Product</th><th>SKU</th><th>Category</th><th>Opening Stock</th>
+                    <th>Purchased</th><th>Sold</th><th>Returned</th><th>Current Stock</th>
+                    <th>Expected</th><th>Discrepancy</th>
+                  </tr>
+                </thead>
+                <tbody id="stock-tbody"></tbody>
+              </table>
+              <div id="stock-empty" class="empty-state hidden">
+                <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1" viewBox="0 0 24 24"><path d="M2 7l10-5 10 5v10l-10 5L2 17z"/></svg>
+                <p>No product data found.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===================== TAB 4: PURCHASE / SUPPLIER ===================== -->
+        <div id="tab-purchases" class="tab-panel space-y-5">
+          <div class="bento-card glass-strong rounded-2xl p-4 md:p-6">
+            <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
+              <div>
+                <h3 class="font-heading text-sm font-light text-white">Purchase &amp; Supplier Report</h3>
+                <p class="text-[10px] text-white/30 mt-0.5">All supplier invoices in selected period</p>
+              </div>
+              <div class="flex gap-2">
+                <button class="btn-export" onclick="exportSectionPDF('purchases')">
+                  <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>PDF
+                </button>
+                <button class="btn-export" onclick="exportSectionExcel('purchases')">
+                  <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>Excel
+                </button>
+              </div>
+            </div>
+            <div class="table-wrap max-h-[60vh] overflow-y-auto">
+              <table class="audit-table sticky-head" id="purchases-table">
+                <thead>
+                  <tr>
+                    <th>Date</th><th>Invoice #</th><th>Supplier</th><th>Items</th><th>Total Amount</th><th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="purchases-tbody"></tbody>
+              </table>
+              <div id="purchases-empty" class="empty-state hidden">
+                <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1" viewBox="0 0 24 24"><path d="M2 3h16v4H2zM4 7v8a1 1 0 001 1h8a1 1 0 001-1V7"/></svg>
+                <p>No purchase invoices found for the selected period.</p>
+              </div>
+            </div>
+            <div id="purchases-totals" class="mt-3 pt-3 border-t border-white/5 flex flex-wrap gap-5 text-[11px] text-white/50"></div>
+          </div>
+        </div>
+
+        <!-- ===================== TAB 5: RETURNS & CANCELLATIONS ===================== -->
+        <div id="tab-returns" class="tab-panel space-y-5">
+          <div class="bento-card glass-strong rounded-2xl p-4 md:p-6">
+            <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
+              <div>
+                <h3 class="font-heading text-sm font-light text-white">Returns &amp; Cancellations</h3>
+                <p class="text-[10px] text-white/30 mt-0.5">Reversed transactions and cancelled orders</p>
+              </div>
+              <div class="flex gap-2">
+                <button class="btn-export" onclick="exportSectionPDF('returns')">
+                  <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>PDF
+                </button>
+                <button class="btn-export" onclick="exportSectionExcel('returns')">
+                  <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>Excel
+                </button>
+              </div>
+            </div>
+            <div class="table-wrap max-h-[60vh] overflow-y-auto">
+              <table class="audit-table sticky-head" id="returns-table">
+                <thead>
+                  <tr>
+                    <th>Date</th><th>Order #</th><th>Customer</th><th>Items</th><th>Amount</th><th>Reason</th><th>Restocked?</th>
+                  </tr>
+                </thead>
+                <tbody id="returns-tbody"></tbody>
+              </table>
+              <div id="returns-empty" class="empty-state hidden">
+                <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                <p>No returns or cancellations found.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===================== TAB 6: INVOICE REGISTRY ===================== -->
+        <div id="tab-invoices" class="tab-panel space-y-5">
+          <div class="bento-card glass-strong rounded-2xl p-4 md:p-6">
+            <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
+              <div>
+                <h3 class="font-heading text-sm font-light text-white">Invoice Registry</h3>
+                <p class="text-[10px] text-white/30 mt-0.5">Combined view: POS sales, online orders &amp; supplier invoices</p>
+              </div>
+              <div class="flex gap-2">
+                <button class="btn-export" onclick="exportSectionPDF('invoices')">
+                  <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>PDF
+                </button>
+                <button class="btn-export" onclick="exportSectionExcel('invoices')">
+                  <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>Excel
+                </button>
+              </div>
+            </div>
+            <div class="table-wrap max-h-[60vh] overflow-y-auto">
+              <table class="audit-table sticky-head" id="invoices-table">
+                <thead>
+                  <tr>
+                    <th>Date</th><th>Invoice / Txn #</th><th>Type</th><th>Party</th><th>Amount</th><th>Channel</th>
+                  </tr>
+                </thead>
+                <tbody id="invoices-tbody"></tbody>
+              </table>
+              <div id="invoices-empty" class="empty-state hidden">
+                <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/></svg>
+                <p>No invoices found for the selected period.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===================== TAB 7: AUDIT TRAIL ===================== -->
+        <div id="tab-trail" class="tab-panel space-y-5">
+          <div class="bento-card glass-strong rounded-2xl p-4 md:p-6">
+            <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+              <div>
+                <h3 class="font-heading text-sm font-light text-white flex items-center gap-2">
+                  Audit Trail
+                  <span class="text-[9px] px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 border border-green-500/20">IMMUTABLE</span>
+                </h3>
+                <p id="trail-count-label" class="text-[10px] text-white/30 mt-0.5">Showing 0 of 0 entries</p>
+              </div>
+              <div class="flex gap-2">
+                <button class="btn-export" onclick="exportSectionPDF('trail')">
+                  <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>PDF
+                </button>
+                <button class="btn-export" onclick="exportSectionExcel('trail')">
+                  <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>Excel
+                </button>
+              </div>
+            </div>
+
+            <!-- Category pills -->
+            <div class="overflow-x-auto pb-2 mb-4">
+              <div class="flex gap-2 min-w-max" id="trail-cat-pills">
+                <button class="cat-pill active" data-cat="all" onclick="setTrailCat('all', this)">All</button>
+                <button class="cat-pill" data-cat="stock" onclick="setTrailCat('stock', this)">Stock</button>
+                <button class="cat-pill" data-cat="sale" onclick="setTrailCat('sale', this)">Sale</button>
+                <button class="cat-pill" data-cat="order" onclick="setTrailCat('order', this)">Order</button>
+                <button class="cat-pill" data-cat="invoice" onclick="setTrailCat('invoice', this)">Invoice</button>
+                <button class="cat-pill" data-cat="product" onclick="setTrailCat('product', this)">Product</button>
+                <button class="cat-pill" data-cat="price" onclick="setTrailCat('price', this)">Price</button>
+                <button class="cat-pill" data-cat="user" onclick="setTrailCat('user', this)">User</button>
+                <button class="cat-pill" data-cat="supplier" onclick="setTrailCat('supplier', this)">Supplier</button>
+                <button class="cat-pill" data-cat="customer" onclick="setTrailCat('customer', this)">Customer</button>
+                <button class="cat-pill" data-cat="return" onclick="setTrailCat('return', this)">Return</button>
+              </div>
+            </div>
+
+            <!-- Search -->
+            <div class="mb-4">
+              <input type="text" id="trail-search" placeholder="Search audit trail..." oninput="renderTrailTab()"
+                class="w-full md:w-80 text-xs bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white/70 placeholder-white/20">
+            </div>
+
+            <div class="table-wrap max-h-[60vh] overflow-y-auto">
+              <table class="audit-table sticky-head" id="trail-table">
+                <thead>
+                  <tr>
+                    <th>Timestamp</th><th>User</th><th>Role</th><th>Category</th><th>Action</th><th>Detail</th><th>Integrity</th>
+                  </tr>
+                </thead>
+                <tbody id="trail-tbody"></tbody>
+              </table>
+              <div id="trail-empty" class="empty-state hidden">
+                <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1" viewBox="0 0 24 24"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg>
+                <p>No audit trail entries yet. They will appear here as actions are performed.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- FOOTER -->
+      <footer class="px-6 py-6 border-t border-white/5 mt-4">
+        <div class="flex items-center justify-between flex-wrap gap-3">
+          <p class="text-[10px] text-white/20">Purex Chemicals — Admin Panel &copy; 2026</p>
+          <a href="mailto:hello@quartermasters.me" class="text-[10px] text-white/15 hover:text-white/30 transition">Powered by Quartermasters FZC</a>
+        </div>
+      </footer>
+
+    </main>
+  </div>
+
+  <!-- FLOATING WHATSAPP -->
+  <a href="https://wa.me/923400145796" target="_blank" rel="noopener"
+    class="fixed bottom-6 right-6 z-50 w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-transform hover:scale-110"
+    style="background:linear-gradient(135deg,#25d366,#128c7e);" aria-label="WhatsApp">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+  </a>
+
+  <script>
+  // ─────────────────────────────────────────────────────────────
+  //  AUTH GUARD
+  // ─────────────────────────────────────────────────────────────
+  (function() {
+    const sess = JSON.parse(sessionStorage.getItem('purex_session') || '{}');
+    const isAdmin = sess.role === 'admin' || sessionStorage.getItem('purex_admin') === '1';
+    if (!isAdmin) { safeRedirect('/login.html'); throw new Error('Not authenticated'); }
+    document.body.classList.add('authenticated');
+  })();
+
+  // ─────────────────────────────────────────────────────────────
+  //  CURRENT USER
+  // ─────────────────────────────────────────────────────────────
+  let currentUser = { name: 'Admin', role: 'admin' };
+  try { const s = JSON.parse(sessionStorage.getItem('purex_session') || '{}'); if (s.name) currentUser = s; } catch(e) {}
+
+  const initials = (currentUser.name || 'AD').split(' ').map(w => w[0]).join('').toUpperCase().substring(0, 2);
+  document.getElementById('sidebar-avatar').textContent = initials;
+  document.getElementById('sidebar-user-name').textContent = currentUser.name;
+  document.getElementById('sidebar-user-role').textContent = currentUser.role === 'admin' ? 'Admin' : 'Editor';
+
+  // ─────────────────────────────────────────────────────────────
+  //  LOGOUT
+  // ─────────────────────────────────────────────────────────────
+  function doLogout() {
+    sessionStorage.removeItem('purex_admin');
+    sessionStorage.removeItem('purex_session');
+    sessionStorage.removeItem('purex_token');
+    safeRedirect('/login.html');
+  }
+  document.getElementById('logout-btn').addEventListener('click', doLogout);
+  document.getElementById('mobile-logout-btn').addEventListener('click', doLogout);
+
+  // ─────────────────────────────────────────────────────────────
+  //  SIDEBAR TOGGLE
+  // ─────────────────────────────────────────────────────────────
+  function toggleSidebar() {
+    const s = document.getElementById('sidebar');
+    const m = document.getElementById('main-content');
+    const c = s.classList.toggle('collapsed');
+    m.style.marginLeft = c ? '64px' : '';
+    localStorage.setItem('purex_sidebar_collapsed', c ? '1' : '0');
+  }
+  if (localStorage.getItem('purex_sidebar_collapsed') === '1') {
+    document.getElementById('sidebar').classList.add('collapsed');
+    document.getElementById('main-content').style.marginLeft = '64px';
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  //  DATA ACCESSORS
+  // ─────────────────────────────────────────────────────────────
+  function getProducts()         { try { return JSON.parse(localStorage.getItem('purex_products') || '[]'); } catch(e) { return []; } }
+  function getOrders()           { try { return JSON.parse(localStorage.getItem('purex_orders') || '[]'); } catch(e) { return []; } }
+  function getTransactions()     { try { return JSON.parse(localStorage.getItem('purex_transactions') || '[]'); } catch(e) { return []; } }
+  function getDailySales()       { try { return JSON.parse(localStorage.getItem('purex_daily_sales') || '[]'); } catch(e) { return []; } }
+  function getSupplierInvoices() { try { return JSON.parse(localStorage.getItem('purex_supplier_invoices') || '[]'); } catch(e) { return []; } }
+  function getSuppliers()        { try { return JSON.parse(localStorage.getItem('purex_suppliers') || '[]'); } catch(e) { return []; } }
+  function getCustomers()        { try { return JSON.parse(localStorage.getItem('purex_customers') || '[]'); } catch(e) { return []; } }
+  function getAuditTrail()       { try { return JSON.parse(localStorage.getItem('purex_audit_trail') || '[]'); } catch(e) { return []; } }
+
+  // ─────────────────────────────────────────────────────────────
+  //  GST HELPERS
+  // ─────────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────
+  //  LETTERHEAD PRELOAD (SVG → canvas → base64 JPEG for PDF background)
+  // ─────────────────────────────────────────────────────────────
+  // Letterhead preload (use pre-rendered JPG — SVG is too complex for canvas rasterization)
+  let letterheadBase64 = null;
+  (function preloadLetterhead() {
+    const lh = new Image();
+    lh.crossOrigin = 'anonymous';
+    lh.onload = function() {
+      const canvas = document.createElement('canvas');
+      canvas.width = lh.naturalWidth;
+      canvas.height = lh.naturalHeight;
+      canvas.getContext('2d').drawImage(lh, 0, 0);
+      letterheadBase64 = canvas.toDataURL('image/jpeg', 0.92);
+    };
+    lh.src = '/assets/purex_letterhead.jpg?v=20260315';
+  })();
+
+  function getGSTRate() {
+    const stored = localStorage.getItem('purex_gst_rate');
+    return stored !== null ? parseFloat(stored) : 0.18;
+  }
+  function calcGST(inclusiveAmount) {
+    const rate = getGSTRate();
+    const base = inclusiveAmount / (1 + rate);
+    return { base: Math.round(base * 100) / 100, gst: Math.round((inclusiveAmount - base) * 100) / 100, rate };
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  //  API DATA SYNC — fetch fresh data from server, store in localStorage
+  // ─────────────────────────────────────────────────────────────
+  let dataSynced = false;
+  async function syncDataFromAPI() {
+    try {
+      const [prodRes, ordRes, salesRes, custRes, supRes, invRes, txnRes] = await Promise.allSettled([
+        fetch('/api/products').then(r => r.ok ? r.json() : null),
+        fetch('/api/orders').then(r => r.ok ? r.json() : null),
+        fetch('/api/sales').then(r => r.ok ? r.json() : null),
+        fetch('/api/customers').then(r => r.ok ? r.json() : null),
+        fetch('/api/suppliers').then(r => r.ok ? r.json() : null),
+        fetch('/api/supplier-invoices').then(r => r.ok ? r.json() : null),
+        fetch('/api/transactions').then(r => r.ok ? r.json() : null),
+      ]);
+
+      // Products
+      const apiProducts = prodRes.status === 'fulfilled' ? prodRes.value : null;
+      if (Array.isArray(apiProducts) && apiProducts.length > 0) {
+        const mapped = apiProducts.map(p => ({
+          id: Number(p.id), name: p.name, category: p.category,
+          price: Number(p.price), buyPrice: Number(p.buy_price || p.buyPrice || 0),
+          stock: Number(p.stock), capacity: Number(p.capacity || 100),
+          status: p.status || 'active', sku: p.sku, volume: p.volume || '',
+          desc: p.description || '', image: '/' + (p.image || '').replace(/^\//, ''),
+          onSale: p.on_sale == 1, salePrice: Number(p.sale_price || 0),
+        }));
+        localStorage.setItem('purex_products', JSON.stringify(mapped));
+      }
+
+      // Orders
+      const apiOrders = ordRes.status === 'fulfilled' ? ordRes.value : null;
+      if (Array.isArray(apiOrders) && apiOrders.length > 0) {
+        const mapped = apiOrders.map(o => ({
+          id: o.order_number || o.id, dbId: o.id,
+          customer: o.customer_name, customerName: o.customer_name,
+          phone: o.phone || '', email: o.email || '',
+          city: o.city || '', address: o.address || '', notes: o.notes || '',
+          items: o.item_count || 0,
+          itemDetails: (o.itemDetails || o.items || []).map(i => ({
+            id: Number(i.product_id || i.id), name: i.product_name || i.name,
+            sku: i.sku || '', volume: i.volume || '',
+            price: Number(i.price), buyPrice: Number(i.buy_price || 0), qty: Number(i.qty),
+          })),
+          total: Number(o.total), subtotal: Number(o.subtotal || o.total || 0),
+          deliveryFee: Number(o.delivery_fee || o.deliveryFee || 0),
+          status: o.status || 'pending',
+          channel: o.channel || 'WhatsApp',
+          date: o.order_date || (o.created_at || '').split('T')[0],
+          createdAt: o.created_at || o.order_date || '',
+          orderNumber: o.order_number || '',
+        }));
+        localStorage.setItem('purex_orders', JSON.stringify(mapped));
+      }
+
+      // Daily Sales
+      const apiSales = salesRes.status === 'fulfilled' ? salesRes.value : null;
+      if (Array.isArray(apiSales) && apiSales.length > 0) {
+        const mapped = apiSales.map(s => ({
+          id: s.id, productId: Number(s.product_id), productName: s.product_name, name: s.product_name,
+          sku: s.sku || '', volume: s.volume || '', category: s.category || '',
+          qty: Number(s.qty), unitPrice: Number(s.unit_price), price: Number(s.unit_price),
+          buyPrice: Number(s.buy_price), total: Number(s.total), profit: Number(s.profit),
+          date: s.sale_date, channel: s.channel || '', recordedBy: s.recorded_by || '',
+          customerName: s.customer_name || '', orderId: s.order_id || null,
+        }));
+        localStorage.setItem('purex_daily_sales', JSON.stringify(mapped));
+      }
+
+      // Customers
+      const apiCust = custRes.status === 'fulfilled' ? custRes.value : null;
+      if (Array.isArray(apiCust) && apiCust.length > 0) {
+        const mapped = apiCust.map(c => ({
+          id: Number(c.id), name: c.name, phone: c.phone || '', email: c.email || '',
+          city: c.city || '', address: c.address || '', company: c.company || '',
+          type: c.type || 'Walk-in', notes: c.notes || '',
+          orderCount: Number(c.order_count || 0), totalSpent: Number(c.total_spent || 0),
+        }));
+        localStorage.setItem('purex_customers', JSON.stringify(mapped));
+      }
+
+      // Suppliers
+      const apiSup = supRes.status === 'fulfilled' ? supRes.value : null;
+      if (Array.isArray(apiSup) && apiSup.length > 0) {
+        const mapped = apiSup.map(s => ({
+          id: Number(s.id), name: s.name, phone: s.phone || '',
+          email: s.email || '', products: s.products || '',
+          address: s.address || '', notes: s.notes || '',
+        }));
+        localStorage.setItem('purex_suppliers', JSON.stringify(mapped));
+      }
+
+      // Supplier Invoices
+      const apiInv = invRes.status === 'fulfilled' ? invRes.value : null;
+      if (Array.isArray(apiInv) && apiInv.length > 0) {
+        const mapped = apiInv.map(inv => ({
+          id: inv.id, invoiceNumber: inv.invoice_number || inv.invoiceNumber || '',
+          supplierId: Number(inv.supplier_id || inv.supplierId),
+          date: inv.invoice_date || inv.date || '',
+          items: (inv.items || inv.lines || []).map(i => ({
+            productId: i.product_id, productName: i.product_name || i.name || '',
+            sku: i.sku || '', qty: Number(i.qty || i.quantity || 0),
+            unitCost: Number(i.unit_cost || i.cost || 0),
+            total: Number(i.total || 0),
+          })),
+          total: Number(inv.total || 0),
+          status: inv.status || 'Draft',
+          notes: inv.notes || '',
+          createdAt: inv.created_at || inv.date || '',
+        }));
+        localStorage.setItem('purex_supplier_invoices', JSON.stringify(mapped));
+      }
+
+      // Transactions
+      const apiTxn = txnRes.status === 'fulfilled' ? txnRes.value : null;
+      if (Array.isArray(apiTxn) && apiTxn.length > 0) {
+        const mapped = apiTxn.map(t => ({
+          id: t.txn_number || t.id, date: t.date || t.created_at || '',
+          customer: t.customer_name || 'Walk-in',
+          items: (t.items || []).map(i => ({
+            id: i.product_id, name: i.product_name || i.name || '',
+            sku: i.sku || '', qty: Number(i.qty), price: Number(i.price),
+          })),
+          total: Number(t.total || t.grand_total || 0),
+          subtotal: Number(t.subtotal || t.total || 0),
+          channel: t.channel || 'POS', status: 'Completed',
+          timestamp: t.created_at || t.date || '',
+        }));
+        localStorage.setItem('purex_transactions', JSON.stringify(mapped));
+      }
+
+      dataSynced = true;
+    } catch(e) {
+      console.log('API sync skipped (offline or no API):', e.message);
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  //  CHECKSUM VALIDATION
+  // ─────────────────────────────────────────────────────────────
+  function validateChecksum(entry) {
+    if (!entry.checksum) return null; // no checksum = not validated
+    const expected = btoa(String(entry.id) + String(entry.timestamp) + String(entry.action)).slice(0, 16);
+    return entry.checksum === expected;
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  //  DATE RANGE STATE
+  // ─────────────────────────────────────────────────────────────
+  let activeDateRange = 'all';
+  let customFrom = null;
+  let customTo = null;
+
+  function getDateBounds() {
+    const now = new Date();
+    const startOfDay = d => { const x = new Date(d); x.setHours(0,0,0,0); return x; };
+    const endOfDay   = d => { const x = new Date(d); x.setHours(23,59,59,999); return x; };
+    switch (activeDateRange) {
+      case 'today':
+        return { from: startOfDay(now), to: endOfDay(now) };
+      case 'week': {
+        const day = now.getDay();
+        const mon = new Date(now); mon.setDate(now.getDate() - ((day + 6) % 7));
+        return { from: startOfDay(mon), to: endOfDay(now) };
+      }
+      case 'month':
+        return { from: new Date(now.getFullYear(), now.getMonth(), 1), to: endOfDay(now) };
+      case 'quarter': {
+        const q = Math.floor(now.getMonth() / 3);
+        return { from: new Date(now.getFullYear(), q * 3, 1), to: endOfDay(now) };
+      }
+      case 'year':
+        return { from: new Date(now.getFullYear(), 0, 1), to: endOfDay(now) };
+      case 'custom':
+        return {
+          from: customFrom ? new Date(customFrom + 'T00:00:00') : new Date(0),
+          to:   customTo   ? new Date(customTo   + 'T23:59:59') : endOfDay(now)
+        };
+      default: // all
+        return { from: new Date(0), to: endOfDay(now) };
+    }
+  }
+
+  function inRange(dateStr) {
+    if (!dateStr) return true;
+    const d = new Date(dateStr);
+    const { from, to } = getDateBounds();
+    return d >= from && d <= to;
+  }
+
+  function getRangeLabel() {
+    const { from, to } = getDateBounds();
+    if (activeDateRange === 'all') return 'All time';
+    const fmt = d => d.toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' });
+    return fmt(from) + ' – ' + fmt(to);
+  }
+
+  function setDateRange(range, btn) {
+    activeDateRange = range;
+    document.querySelectorAll('.date-pill').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    const customInputs = document.getElementById('custom-date-inputs');
+    if (range === 'custom') {
+      customInputs.classList.remove('hidden');
+    } else {
+      customInputs.classList.add('hidden');
+      refreshAll();
+    }
+  }
+
+  function applyCustomRange() {
+    customFrom = document.getElementById('date-from').value;
+    customTo   = document.getElementById('date-to').value;
+    if (customFrom && customTo) refreshAll();
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  //  TAB SWITCHING
+  // ─────────────────────────────────────────────────────────────
+  let activeTab = 'financial';
+
+  function switchTab(tab, btn) {
+    activeTab = tab;
+    document.querySelectorAll('.tab-pill').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('tab-' + tab).classList.add('active');
+    renderTab(tab);
+  }
+
+  function renderTab(tab) {
+    switch(tab) {
+      case 'financial':  renderFinancialTab(); break;
+      case 'sales':      renderSalesTab(); break;
+      case 'stock':      renderStockTab(); break;
+      case 'purchases':  renderPurchasesTab(); break;
+      case 'returns':    renderReturnsTab(); break;
+      case 'invoices':   renderInvoicesTab(); break;
+      case 'trail':      renderTrailTab(); break;
+    }
+  }
+
+  function refreshAll() {
+    document.getElementById('range-label').textContent = getRangeLabel();
+    renderTab(activeTab);
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  //  HELPERS
+  // ─────────────────────────────────────────────────────────────
+  function fmtDate(str) {
+    if (!str) return '—';
+    const d = new Date(str);
+    return d.toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+
+  function fmtCurr(n) {
+    const num = parseFloat(n) || 0;
+    return 'Rs. ' + num.toLocaleString('en-PK', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  }
+
+  function fmtNum(n) {
+    return (parseFloat(n) || 0).toLocaleString('en-PK');
+  }
+
+  function statusBadge(s) {
+    const map = {
+      'Delivered':  'badge-green', 'Completed': 'badge-green', 'Posted': 'badge-green',
+      'Pending':    'badge-amber', 'Processing': 'badge-amber', 'Draft': 'badge-amber',
+      'Cancelled':  'badge-red',  'Returned': 'badge-red',
+      'Shipped':    'badge-blue',
+    };
+    const cls = map[s] || 'badge-gray';
+    return `<span class="badge ${cls}">${s || '—'}</span>`;
+  }
+
+  function channelBadge(ch) {
+    if (!ch) return '<span class="badge badge-gray">—</span>';
+    const cls = ch.toLowerCase().includes('online') || ch.toLowerCase().includes('web') ? 'badge-blue' : 'badge-purple';
+    return `<span class="badge ${cls}">${ch}</span>`;
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  //  STORAGE INDICATOR
+  // ─────────────────────────────────────────────────────────────
+  function updateStorageIndicator() {
+    let total = 0;
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('purex_')) {
+        total += (localStorage.getItem(key) || '').length * 2; // UTF-16
+      }
+    }
+    const kb = (total / 1024).toFixed(1);
+    const pct = Math.min((total / (5 * 1024 * 1024)) * 100, 100);
+    document.getElementById('storage-bar').style.width = pct + '%';
+    document.getElementById('storage-label').textContent = kb + ' KB';
+    if (pct > 80) document.getElementById('storage-bar').style.background = '#f87171';
+    else if (pct > 60) document.getElementById('storage-bar').style.background = '#fbbf24';
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  //  TAB 1: FINANCIAL SUMMARY
+  // ─────────────────────────────────────────────────────────────
+  function renderFinancialTab() {
+    const orders = getOrders().filter(o => inRange(o.createdAt || o.date || o.created_at));
+    const txns   = getTransactions().filter(t => inRange(t.date || t.createdAt || t.timestamp));
+
+    let totalRevenue = 0, totalCOGS = 0, totalDelivery = 0, totalReturns = 0;
+    let orderCount = 0;
+
+    orders.forEach(o => {
+      const status = (o.status || '').toLowerCase();
+      if (status === 'cancelled' || status === 'returned') { totalReturns++; return; }
+      totalRevenue += parseFloat(o.total || o.totalAmount || 0);
+      totalDelivery += parseFloat(o.deliveryFee || o.delivery || 0);
+      orderCount++;
+    });
+
+    txns.forEach(t => {
+      totalRevenue += parseFloat(t.total || t.amount || 0);
+      orderCount++;
+    });
+
+    // COGS from daily_sales if available, else estimate
+    const dailySales = getDailySales().filter(d => inRange(d.date));
+    dailySales.forEach(d => { totalCOGS += parseFloat(d.cogs || d.totalCost || 0); });
+
+    // fallback COGS from products sold
+    if (totalCOGS === 0) {
+      orders.filter(o => {
+        const s = (o.status || '').toLowerCase();
+        return s !== 'cancelled' && s !== 'returned';
+      }).forEach(o => {
+        const items = o.itemDetails || (Array.isArray(o.items) ? o.items : o.cart || []);
+        items.forEach(item => {
+          totalCOGS += parseFloat(item.buyPrice || item.cost || 0) * parseInt(item.qty || item.quantity || 1);
+        });
+      });
+    }
+
+    const grossProfit = totalRevenue - totalCOGS;
+    const grossMargin = totalRevenue > 0 ? (grossProfit / totalRevenue) * 100 : 0;
+    const aov = orderCount > 0 ? totalRevenue / orderCount : 0;
+
+    // GST back-calculation from GST-inclusive revenue
+    let totalGSTCollected = 0;
+    orders.forEach(o => {
+      const status = (o.status || '').toLowerCase();
+      if (status === 'cancelled' || status === 'returned') return;
+      if (o.gstAmount) {
+        totalGSTCollected += parseFloat(o.gstAmount);
+      } else {
+        const orderTotal = parseFloat(o.total || o.totalAmount || 0) - parseFloat(o.deliveryFee || o.delivery || 0);
+        totalGSTCollected += calcGST(orderTotal).gst;
+      }
+    });
+    txns.forEach(t => {
+      if (t.gstAmount) {
+        totalGSTCollected += parseFloat(t.gstAmount);
+      } else {
+        totalGSTCollected += calcGST(parseFloat(t.total || t.amount || 0)).gst;
+      }
+    });
+    totalGSTCollected = Math.round(totalGSTCollected);
+
+    const label = getRangeLabel();
+    document.getElementById('fin-range-label').textContent = label;
+
+    const kpiData = [
+      { label: 'Total Revenue', value: fmtCurr(totalRevenue), color: 'text-purex-blue', icon: '↑' },
+      { label: 'Total COGS',    value: fmtCurr(totalCOGS),    color: 'text-amber-400',  icon: '−' },
+      { label: 'Gross Profit',  value: fmtCurr(grossProfit),  color: grossProfit >= 0 ? 'text-emerald-400' : 'text-red-400', icon: grossProfit >= 0 ? '▲' : '▼' },
+      { label: 'Gross Margin',  value: grossMargin.toFixed(1) + '%', color: grossMargin >= 30 ? 'text-emerald-400' : grossMargin >= 15 ? 'text-amber-400' : 'text-red-400', icon: '' },
+    ];
+
+    const sec2 = [
+      { label: 'Delivery Fees',   value: fmtCurr(totalDelivery), color: 'text-blue-300', icon: '' },
+      { label: 'Total Orders',    value: fmtNum(orderCount),      color: 'text-white/80', icon: '' },
+      { label: 'Avg Order Value', value: fmtCurr(aov),            color: 'text-white/80', icon: '' },
+      { label: 'Returns / Cancels', value: fmtNum(totalReturns),  color: totalReturns > 0 ? 'text-red-400' : 'text-white/40', icon: '' },
+      { label: 'GST Collected', value: fmtCurr(totalGSTCollected), color: 'text-orange-400', icon: '' },
+    ];
+
+    document.getElementById('fin-kpi-grid').innerHTML = kpiData.map(k => `
+      <div class="kpi-card">
+        <p class="text-[10px] text-white/35 mb-2 uppercase tracking-wider">${k.label}</p>
+        <p class="font-heading text-xl font-light ${k.color}">${k.value}</p>
+        ${k.icon ? `<p class="text-[9px] mt-1 ${k.color} opacity-60">${k.icon}</p>` : ''}
+      </div>`).join('');
+
+    document.getElementById('fin-secondary-grid').innerHTML = sec2.map(k => `
+      <div class="kpi-card">
+        <p class="text-[10px] text-white/35 mb-2 uppercase tracking-wider">${k.label}</p>
+        <p class="font-heading text-lg font-light ${k.color}">${k.value}</p>
+      </div>`).join('');
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  //  TAB 2: SALES REPORT
+  // ─────────────────────────────────────────────────────────────
+  function renderSalesTab() {
+    const orders = getOrders().filter(o => inRange(o.createdAt || o.date || o.created_at));
+    const txns   = getTransactions().filter(t => inRange(t.date || t.createdAt || t.timestamp));
+
+    const rows = [];
+
+    orders.forEach(o => {
+      const items = o.itemDetails || (Array.isArray(o.items) ? o.items : o.cart || []);
+      rows.push({
+        date:     o.createdAt || o.date || '',
+        ref:      o.orderNumber || o.id || '—',
+        customer: o.customerName || o.customer || '—',
+        items:    (Array.isArray(items) ? items.length : o.items) || '—',
+        subtotal: parseFloat(o.subtotal || o.subTotal || 0),
+        delivery: parseFloat(o.deliveryFee || o.delivery || 0),
+        total:    parseFloat(o.total || o.totalAmount || 0),
+        channel:  o.channel || 'Online',
+        status:   o.status || '—',
+      });
+    });
+
+    txns.forEach(t => {
+      rows.push({
+        date:     t.date || t.createdAt || t.timestamp || '',
+        ref:      t.id || t.txnId || '—',
+        customer: t.customer || 'Walk-in',
+        items:    (t.items || t.cart || []).length || '—',
+        subtotal: parseFloat(t.subtotal || t.total || t.amount || 0),
+        delivery: 0,
+        total:    parseFloat(t.total || t.amount || 0),
+        channel:  t.channel || 'POS',
+        status:   t.status || 'Completed',
+      });
+    });
+
+    rows.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    const tbody = document.getElementById('sales-tbody');
+    const empty = document.getElementById('sales-empty');
+
+    if (rows.length === 0) {
+      tbody.innerHTML = '';
+      empty.classList.remove('hidden');
+      document.getElementById('sales-count-label').textContent = 'No records in selected period';
+      document.getElementById('sales-totals').innerHTML = '';
+      return;
+    }
+    empty.classList.add('hidden');
+    document.getElementById('sales-count-label').textContent = rows.length + ' transaction' + (rows.length !== 1 ? 's' : '') + ' in selected period';
+
+    tbody.innerHTML = rows.map(r => `
+      <tr>
+        <td class="text-white/40">${fmtDate(r.date)}</td>
+        <td class="font-mono text-[10px] text-purex-blue/70 cursor-pointer hover:underline hover:text-purex-blue" onclick="generateReceipt('${escHtml(String(r.ref))}', '${r.channel === 'POS' ? 'pos' : 'sale'}')" title="Download Receipt">${escHtml(String(r.ref))} <svg class="inline w-3 h-3 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg></td>
+        <td>${escHtml(String(r.customer))}</td>
+        <td class="text-center text-white/50">${r.items}</td>
+        <td>${fmtCurr(r.subtotal)}</td>
+        <td class="text-white/50">${r.delivery > 0 ? fmtCurr(r.delivery) : '—'}</td>
+        <td class="font-medium text-white/80">${fmtCurr(r.total)}</td>
+        <td>${channelBadge(r.channel)}</td>
+        <td>${statusBadge(r.status)}</td>
+      </tr>`).join('');
+
+    const totSub = rows.reduce((s, r) => s + r.subtotal, 0);
+    const totDel = rows.reduce((s, r) => s + r.delivery, 0);
+    const totAll = rows.reduce((s, r) => s + r.total, 0);
+    document.getElementById('sales-totals').innerHTML = `
+      <span class="text-white/40">Subtotal: <strong class="text-white/60">${fmtCurr(totSub)}</strong></span>
+      <span class="text-white/40">Delivery: <strong class="text-white/60">${fmtCurr(totDel)}</strong></span>
+      <span class="text-white/40">Total: <strong class="text-purex-blue">${fmtCurr(totAll)}</strong></span>
+      <span class="text-white/40">Orders: <strong class="text-white/60">${rows.length}</strong></span>`;
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  //  TAB 3: STOCK AUDIT
+  // ─────────────────────────────────────────────────────────────
+  function renderStockTab() {
+    const products = getProducts();
+    const orders   = getOrders();
+    const txns     = getTransactions();
+    const invoices = getSupplierInvoices();
+    const trail    = getAuditTrail();
+
+    const tbody = document.getElementById('stock-tbody');
+    const empty = document.getElementById('stock-empty');
+
+    if (products.length === 0) {
+      tbody.innerHTML = '';
+      empty.classList.remove('hidden');
+      return;
+    }
+    empty.classList.add('hidden');
+
+    // Build sold map
+    const soldMap = {};
+    const purchMap = {};
+    const retMap = {};
+
+    orders.forEach(o => {
+      const items = o.itemDetails || (Array.isArray(o.items) ? o.items : o.cart || []);
+      const isCancelled = (o.status || '').toLowerCase() === 'cancelled';
+      if (!Array.isArray(items)) return;
+      items.forEach(item => {
+        const sku = item.sku || item.id;
+        if (!sku) return;
+        if (isCancelled) {
+          retMap[sku] = (retMap[sku] || 0) + parseInt(item.qty || item.quantity || 1);
+        } else {
+          soldMap[sku] = (soldMap[sku] || 0) + parseInt(item.qty || item.quantity || 1);
+        }
+      });
+    });
+
+    txns.forEach(t => {
+      const tItems = t.itemDetails || (Array.isArray(t.items) ? t.items : t.cart || []);
+      if (!Array.isArray(tItems)) return;
+      tItems.forEach(item => {
+        const sku = item.sku || item.id;
+        if (!sku) return;
+        soldMap[sku] = (soldMap[sku] || 0) + parseInt(item.qty || item.quantity || 1);
+      });
+    });
+
+    // Purchases from invoices
+    invoices.forEach(inv => {
+      (inv.items || inv.lines || []).forEach(item => {
+        const sku = item.sku || item.productId;
+        if (!sku) return;
+        purchMap[sku] = (purchMap[sku] || 0) + parseInt(item.qty || item.quantity || 0);
+      });
+    });
+
+    // Return events from audit trail
+    trail.filter(e => (e.category || '').toLowerCase() === 'return').forEach(e => {
+      if (e.sku) retMap[e.sku] = (retMap[e.sku] || 0) + parseInt(e.qty || 1);
+    });
+
+    tbody.innerHTML = products.map(p => {
+      const sku     = p.sku || p.id || '';
+      const current = parseInt(p.stock || p.quantity || p.currentStock || 0);
+      const sold    = soldMap[sku] || 0;
+      const purch   = purchMap[sku] || 0;
+      const ret     = retMap[sku] || 0;
+      const opening = current + sold - purch + ret;
+      const expected = opening + purch - sold + ret;
+      const disc    = current - expected;
+      const hasDiff = disc !== 0;
+      const trCls   = hasDiff ? 'discrepancy' : '';
+      return `<tr class="${trCls}">
+        <td class="text-white/80 font-light">${escHtml(p.name || '—')}</td>
+        <td class="font-mono text-[10px] text-white/40">${sku}</td>
+        <td><span class="badge badge-blue">${escHtml(p.category || '—')}</span></td>
+        <td class="text-center text-white/50">${opening}</td>
+        <td class="text-center text-emerald-400/70">${purch}</td>
+        <td class="text-center text-amber-400/70">${sold}</td>
+        <td class="text-center text-blue-400/70">${ret}</td>
+        <td class="text-center text-white/80 font-medium">${current}</td>
+        <td class="text-center text-white/50">${expected}</td>
+        <td class="text-center font-medium ${hasDiff ? 'text-red-400' : 'text-emerald-400/60'}">${hasDiff ? (disc > 0 ? '+' : '') + disc + ' !' : '✓'}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  //  TAB 4: PURCHASE / SUPPLIER
+  // ─────────────────────────────────────────────────────────────
+  function renderPurchasesTab() {
+    const invoices  = getSupplierInvoices().filter(i => inRange(i.date || i.createdAt));
+    const suppliers = getSuppliers();
+    const supMap    = {};
+    suppliers.forEach(s => { supMap[s.id] = s.name || s.company; });
+
+    const tbody = document.getElementById('purchases-tbody');
+    const empty = document.getElementById('purchases-empty');
+
+    if (invoices.length === 0) {
+      tbody.innerHTML = '';
+      empty.classList.remove('hidden');
+      document.getElementById('purchases-totals').innerHTML = '';
+      return;
+    }
+    empty.classList.add('hidden');
+
+    invoices.sort((a, b) => new Date(b.date || b.createdAt) - new Date(a.date || a.createdAt));
+
+    // Group by supplier for subtotals
+    const bySup = {};
+    invoices.forEach(inv => {
+      const sid = inv.supplierId || inv.supplier || 'Unknown';
+      if (!bySup[sid]) bySup[sid] = [];
+      bySup[sid].push(inv);
+    });
+
+    let html = '';
+    let grandTotal = 0;
+
+    Object.entries(bySup).forEach(([sid, invs]) => {
+      const supName = supMap[sid] || sid;
+      const subTotal = invs.reduce((s, i) => s + parseFloat(i.total || i.amount || 0), 0);
+      grandTotal += subTotal;
+
+      invs.forEach(inv => {
+        const items = inv.items || inv.lines || [];
+        const invRef = escHtml(String(inv.invoiceNumber || inv.id || '—'));
+        html += `<tr>
+          <td class="text-white/40">${fmtDate(inv.date || inv.createdAt)}</td>
+          <td class="font-mono text-[10px] text-purex-blue/70 cursor-pointer hover:underline hover:text-purex-blue" onclick="generateReceipt('${invRef}', 'purchase')" title="Download Receipt">${invRef} <svg class="inline w-3 h-3 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg></td>
+          <td class="text-white/70">${escHtml(supName)}</td>
+          <td class="text-center text-white/50">${items.length || '—'}</td>
+          <td class="text-white/80">${fmtCurr(inv.total || inv.amount || 0)}</td>
+          <td>${statusBadge(inv.status || 'Posted')}</td>
+        </tr>`;
+      });
+
+      html += `<tr class="total-row">
+        <td colspan="4" class="text-[10px] text-white/40">Subtotal — ${escHtml(supName)}</td>
+        <td colspan="2" class="font-medium text-purex-blue">${fmtCurr(subTotal)}</td>
+      </tr>`;
+    });
+
+    tbody.innerHTML = html;
+    document.getElementById('purchases-totals').innerHTML =
+      `<span class="text-white/40">Total Invoices: <strong class="text-white/60">${invoices.length}</strong></span>
+       <span class="text-white/40">Grand Total: <strong class="text-purex-blue">${fmtCurr(grandTotal)}</strong></span>`;
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  //  TAB 5: RETURNS & CANCELLATIONS
+  // ─────────────────────────────────────────────────────────────
+  function renderReturnsTab() {
+    const orders   = getOrders().filter(o => inRange(o.createdAt || o.date) && ['cancelled','returned','refunded'].includes((o.status||'').toLowerCase()));
+    const trail    = getAuditTrail().filter(e => inRange(e.timestamp) && (e.category||'').toLowerCase() === 'return');
+
+    const tbody = document.getElementById('returns-tbody');
+    const empty = document.getElementById('returns-empty');
+
+    const rows = [];
+
+    orders.forEach(o => {
+      const items = o.itemDetails || (Array.isArray(o.items) ? o.items : o.cart || []);
+      rows.push({
+        date:     o.createdAt || o.date || '',
+        ref:      o.orderNumber || o.id || '—',
+        customer: o.customerName || o.customer || '—',
+        items:    items.length,
+        amount:   parseFloat(o.total || o.totalAmount || 0),
+        reason:   o.cancellationReason || o.returnReason || 'Cancelled by customer',
+        restocked: o.restocked ? 'Yes' : 'No',
+      });
+    });
+
+    trail.forEach(e => {
+      rows.push({
+        date:     e.timestamp || '',
+        ref:      e.orderId || e.ref || '—',
+        customer: e.customer || '—',
+        items:    e.items || '—',
+        amount:   parseFloat(e.amount || 0),
+        reason:   e.detail || e.reason || '—',
+        restocked: e.restocked ? 'Yes' : 'No',
+      });
+    });
+
+    rows.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    if (rows.length === 0) {
+      tbody.innerHTML = '';
+      empty.classList.remove('hidden');
+      return;
+    }
+    empty.classList.add('hidden');
+
+    tbody.innerHTML = rows.map(r => `
+      <tr>
+        <td class="text-white/40">${fmtDate(r.date)}</td>
+        <td class="font-mono text-[10px] text-purex-blue/70 cursor-pointer hover:underline hover:text-purex-blue" onclick="generateReceipt('${escHtml(String(r.ref))}', 'return')" title="Download Return/Credit Note">${escHtml(String(r.ref))} <svg class="inline w-3 h-3 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg></td>
+        <td>${escHtml(String(r.customer))}</td>
+        <td class="text-center text-white/50">${r.items}</td>
+        <td class="text-red-400/80">${r.amount > 0 ? fmtCurr(r.amount) : '—'}</td>
+        <td class="text-white/40 text-[10px]">${escHtml(String(r.reason))}</td>
+        <td><span class="badge ${r.restocked === 'Yes' ? 'badge-green' : 'badge-gray'}">${r.restocked}</span></td>
+      </tr>`).join('');
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  //  TAB 6: INVOICE REGISTRY
+  // ─────────────────────────────────────────────────────────────
+  function renderInvoicesTab() {
+    const orders   = getOrders().filter(o => inRange(o.createdAt || o.date));
+    const txns     = getTransactions().filter(t => inRange(t.date || t.createdAt || t.timestamp));
+    const invoices = getSupplierInvoices().filter(i => inRange(i.date || i.createdAt));
+
+    const rows = [];
+
+    orders.forEach(o => {
+      rows.push({
+        date:    o.createdAt || o.date || '',
+        ref:     o.orderNumber || o.id || '—',
+        type:    'Sale',
+        party:   o.customerName || o.customer || 'Online Customer',
+        amount:  parseFloat(o.total || o.totalAmount || 0),
+        channel: o.channel || 'Online Order',
+        typeCls: 'badge-green',
+      });
+    });
+
+    txns.forEach(t => {
+      rows.push({
+        date:    t.date || t.createdAt || t.timestamp || '',
+        ref:     t.id || t.txnId || '—',
+        type:    'Sale',
+        party:   t.customer || 'Walk-in',
+        amount:  parseFloat(t.total || t.amount || 0),
+        channel: 'POS',
+        typeCls: 'badge-green',
+      });
+    });
+
+    invoices.forEach(inv => {
+      const suppliers = getSuppliers();
+      const sup = suppliers.find(s => s.id === (inv.supplierId || inv.supplier));
+      rows.push({
+        date:    inv.date || inv.createdAt || '',
+        ref:     inv.invoiceNumber || inv.id || '—',
+        type:    'Purchase',
+        party:   (sup ? (sup.name || sup.company) : inv.supplierId) || '—',
+        amount:  parseFloat(inv.total || inv.amount || 0),
+        channel: 'Supplier Invoice',
+        typeCls: 'badge-amber',
+      });
+    });
+
+    rows.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    const tbody = document.getElementById('invoices-tbody');
+    const empty = document.getElementById('invoices-empty');
+
+    if (rows.length === 0) {
+      tbody.innerHTML = '';
+      empty.classList.remove('hidden');
+      return;
+    }
+    empty.classList.add('hidden');
+
+    tbody.innerHTML = rows.map(r => {
+      const receiptType = r.type === 'Purchase' ? 'purchase' : (r.channel === 'POS' ? 'pos' : 'sale');
+      return `
+      <tr>
+        <td class="text-white/40">${fmtDate(r.date)}</td>
+        <td class="font-mono text-[10px] text-purex-blue/70 cursor-pointer hover:underline hover:text-purex-blue" onclick="generateReceipt('${escHtml(String(r.ref))}', '${receiptType}')" title="Download Receipt">${escHtml(String(r.ref))} <svg class="inline w-3 h-3 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg></td>
+        <td><span class="badge ${r.typeCls}">${r.type}</span></td>
+        <td class="text-white/70">${escHtml(String(r.party))}</td>
+        <td class="text-white/80">${fmtCurr(r.amount)}</td>
+        <td>${channelBadge(r.channel)}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  //  TAB 7: AUDIT TRAIL
+  // ─────────────────────────────────────────────────────────────
+  let activeTrailCat = 'all';
+
+  function setTrailCat(cat, btn) {
+    activeTrailCat = cat;
+    document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    renderTrailTab();
+  }
+
+  function renderTrailTab() {
+    const all    = getAuditTrail();
+    const search = (document.getElementById('trail-search').value || '').toLowerCase().trim();
+
+    // Update badge count
+    document.getElementById('trail-badge').textContent = all.length;
+
+    let filtered = all;
+
+    if (activeTrailCat !== 'all') {
+      filtered = filtered.filter(e => (e.category || '').toLowerCase() === activeTrailCat);
+    }
+
+    if (search) {
+      filtered = filtered.filter(e =>
+        (e.action || '').toLowerCase().includes(search) ||
+        (e.detail || '').toLowerCase().includes(search) ||
+        (e.user  || '').toLowerCase().includes(search) ||
+        (e.category || '').toLowerCase().includes(search)
+      );
+    }
+
+    // Date range filter
+    filtered = filtered.filter(e => inRange(e.timestamp));
+
+    document.getElementById('trail-count-label').textContent =
+      'Showing ' + filtered.length + ' of ' + all.length + ' entries';
+
+    const tbody = document.getElementById('trail-tbody');
+    const empty = document.getElementById('trail-empty');
+
+    if (filtered.length === 0) {
+      tbody.innerHTML = '';
+      empty.classList.remove('hidden');
+      return;
+    }
+    empty.classList.add('hidden');
+
+    const catColors = {
+      stock: 'badge-green', sale: 'badge-blue', order: 'badge-purple',
+      invoice: 'badge-amber', product: 'badge-blue', price: 'badge-amber',
+      user: 'badge-gray', supplier: 'badge-purple', customer: 'badge-blue',
+      return: 'badge-red',
+    };
+
+    tbody.innerHTML = filtered.slice(0, 500).map(e => {
+      const ts   = e.timestamp ? new Date(e.timestamp) : null;
+      const tsStr = ts ? ts.toLocaleDateString('en-PK', { day: '2-digit', month: 'short' }) + ' ' +
+                        ts.toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit', hour12: true }) : '—';
+      const roleCls = (e.role || '').toLowerCase() === 'admin' ? 'badge-blue' : 'badge-gray';
+      const cat = (e.category || '').toLowerCase();
+      const catCls = catColors[cat] || 'badge-gray';
+      const intCheck = validateChecksum(e);
+      let intBadge;
+      if (intCheck === null) {
+        intBadge = '<span class="text-[9px] text-white/20">—</span>';
+      } else if (intCheck) {
+        intBadge = '<span class="badge badge-green text-[8px]">OK</span>';
+      } else {
+        intBadge = '<span class="tampered-badge">TAMPERED</span>';
+      }
+      // Show download icon on entries that carry a traceable reference
+      const trailRef = e.orderId || e.ref || e.invoiceId || null;
+      const trailRefCats = ['sale', 'order', 'invoice', 'return'];
+      let downloadBtn = '';
+      if (trailRef && trailRefCats.includes(cat)) {
+        const trailType = cat === 'invoice' ? 'purchase' : (cat === 'return' ? 'return' : 'sale');
+        downloadBtn = ` <button onclick="generateReceipt('${escHtml(String(trailRef))}', '${trailType}')" title="Download Receipt" class="inline-flex items-center opacity-30 hover:opacity-70 transition-opacity ml-1 align-middle">
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        </button>`;
+      }
+
+      return `<tr>
+        <td class="text-[10px] text-white/40 whitespace-nowrap">${tsStr}</td>
+        <td class="text-white/60">${escHtml(e.user || '—')}</td>
+        <td><span class="badge ${roleCls}">${escHtml(e.role || '—')}</span></td>
+        <td><span class="badge ${catCls}">${escHtml(e.category || '—')}</span></td>
+        <td class="text-white/70">${escHtml(e.action || '—')}${downloadBtn}</td>
+        <td class="text-[10px] text-white/35 max-w-xs truncate">${escHtml(e.detail || '')}</td>
+        <td>${intBadge}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  //  GENERATE RECEIPT PDF
+  // ─────────────────────────────────────────────────────────────
+  function generateReceipt(ref, type) {
+    if (!ref || ref === '—') { alert('No reference number available.'); return; }
+
+    const { jsPDF } = window.jspdf;
+
+    // ── Locate the source record ──────────────────────────────
+    let record = null;
+    let supplierName = '—';
+
+    if (type === 'sale') {
+      const orders = getOrders();
+      record = orders.find(o => (o.orderNumber || o.id || '') == ref);
+    } else if (type === 'pos') {
+      const txns = getTransactions();
+      record = txns.find(t => (t.id || t.txnId || '') == ref);
+    } else if (type === 'purchase') {
+      const invoices = getSupplierInvoices();
+      record = invoices.find(i => (i.invoiceNumber || i.id || '') == ref);
+      if (record) {
+        const suppliers = getSuppliers();
+        const sup = suppliers.find(s => s.id == (record.supplierId || record.supplier));
+        supplierName = sup ? (sup.name || sup.company || '—') : (String(record.supplierId || '—'));
+      }
+    } else if (type === 'return') {
+      const orders = getOrders();
+      record = orders.find(o =>
+        (o.orderNumber || o.id || '') == ref &&
+        ['cancelled','returned','refunded'].includes((o.status || '').toLowerCase())
+      );
+      // fallback: any order with that ref
+      if (!record) record = getOrders().find(o => (o.orderNumber || o.id || '') == ref);
+    }
+
+    if (!record) {
+      alert('Receipt not found for reference: ' + ref);
+      return;
+    }
+
+    // ── Title by type ─────────────────────────────────────────
+    const titleMap = {
+      sale:     'Sales Invoice',
+      pos:      'POS Receipt',
+      purchase: 'Purchase Invoice',
+      return:   'Return / Credit Note',
+    };
+    const docTitle = titleMap[type] || 'Receipt';
+
+    // ── Build doc ─────────────────────────────────────────────
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const pw = 210, ph = 297, margin = 20, cw = pw - margin * 2;
+    const blue = [77, 158, 213], dark = [30, 35, 50], gray = [100, 100, 115], lightGray = [190, 190, 200];
+
+    // ── Letterhead background ─────────────────────────────────
+    if (letterheadBase64) {
+      try { doc.addImage(letterheadBase64, 'JPEG', 0, 0, pw, ph); } catch(e) {}
+    }
+
+    // Content starts below the letterhead header area
+    let y = 68;
+    const pageW = pw;
+    const col2X = pageW / 2 + 4;
+
+    // ── Document title ────────────────────────────────────────
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...blue);
+    doc.text(docTitle.toUpperCase(), margin, y);
+
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(...gray);
+    doc.text(String(ref), pw - margin, y, { align: 'right' });
+
+    y += 3;
+    doc.setDrawColor(...blue);
+    doc.setLineWidth(0.6);
+    doc.line(margin, y, pw - margin, y);
+    y += 8;
+
+    // ── Details block (two columns) ─────────────────────────────
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...dark);
+    doc.text(type === 'purchase' ? 'Invoice Details' : 'Transaction Details', margin, y);
+    doc.text(type === 'purchase' ? 'Supplier' : 'Bill To', margin + 95, y);
+    y += 5;
+    doc.setFontSize(7.5);
+
+    const refDate = record.createdAt || record.date || record.timestamp || '';
+    const dateStr = refDate ? new Date(refDate).toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+    const statusStr = record.status || (type === 'pos' ? 'Completed' : (type === 'purchase' ? 'Posted' : '—'));
+
+    // Left column
+    const leftLines = [
+      ['Reference:', String(ref)],
+      ['Date:', dateStr],
+      ['Status:', String(statusStr)],
+      ['Type:', docTitle],
+    ];
+    if (type === 'sale' && (record.city || record.address)) {
+      const addr = [record.city, record.address].filter(Boolean).join(', ');
+      leftLines.push(['Deliver to:', addr.substring(0, 40)]);
+    }
+
+    leftLines.forEach(([label, val]) => {
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(...gray);
+      doc.text(label, margin, y);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...dark);
+      doc.text(val, margin + 25, y);
+      y += 4.5;
+    });
+
+    // Right column
+    let ry = y - (leftLines.length * 4.5);
+    let rightLines = [];
+    if (type === 'purchase') {
+      rightLines = [
+        ['Supplier:', String(supplierName)],
+      ];
+    } else {
+      const custName = record.customerName || record.customer || 'Walk-in Customer';
+      rightLines = [
+        ['Customer:', String(custName).substring(0, 35)],
+      ];
+      if (record.phone) rightLines.push(['Phone:', String(record.phone)]);
+    }
+
+    rightLines.forEach(([label, val]) => {
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(...gray);
+      doc.text(label, margin + 95, ry);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...dark);
+      doc.text(val, margin + 117, ry);
+      ry += 4.5;
+    });
+
+    y = Math.max(y, ry) + 4;
+
+    // ── Items table ───────────────────────────────────────────
+    let items = [];
+    if (type === 'purchase') {
+      items = record.items || record.lines || [];
+    } else {
+      items = record.itemDetails || (Array.isArray(record.items) ? record.items : record.cart || []);
+    }
+
+    if (items.length > 0) {
+      let tableHead, tableBody;
+      if (type === 'purchase') {
+        tableHead = [['Product', 'SKU', 'Qty', 'Unit Cost', 'Total']];
+        tableBody = items.map(i => [
+          String(i.productName || i.name || '—'),
+          String(i.sku || '—'),
+          String(i.qty || i.quantity || 0),
+          'Rs. ' + (parseFloat(i.unitCost || i.cost || 0)).toLocaleString('en-PK'),
+          'Rs. ' + (parseFloat(i.total || 0)).toLocaleString('en-PK'),
+        ]);
+      } else {
+        tableHead = [['Product', 'SKU', 'Qty', 'Unit Price', 'Total']];
+        tableBody = items.map(i => [
+          String(i.name || i.productName || '—'),
+          String(i.sku || '—'),
+          String(i.qty || i.quantity || 1),
+          'Rs. ' + (parseFloat(i.price || i.unitPrice || 0)).toLocaleString('en-PK'),
+          'Rs. ' + (parseFloat(i.price || i.unitPrice || 0) * parseInt(i.qty || i.quantity || 1)).toLocaleString('en-PK'),
+        ]);
+      }
+
+      doc.autoTable({
+        head: tableHead,
+        body: tableBody,
+        startY: y,
+        headStyles: { fillColor: [77, 158, 213], textColor: 255, fontSize: 7, fontStyle: 'bold' },
+        styles: { fontSize: 7, textColor: [30, 35, 50], fillColor: [255, 255, 255], cellPadding: 2.5 },
+        alternateRowStyles: { fillColor: [240, 246, 252] },
+        tableLineColor: [220, 220, 220],
+        tableLineWidth: 0.1,
+        margin: { left: margin, right: margin },
+        columnStyles: {
+          2: { halign: 'center' },
+          3: { halign: 'right' },
+          4: { halign: 'right' },
+        },
+      });
+      y = doc.lastAutoTable.finalY + 6;
+    } else {
+      doc.setFontSize(7.5);
+      doc.setTextColor(...gray);
+      doc.text('No line items available for this record.', margin, y + 4);
+      y += 12;
+    }
+
+    // ── Totals section ─────────────────────────────────────────
+    const rawTotal = parseFloat(record.total || record.totalAmount || record.amount || 0);
+    const deliveryFee = parseFloat(record.deliveryFee || record.delivery || 0);
+    const subtotal = parseFloat(record.subtotal || record.subTotal || (rawTotal - deliveryFee) || 0);
+    const gstCalc = calcGST(subtotal);
+
+    doc.setDrawColor(...lightGray);
+    doc.line(margin + 110, y, pw - margin, y);
+    y += 4;
+
+    doc.setFontSize(7.5);
+
+    if (type !== 'purchase') {
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(...gray);
+      doc.text('Base Subtotal:', margin + 125, y);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...dark);
+      doc.text('Rs. ' + gstCalc.base.toLocaleString(), pw - margin - 2, y, { align: 'right' });
+      y += 4.5;
+
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(...gray);
+      doc.text('GST (' + (gstCalc.rate * 100).toFixed(0) + '%):', margin + 125, y);
+      doc.setTextColor(...dark);
+      doc.text('Rs. ' + gstCalc.gst.toLocaleString(), pw - margin - 2, y, { align: 'right' });
+      y += 4.5;
+
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(...gray);
+      doc.text('Subtotal (incl. GST):', margin + 125, y);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...dark);
+      doc.text('Rs. ' + subtotal.toLocaleString(), pw - margin - 2, y, { align: 'right' });
+      y += 4.5;
+
+      if (deliveryFee > 0) {
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(...gray);
+        doc.text('Delivery:', margin + 125, y);
+        doc.setTextColor(...dark);
+        doc.text('Rs. ' + deliveryFee.toLocaleString(), pw - margin - 2, y, { align: 'right' });
+        y += 4.5;
+      }
+    } else {
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(...gray);
+      doc.text('Invoice Total:', margin + 125, y);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...dark);
+      doc.text('Rs. ' + rawTotal.toLocaleString(), pw - margin - 2, y, { align: 'right' });
+      y += 4.5;
+    }
+
+    y -= 2;
+
+    // Grand Total
+    doc.setDrawColor(...blue);
+    doc.setLineWidth(0.4);
+    doc.line(margin + 110, y, pw - margin, y);
+    y += 5;
+    doc.setFillColor(77, 158, 213);
+    doc.rect(margin + 110, y - 3.5, cw - 110, 9, 'F');
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(255, 255, 255);
+    doc.text('GRAND TOTAL', margin + 113, y + 2.5);
+    doc.text('Rs. ' + rawTotal.toLocaleString(), pw - margin - 4, y + 2.5, { align: 'right' });
+    y += 14;
+
+    // ── Notes (if any) ────────────────────────────────────────
+    if (record.notes && String(record.notes).trim()) {
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7.5);
+      doc.setTextColor(...gray);
+      doc.text('Notes: ' + String(record.notes).substring(0, 120), margin, y);
+      y += 6;
+    }
+
+    // ── Return reason (for return type) ──────────────────────
+    if (type === 'return') {
+      const reason = record.cancellationReason || record.returnReason || '—';
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7.5);
+      doc.setTextColor(220, 38, 38);
+      doc.text('Return/Cancellation Reason: ' + String(reason).substring(0, 120), margin, y);
+      y += 6;
+    }
+
+    // ── Terms & Conditions ────────────────────────────────────
+    doc.setDrawColor(...lightGray);
+    doc.setLineWidth(0.2);
+    doc.line(margin, y, pw - margin, y);
+    y += 4;
+    doc.setFontSize(6.5);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...dark);
+    doc.text(type === 'return' ? 'Return Policy:' : 'Terms & Conditions:', margin, y);
+    y += 3.5;
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(...gray);
+    const receiptTerms = type === 'return' ? [
+      '1. Item has been returned and restocked to inventory.',
+      '2. Credit will be applied to customer account or refunded as per agreement.',
+      '3. This document serves as proof of return for accounting purposes.',
+    ] : [
+      '1. Goods once sold will not be returned unless defective or damaged.',
+      '2. This receipt is proof of purchase. Please retain for your records.',
+      '3. Prices are inclusive of all applicable taxes unless stated otherwise.',
+    ];
+    receiptTerms.forEach(t => { doc.text(t, margin, y); y += 3.5; });
+
+    y += 6;
+
+    // ── Signatures ────────────────────────────────────────────
+    doc.setDrawColor(...lightGray);
+    doc.setLineWidth(0.3);
+    doc.line(margin, y + 8, margin + 50, y + 8);
+    doc.setFontSize(6.5);
+    doc.setTextColor(...gray);
+    doc.text('Authorized Signature / Stamp', margin, y + 12);
+    doc.line(pw - margin - 50, y + 8, pw - margin, y + 8);
+    doc.text('Customer Signature', pw - margin - 50, y + 12);
+    y += 18;
+
+    // ── Computer-generated note ───────────────────────────────
+    doc.setFontSize(6);
+    doc.setFont('helvetica', 'italic');
+    doc.setTextColor(...gray);
+    doc.text('This is a computer-generated document.', pw / 2, y, { align: 'center' });
+
+    const date = new Date().toISOString().slice(0, 10);
+    doc.save('Purex_Receipt_' + String(ref).replace(/[^a-zA-Z0-9\-_]/g, '_') + '_' + date + '.pdf');
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  //  EXPORT ALL MENU
+  // ─────────────────────────────────────────────────────────────
+  function toggleExportAllMenu() {
+    document.getElementById('export-all-menu').classList.toggle('hidden');
+  }
+  document.addEventListener('click', function(e) {
+    const wrap = document.getElementById('export-all-wrap');
+    if (!wrap.contains(e.target)) document.getElementById('export-all-menu').classList.add('hidden');
+  });
+
+  // ─────────────────────────────────────────────────────────────
+  //  HELPERS
+  // ─────────────────────────────────────────────────────────────
+  function escHtml(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function pdfHeader(doc, title) {
+    // White background — clean professional look
+    doc.setFillColor(255, 255, 255);
+    doc.rect(0, 0, doc.internal.pageSize.width, doc.internal.pageSize.height, 'F');
+    // Blue accent bar at top
+    doc.setFillColor(77, 158, 213);
+    doc.rect(0, 0, doc.internal.pageSize.width, 3, 'F');
+    // Company name
+    doc.setTextColor(30, 30, 30);
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text('PUREX CHEMICALS', 14, 16);
+    // Report title
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(11);
+    doc.setTextColor(77, 158, 213);
+    doc.text(title, 14, 24);
+    // Period
+    doc.setFontSize(8);
+    doc.setTextColor(100, 100, 100);
+    doc.text('Period: ' + getRangeLabel(), 14, 30);
+    // Date generated — right aligned
+    doc.text('Generated: ' + new Date().toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' }), doc.internal.pageSize.width - 14, 30, { align: 'right' });
+    // Separator line
+    doc.setDrawColor(200, 200, 200);
+    doc.line(14, 33, doc.internal.pageSize.width - 14, 33);
+  }
+
+  function pdfFooter(doc) {
+    const pages = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pages; i++) {
+      doc.setPage(i);
+      const w = doc.internal.pageSize.width;
+      const h = doc.internal.pageSize.height;
+      // Bottom separator
+      doc.setDrawColor(220, 220, 220);
+      doc.line(14, h - 14, w - 14, h - 14);
+      doc.setFontSize(7);
+      doc.setTextColor(120, 120, 120);
+      doc.text('Generated by ' + (currentUser.name || 'Admin') + ' | Purex Chemicals Audit System', 14, h - 8);
+      // Powered by Quartermasters — hyperlinked
+      const qmText = 'Powered by Quartermasters FZC';
+      const qmX = w / 2;
+      doc.text(qmText, qmX, h - 8, { align: 'center' });
+      const qmWidth = doc.getTextWidth(qmText);
+      doc.link(qmX - qmWidth / 2, h - 11, qmWidth, 5, { url: 'mailto:hello@quartermasters.me' });
+      doc.text('Page ' + i + ' of ' + pages, w - 14, h - 8, { align: 'right' });
+    }
+  }
+
+  // Extract table data
+  function getTableData(tabId) {
+    const table = document.getElementById(tabId + '-table');
+    if (!table) return { head: [], body: [] };
+    const head = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent.trim());
+    const body = Array.from(table.querySelectorAll('tbody tr:not(.total-row)')).map(tr =>
+      Array.from(tr.querySelectorAll('td')).map(td => td.textContent.trim())
+    );
+    return { head, body };
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  //  EXPORT SECTION PDF
+  // ─────────────────────────────────────────────────────────────
+  const TAB_TITLES = {
+    financial: 'Financial Summary',
+    sales:     'Sales Report',
+    stock:     'Stock Audit',
+    purchases: 'Purchase & Supplier Report',
+    returns:   'Returns & Cancellations',
+    invoices:  'Invoice Registry',
+    trail:     'Audit Trail',
+  };
+
+  function exportSectionPDF(tabId) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+
+    pdfHeader(doc, TAB_TITLES[tabId] || tabId);
+
+    if (tabId === 'financial') {
+      // Special: render KPI cards as text
+      const orders = getOrders().filter(o => inRange(o.createdAt || o.date));
+      const txns   = getTransactions().filter(t => inRange(t.date || t.createdAt || t.timestamp));
+      let rev = 0, cogs = 0, del = 0, ret = 0, cnt = 0;
+      orders.forEach(o => {
+        const s = (o.status || '').toLowerCase();
+        if (s === 'cancelled' || s === 'returned') { ret++; return; }
+        rev += parseFloat(o.total || 0); del += parseFloat(o.deliveryFee || 0); cnt++;
+      });
+      txns.forEach(t => { rev += parseFloat(t.total || 0); cnt++; });
+      const profit = rev - cogs;
+      const margin = rev > 0 ? (profit / rev * 100).toFixed(1) : '0.0';
+      const aov = cnt > 0 ? (rev / cnt) : 0;
+      let gstCol = 0;
+      orders.forEach(o => { const s=(o.status||'').toLowerCase(); if(s==='cancelled'||s==='returned') return; if(o.gstAmount){gstCol+=parseFloat(o.gstAmount);}else{const ot=parseFloat(o.total||0)-parseFloat(o.deliveryFee||0);gstCol+=calcGST(ot).gst;} });
+      txns.forEach(t => { if(t.gstAmount){gstCol+=parseFloat(t.gstAmount);}else{gstCol+=calcGST(parseFloat(t.total||t.amount||0)).gst;} });
+      gstCol = Math.round(gstCol);
+      const rows = [
+        ['Total Revenue', 'Rs. ' + rev.toLocaleString()],
+        ['Total COGS',    'Rs. ' + cogs.toLocaleString()],
+        ['Gross Profit',  'Rs. ' + profit.toLocaleString()],
+        ['Gross Margin',  margin + '%'],
+        ['Delivery Fees', 'Rs. ' + del.toLocaleString()],
+        ['Total Orders',  String(cnt)],
+        ['Avg Order Value','Rs. ' + Math.round(aov).toLocaleString()],
+        ['Returns / Cancels', String(ret)],
+        ['GST Collected', 'Rs. ' + gstCol.toLocaleString()],
+      ];
+      doc.autoTable({ head: [['Metric', 'Value']], body: rows, startY: 38,
+        headStyles: { fillColor: [77,158,213], textColor: 255, fontSize: 9, fontStyle: 'bold' },
+        styles: { fontSize: 9, textColor: [30,30,30], fillColor: [255,255,255], cellPadding: 4 },
+        alternateRowStyles: { fillColor: [245,247,250] },
+        tableLineColor: [220,220,220], tableLineWidth: 0.1 });
+    } else {
+      const { head, body } = getTableData(tabId);
+      if (body.length === 0) {
+        doc.setFontSize(9); doc.setTextColor(120,120,120);
+        doc.text('No data for the selected period.', 14, 42);
+      } else {
+        doc.autoTable({ head: [head], body: body, startY: 38,
+          headStyles: { fillColor: [77,158,213], textColor: 255, fontSize: 8, fontStyle: 'bold' },
+          styles: { fontSize: 7.5, textColor: [30,30,30], fillColor: [255,255,255], overflow: 'linebreak', cellPadding: 3 },
+          alternateRowStyles: { fillColor: [245,247,250] },
+          tableLineColor: [220,220,220], tableLineWidth: 0.1,
+          margin: { left: 14, right: 14 } });
+      }
+    }
+
+    pdfFooter(doc);
+    const date = new Date().toISOString().slice(0, 10);
+    doc.save('Purex_' + (TAB_TITLES[tabId] || tabId).replace(/\s+/g,'_') + '_' + date + '.pdf');
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  //  EXPORT SECTION EXCEL
+  // ─────────────────────────────────────────────────────────────
+  function exportSectionExcel(tabId) {
+    if (!window.XLSX) { alert('Excel library not loaded.'); return; }
+    const XLSX = window.XLSX;
+    const wb = XLSX.utils.book_new();
+
+    let ws;
+    if (tabId === 'financial') {
+      const orders = getOrders().filter(o => inRange(o.createdAt || o.date));
+      const txns   = getTransactions().filter(t => inRange(t.date || t.createdAt || t.timestamp));
+      let rev = 0, cogs = 0, del = 0, ret = 0, cnt = 0;
+      orders.forEach(o => {
+        const s = (o.status||'').toLowerCase();
+        if (s==='cancelled'||s==='returned') { ret++; return; }
+        rev += parseFloat(o.total||0); del += parseFloat(o.deliveryFee||0); cnt++;
+      });
+      txns.forEach(t => { rev += parseFloat(t.total||0); cnt++; });
+      const profit = rev - cogs;
+      let gstCol = 0;
+      orders.forEach(o => { const s=(o.status||'').toLowerCase(); if(s==='cancelled'||s==='returned') return; if(o.gstAmount){gstCol+=parseFloat(o.gstAmount);}else{const ot=parseFloat(o.total||0)-parseFloat(o.deliveryFee||0);gstCol+=calcGST(ot).gst;} });
+      txns.forEach(t => { if(t.gstAmount){gstCol+=parseFloat(t.gstAmount);}else{gstCol+=calcGST(parseFloat(t.total||t.amount||0)).gst;} });
+      gstCol = Math.round(gstCol);
+      ws = XLSX.utils.aoa_to_sheet([
+        ['Metric', 'Value (PKR)'],
+        ['Total Revenue', rev], ['Total COGS', cogs], ['Gross Profit', profit],
+        ['Gross Margin %', rev > 0 ? +(profit/rev*100).toFixed(2) : 0],
+        ['Delivery Fees', del], ['Total Orders', cnt],
+        ['Avg Order Value', cnt > 0 ? +(rev/cnt).toFixed(2) : 0], ['Returns/Cancels', ret],
+        ['GST Collected', gstCol],
+        [], ['Period', getRangeLabel()], ['Generated', new Date().toISOString()],
+        [], ['Powered by Quartermasters FZC — hello@quartermasters.me'],
+      ]);
+    } else {
+      const { head, body } = getTableData(tabId);
+      ws = XLSX.utils.aoa_to_sheet([head, ...body, [], ['Powered by Quartermasters FZC — hello@quartermasters.me']]);
+    }
+
+    XLSX.utils.book_append_sheet(wb, ws, (TAB_TITLES[tabId]||tabId).slice(0, 31));
+    const date = new Date().toISOString().slice(0,10);
+    XLSX.writeFile(wb, 'Purex_' + (TAB_TITLES[tabId]||tabId).replace(/\s+/g,'_') + '_' + date + '.xlsx');
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  //  EXPORT ALL PDF
+  // ─────────────────────────────────────────────────────────────
+  function exportAllPDF() {
+    document.getElementById('export-all-menu').classList.add('hidden');
+    const tabs = ['financial','sales','stock','purchases','returns','invoices','trail'];
+    const prevTab = activeTab;
+    // Render each tab so DOM tables are populated before reading them
+    tabs.forEach(tabId => {
+      renderTab(tabId);
+      exportSectionPDF(tabId);
+    });
+    // Restore original tab
+    renderTab(prevTab);
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  //  EXPORT ALL EXCEL
+  // ─────────────────────────────────────────────────────────────
+  function exportAllExcel() {
+    document.getElementById('export-all-menu').classList.add('hidden');
+    const tabs = ['financial','sales','stock','purchases','returns','invoices','trail'];
+    const prevTab = activeTab;
+    // Render each tab so DOM tables are populated before reading them
+    tabs.forEach(tabId => {
+      renderTab(tabId);
+      exportSectionExcel(tabId);
+    });
+    // Restore original tab
+    renderTab(prevTab);
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  //  INIT
+  // ─────────────────────────────────────────────────────────────
+  gsap.registerPlugin();
+  gsap.from('.bento-card, .kpi-card', { opacity: 0, y: 20, duration: 0.5, stagger: 0.06, delay: 0.1, ease: 'power3.out' });
+
+  updateStorageIndicator();
+  document.getElementById('range-label').textContent = getRangeLabel();
+
+  // Render with localStorage data first (instant), then sync from API and re-render
+  renderFinancialTab();
+  document.getElementById('trail-badge').textContent = getAuditTrail().length;
+
+  // API sync — fetch fresh data from server, then re-render active tab
+  syncDataFromAPI().then(() => {
+    if (dataSynced) {
+      updateStorageIndicator();
+      renderTab(activeTab);
+      document.getElementById('trail-badge').textContent = getAuditTrail().length;
+    }
+  });
+  </script>
+</body>
+</html>

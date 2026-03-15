@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/png" href="../assets/purex_icon.png">
+  <title>Customers — PUREX Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: { purex: { blue: '#4d9ed5', dark: '#0a0e17', light: '#f7f7f7' } },
+          fontFamily: { heading: ['"Plus Jakarta Sans"', 'sans-serif'], body: ['"Inter"', 'sans-serif'] }
+        }
+      }
+    }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="js/api-client.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #0a0e17; color: #f7f7f7; font-family: 'Inter', sans-serif; overflow-x: hidden; visibility: hidden; }
+    body.authenticated { visibility: visible; }
+    .glass { background: rgba(77, 158, 213, 0.05); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.08); }
+    .glass-strong { background: rgba(255,255,255,0.04); backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px); border: 1px solid rgba(255,255,255,0.1); }
+    .grain { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; opacity: 0.03; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E"); }
+    .bento-card { transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease, border-color 0.3s ease; }
+    .bento-card:hover { transform: translateY(-2px); box-shadow: 0 10px 40px rgba(77,158,213,0.08); border-color: rgba(77,158,213,0.15); }
+    .sidebar-link { transition: all 0.2s ease; }
+    .sidebar-link:hover, .sidebar-link.active { background: rgba(77,158,213,0.08); color: #4d9ed5; }
+    .sidebar-link.active { border-right: 2px solid #4d9ed5; }
+    #sidebar.collapsed { width: 64px; }
+    #sidebar.collapsed .sidebar-text, #sidebar.collapsed .sidebar-brand-text, #sidebar.collapsed .sidebar-user-info { display: none; }
+    #sidebar.collapsed nav a { justify-content: center; padding-left: 0; padding-right: 0; }
+    #sidebar.collapsed nav a svg { margin: 0; }
+    #sidebar.collapsed .p-6 { padding-left: 12px; padding-right: 12px; }
+    #sidebar.collapsed .px-6 { padding-left: 12px; padding-right: 12px; }
+    #sidebar.collapsed .px-3 { padding-left: 8px; padding-right: 8px; }
+    #sidebar.collapsed .p-4 { padding-left: 8px; padding-right: 8px; }
+    #sidebar.collapsed .px-2 { padding-left: 0; padding-right: 0; justify-content: center; }
+    #sidebar.collapsed #sidebar-toggle-icon { transform: rotate(180deg); }
+    .main-content-shift { transition: margin-left 0.3s ease; }
+    .modal-overlay { transition: opacity 0.3s ease; }
+    .modal-overlay.hidden { opacity: 0; pointer-events: none; }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: #4d9ed5 !important; box-shadow: 0 0 0 2px rgba(77,158,213,0.15); }
+    select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23ffffff40' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; }
+    .btn-export { display: inline-flex; align-items: center; gap: 5px; padding: 5px 12px; border-radius: 8px; font-size: 10px; letter-spacing: 0.05em; color: rgba(255,255,255,0.45); background: rgba(255,255,255,0.04); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.07); cursor: pointer; transition: all 0.25s ease; white-space: nowrap; }
+    .btn-export:hover { color: rgba(255,255,255,0.7); background: rgba(77,158,213,0.1); border-color: rgba(77,158,213,0.2); }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
+  </style>
+</head>
+<body>
+  <div class="grain"></div>
+  <div class="flex min-h-screen">
+    <!-- SIDEBAR -->
+    <aside id="sidebar" class="hidden lg:flex flex-col w-64 border-r border-white/5 glass-strong fixed h-full z-40 transition-all duration-300">
+      <button id="sidebar-toggle" onclick="toggleSidebar()" class="absolute -right-3 top-5 w-6 h-6 rounded-full glass-strong border border-white/10 flex items-center justify-center text-white/40 hover:text-purex-blue hover:border-purex-blue/30 transition z-50 cursor-pointer" title="Toggle Sidebar">
+        <svg id="sidebar-toggle-icon" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <div class="px-6 pt-4 pb-2"></div>
+      <div class="p-6 pt-2 border-b border-white/5">
+        <a href="/" class="flex items-center gap-3 group">
+          <img src="../assets/purex_icon.png" alt="Purex" class="w-8 h-8 object-contain transition-transform duration-300 group-hover:scale-110">
+          <div class="sidebar-brand-text">
+            <div class="flex items-baseline"><span class="font-heading text-sm font-light tracking-[0.3em] text-white">PURE</span><span class="font-heading text-lg font-light text-purex-blue">X</span></div>
+            <p class="text-[9px] tracking-[0.2em] text-white/30 -mt-0.5">ADMIN PANEL</p>
+          </div>
+        </a>
+      </div>
+      <nav class="flex-1 py-4 px-3 space-y-1 overflow-y-auto overflow-x-hidden">
+        <a href="/admin.html" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-white/50">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><rect x="2" y="2" width="6" height="6" rx="1"/><rect x="10" y="2" width="6" height="6" rx="1"/><rect x="2" y="10" width="6" height="6" rx="1"/><rect x="10" y="10" width="6" height="6" rx="1"/></svg>
+          <span class="sidebar-text">Dashboard</span>
+        </a>
+        <a href="/" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-white/50">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><path d="M3 9l6-6 6 6"/><path d="M5 7v7a1 1 0 001 1h6a1 1 0 001-1V7"/></svg>
+          <span class="sidebar-text">Home</span>
+        </a>
+        <a href="/shop.html" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-white/50">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><path d="M4 4h10v12H4z"/><path d="M7 4V2h4v2M7 8h4"/></svg>
+          <span class="sidebar-text">Shop</span>
+        </a>
+        <a href="/sale.html" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-red-400/70">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><path d="M9 2l2 4h4l-3 3 1 5-4-3-4 3 1-5-3-3h4z"/></svg>
+          <span class="sidebar-text">Sale</span>
+        </a>
+        <a href="/admin.html#products-section" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-white/50">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><rect x="2" y="3" width="14" height="12" rx="1"/><path d="M2 7h14"/><path d="M6 3v4"/></svg>
+          <span class="sidebar-text">Products</span>
+        </a>
+        <a href="/admin.html#orders-section" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-white/50">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><path d="M2 2l4 14 3-6 6-3z"/></svg>
+          <span class="sidebar-text">Orders</span>
+        </a>
+        <a href="/admin.html#inventory-section" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-white/50">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><path d="M2 14l4-6 3 3 5-7"/></svg>
+          <span class="sidebar-text">Inventory</span>
+        </a>
+        <a href="/admin.html#sales-section" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-white/50">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><path d="M2 16V6l4 4 4-6 4 3 4-5v14z"/></svg>
+          <span class="sidebar-text">Sales</span>
+        </a>
+        <a href="/admin.html#profit-section" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-white/50">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><path d="M9 2v14M6 5h5a2 2 0 010 4H6M7 9h4a2 2 0 010 4H6"/></svg>
+          <span class="sidebar-text">Profits</span>
+        </a>
+        <div class="border-t border-white/5 my-2 mx-2"></div>
+        <a href="/suppliers.html" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-white/50">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><path d="M2 3h16v4H2zM4 7v8a1 1 0 001 1h8a1 1 0 001-1V7"/><path d="M7 10h4"/></svg>
+          <span class="sidebar-text">Suppliers</span>
+        </a>
+        <a href="/admin.html#invoice-archive-section" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-white/50">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><path d="M4 2h8l3 3v12a1 1 0 01-1 1H4a1 1 0 01-1-1V3a1 1 0 011-1z"/><path d="M7 8h4M7 11h4M7 14h2"/></svg>
+          <span class="sidebar-text">Invoices</span>
+        </a>
+        <a href="/customers.html" class="sidebar-link active flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><path d="M9 9a3 3 0 100-6 3 3 0 000 6zM2 16c0-3 3-5 7-5s7 2 7 5"/></svg>
+          <span class="sidebar-text">Customers</span>
+        </a>
+        <div id="admin-only-nav">
+          <div class="border-t border-white/5 my-2 mx-2"></div>
+          <a href="/users.html" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-white/50">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><path d="M12 12a4 4 0 10-8 0 4 4 0 008 0zM16 8a3 3 0 100-6"/><path d="M2 20c0-3 2.5-5 6-5s6 2 6 5"/><path d="M16 11c2 0 4 1.5 4 4"/></svg>
+            <span class="sidebar-text">Users</span>
+          </a>
+          <a href="/activity.html" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light text-white/50">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg>
+            <span class="sidebar-text">Activity Log</span>
+          </a>
+          <a href="/audit.html" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light tracking-wide text-white/50 hover:text-white hover:bg-white/[0.04] transition-all admin-only-link">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><path d="M9 1v3l2 1.5"/><circle cx="9" cy="9" r="7"/><path d="M1 15h16M4 15v-1.5M14 15v-1.5"/></svg>
+            <span class="sidebar-text">Audit</span>
+          </a>
+          <a href="/admin.html#settings" onclick="localStorage.setItem('purex_open_settings','1')" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-light tracking-wide text-white/50 hover:text-white hover:bg-white/[0.04] transition-all admin-only-link">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0"><circle cx="9" cy="9" r="2"/><path d="M9 1v2M9 15v2M1 9h2M15 9h2M3.05 3.05l1.41 1.41M13.54 13.54l1.41 1.41M3.05 14.95l1.41-1.41M13.54 4.46l1.41-1.41"/></svg>
+            <span class="sidebar-text">Settings</span>
+          </a>
+        </div>
+      </nav>
+      <div class="p-4 border-t border-white/5">
+        <div class="flex items-center gap-3 px-2">
+          <div id="sidebar-avatar" class="w-8 h-8 rounded-full bg-purex-blue/20 flex items-center justify-center text-xs text-purex-blue font-heading shrink-0">AD</div>
+          <div class="sidebar-user-info"><p id="sidebar-user-name" class="text-xs text-white font-light">Admin</p><p id="sidebar-user-role" class="text-[10px] text-white/30">Admin</p></div>
+          <button onclick="logActivity('Logged out',''); sessionStorage.removeItem('purex_admin'); sessionStorage.removeItem('purex_session'); safeRedirect('/login.html');" class="ml-auto p-2 rounded-lg hover:bg-red-500/10 transition text-white/30 hover:text-red-400" title="Logout"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MOBILE HEADER -->
+    <div class="lg:hidden fixed top-0 left-0 right-0 z-50 glass-strong border-b border-white/5 px-4 py-3 flex items-center justify-between">
+      <a href="/" class="flex items-center gap-2"><img src="../assets/purex_icon.png" alt="Purex" class="w-6 h-6 object-contain"><span class="font-heading text-sm font-light tracking-wider text-white">PUREX</span></a>
+      <button class="p-2 text-white/50" onclick="document.getElementById('mobile-nav').classList.toggle('hidden')"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 5h14M3 10h14M3 15h14"/></svg></button>
+    </div>
+    <div id="mobile-nav" class="hidden lg:hidden fixed top-14 left-0 right-0 z-50 glass-strong border-b border-white/5 p-4 space-y-2">
+      <a href="/admin.html" class="block px-4 py-2 text-sm text-white/50 rounded-lg">Dashboard</a>
+      <a href="/customers.html" class="block px-4 py-2 text-sm text-purex-blue rounded-lg bg-purex-blue/5">Customers</a>
+      <button onclick="sessionStorage.removeItem('purex_admin'); sessionStorage.removeItem('purex_session'); safeRedirect('/login.html');" class="block w-full text-left px-4 py-2 text-sm text-red-400/70 rounded-lg hover:bg-red-500/10 transition">Logout</button>
+    </div>
+
+    <!-- MAIN -->
+    <main id="main-content" class="flex-1 lg:ml-64 pt-14 lg:pt-0 main-content-shift">
+      <header class="sticky top-0 lg:top-0 z-30 glass-strong border-b border-white/5 px-6 py-4 flex items-center justify-between">
+        <div><h1 class="font-heading text-xl font-light text-white">Customer Database</h1><p class="text-xs text-white/30 mt-0.5">Manage retail & wholesale buyers</p></div>
+        <a href="/admin.html" class="text-xs text-white/30 hover:text-white/60 transition hidden md:block">&larr; Dashboard</a>
+      </header>
+
+      <div class="p-4 md:p-6 space-y-4 md:space-y-6">
+        <div id="customers-section" class="bento-card glass-strong rounded-2xl p-4 md:p-6">
+          <div class="flex items-center justify-between mb-5">
+            <div><h3 class="font-heading text-sm font-light text-white">Customer Database</h3><p class="text-[10px] text-white/30 mt-0.5">Manage retail & wholesale buyers</p></div>
+            <div class="flex items-center gap-2">
+              <button onclick="exportCustomersCSV()" class="btn-export"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2v7M3 6l3 3 3-3"/><path d="M2 10v1h8v-1"/></svg>Export</button>
+              <button onclick="openCustomerModal()" class="text-[10px] px-3 py-1.5 rounded-lg bg-purex-blue/20 text-purex-blue hover:bg-purex-blue/30 transition font-light">+ Add Customer</button>
+              <span id="customers-badge" class="text-[10px] px-2 py-0.5 rounded-full bg-purex-blue/10 text-purex-blue">0</span>
+            </div>
+          </div>
+          <div class="flex flex-wrap items-center gap-2 mb-4">
+            <input id="customer-search" type="text" placeholder="Search name, phone, company..." oninput="renderCustomers()" class="text-xs bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white/70 font-light flex-1 min-w-[180px]" />
+            <select id="customer-type-filter" onchange="renderCustomers()" class="text-xs bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white/60 font-light appearance-none cursor-pointer">
+              <option value="all" class="bg-[#0a0e17]">All Types</option>
+              <option value="Retail" class="bg-[#0a0e17]">Retail</option>
+              <option value="Wholesale" class="bg-[#0a0e17]">Wholesale</option>
+            </select>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs">
+              <thead><tr class="text-white/30 border-b border-white/5"><th class="text-left pb-2 font-light">Customer</th><th class="text-left pb-2 font-light">Phone</th><th class="text-left pb-2 font-light hidden md:table-cell">City</th><th class="text-left pb-2 font-light hidden lg:table-cell">Company</th><th class="text-center pb-2 font-light">Type</th><th class="text-center pb-2 font-light">Orders</th><th class="text-right pb-2 font-light">Total Spent</th><th class="text-center pb-2 font-light w-20">Actions</th></tr></thead>
+              <tbody id="customers-tbody"></tbody>
+            </table>
+          </div>
+          <p id="no-customers-msg" class="hidden text-xs text-white/20 text-center py-6">No customers yet.</p>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- CUSTOMER MODAL -->
+  <div id="customer-modal" class="modal-overlay hidden fixed inset-0 z-50 flex items-center justify-center p-4" style="background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);">
+    <div class="glass-strong rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between mb-5"><h3 id="customer-modal-title" class="font-heading text-sm font-light text-white">Add Customer</h3><button onclick="closeCustomerModal()" class="text-white/30 hover:text-white/60 transition">&times;</button></div>
+      <div class="space-y-3">
+        <input type="hidden" id="cust-edit-id" value="" />
+        <div><label class="text-[10px] text-white/40 tracking-wider block mb-1">NAME *</label><input id="cust-name" type="text" required placeholder="Customer full name" class="w-full rounded-lg px-3 py-2 text-xs bg-white/5 border border-white/10 text-white/80 font-light" /></div>
+        <div class="grid grid-cols-2 gap-3"><div><label class="text-[10px] text-white/40 tracking-wider block mb-1">PHONE *</label><input id="cust-phone" type="tel" required placeholder="03XX XXXXXXX" class="w-full rounded-lg px-3 py-2 text-xs bg-white/5 border border-white/10 text-white/80 font-light" /></div><div><label class="text-[10px] text-white/40 tracking-wider block mb-1">EMAIL</label><input id="cust-email" type="email" placeholder="email@example.com" class="w-full rounded-lg px-3 py-2 text-xs bg-white/5 border border-white/10 text-white/80 font-light" /></div></div>
+        <div class="grid grid-cols-2 gap-3"><div><label class="text-[10px] text-white/40 tracking-wider block mb-1">CITY *</label><input id="cust-city" type="text" required placeholder="City" class="w-full rounded-lg px-3 py-2 text-xs bg-white/5 border border-white/10 text-white/80 font-light" /></div><div><label class="text-[10px] text-white/40 tracking-wider block mb-1">TYPE</label><select id="cust-type" class="w-full rounded-lg px-3 py-2 text-xs bg-white/5 border border-white/10 text-white/60 font-light appearance-none cursor-pointer"><option value="Retail" class="bg-[#0a0e17]">Retail</option><option value="Wholesale" class="bg-[#0a0e17]">Wholesale</option></select></div></div>
+        <div><label class="text-[10px] text-white/40 tracking-wider block mb-1">ADDRESS</label><input id="cust-address" type="text" placeholder="Full address" class="w-full rounded-lg px-3 py-2 text-xs bg-white/5 border border-white/10 text-white/80 font-light" /></div>
+        <div><label class="text-[10px] text-white/40 tracking-wider block mb-1">COMPANY / BUSINESS NAME</label><input id="cust-company" type="text" placeholder="For wholesale / bulk buyers" class="w-full rounded-lg px-3 py-2 text-xs bg-white/5 border border-white/10 text-white/80 font-light" /></div>
+        <div><label class="text-[10px] text-white/40 tracking-wider block mb-1">NOTES</label><textarea id="cust-notes" rows="2" placeholder="Payment terms, preferences, etc." class="w-full rounded-lg px-3 py-2 text-xs bg-white/5 border border-white/10 text-white/80 font-light resize-none"></textarea></div>
+        <button onclick="saveCustomer()" class="w-full py-2.5 rounded-lg text-xs font-light tracking-wider transition-all duration-300" style="background: rgba(77,158,213,0.15); border: 1px solid rgba(77,158,213,0.3); color: #4d9ed5;">Save Customer</button>
+        <p id="cust-feedback" class="text-[10px] text-center transition-opacity" style="opacity:0;">&nbsp;</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- CUSTOMER DETAIL MODAL -->
+  <div id="customer-detail-modal" class="modal-overlay hidden fixed inset-0 z-50 flex items-center justify-center p-4" style="background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);">
+    <div class="glass-strong rounded-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between mb-5"><h3 class="font-heading text-sm font-light text-white">Customer Details</h3><button onclick="document.getElementById('customer-detail-modal').classList.add('hidden')" class="text-white/30 hover:text-white/60 transition">&times;</button></div>
+      <div id="customer-detail-content"></div>
+    </div>
+  </div>
+
+  <script>
+    function toggleSidebar() { const s = document.getElementById('sidebar'); const m = document.getElementById('main-content'); const c = s.classList.toggle('collapsed'); m.style.marginLeft = c ? '64px' : ''; localStorage.setItem('purex_sidebar_collapsed', c ? '1' : '0'); }
+    if (localStorage.getItem('purex_sidebar_collapsed') === '1') { document.getElementById('sidebar').classList.add('collapsed'); document.getElementById('main-content').style.marginLeft = '64px'; }
+
+    if (!sessionStorage.getItem('purex_admin') && !sessionStorage.getItem('purex_session') && !sessionStorage.getItem('purex_token')) { safeRedirect('/login.html'); throw new Error('Not authenticated'); }
+    document.body.classList.add('authenticated');
+
+    function apiHeaders() { const h = { 'Content-Type': 'application/json' }; const t = sessionStorage.getItem('purex_token'); if (t) h['Authorization'] = 'Bearer ' + t; return h; }
+    let currentUser = { name: 'Admin', role: 'admin', permissions: {} };
+    try { const s = JSON.parse(sessionStorage.getItem('purex_session') || '{}'); if (s.name) currentUser = s; } catch(e) {}
+    const isAdmin = currentUser.role === 'admin';
+    const userPerms = currentUser.permissions || {};
+    function hasPermission(p) { if (isAdmin) return true; return userPerms[p] === true; }
+
+    function logActivity(action, detail) {
+      fetch('/api/activity', { method: 'POST', headers: apiHeaders(), body: JSON.stringify({ action, detail: detail || '' }) }).catch(() => {});
+      try { const log = JSON.parse(localStorage.getItem('purex_activity_log') || '[]'); log.unshift({ id: Date.now(), user: currentUser.name, role: currentUser.role, action, detail: detail || '', timestamp: new Date().toISOString() }); if (log.length > 500) log.length = 500; localStorage.setItem('purex_activity_log', JSON.stringify(log)); } catch(e) {}
+    }
+
+    const initials = currentUser.name.split(' ').map(w => w[0]).join('').toUpperCase().substring(0, 2) || 'U';
+    document.getElementById('sidebar-avatar').textContent = initials;
+    document.getElementById('sidebar-user-name').textContent = currentUser.name;
+    document.getElementById('sidebar-user-role').textContent = isAdmin ? 'Admin' : 'Editor';
+    if (!isAdmin) document.getElementById('admin-only-nav').style.display = 'none';
+
+    gsap.registerPlugin();
+    gsap.from('.bento-card', { opacity: 0, y: 20, duration: 0.5, stagger: 0.08, delay: 0.1, ease: 'power3.out' });
+
+    function downloadCSV(data, filename) { const csv = data.map(row => row.map(cell => { const s = String(cell); return s.includes(',') || s.includes('"') ? '"' + s.replace(/"/g, '""') + '"' : s; }).join(',')).join('\n'); const blob = new Blob([csv], { type: 'text/csv' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = filename; a.click(); URL.revokeObjectURL(url); }
+
+    const DEFAULT_CUSTOMERS = [];
+
+    function loadCustomers() { try { const s = localStorage.getItem('purex_customers'); if (s) { const a = JSON.parse(s); if (a.length > 0) return a; } } catch(e) {} return JSON.parse(JSON.stringify(DEFAULT_CUSTOMERS)); }
+    let customers = loadCustomers();
+    if (!localStorage.getItem('purex_customers') || JSON.parse(localStorage.getItem('purex_customers') || '[]').length === 0) saveCustomers();
+    function saveCustomers() { localStorage.setItem('purex_customers', JSON.stringify(customers)); }
+
+    function findCustomerByPhone(phone) { if (!phone) return null; const clean = phone.replace(/[\s\-\+]/g, ''); return customers.find(c => (c.phone || '').replace(/[\s\-\+]/g, '') === clean); }
+
+    function openCustomerModal(editId) {
+      document.getElementById('customer-modal').classList.remove('hidden');
+      document.getElementById('cust-edit-id').value = editId || '';
+      document.getElementById('customer-modal-title').textContent = editId ? 'Edit Customer' : 'Add Customer';
+      if (editId) {
+        const c = customers.find(x => x.id == editId);
+        if (c) { document.getElementById('cust-name').value = c.name || ''; document.getElementById('cust-phone').value = c.phone || ''; document.getElementById('cust-email').value = c.email || ''; document.getElementById('cust-city').value = c.city || ''; document.getElementById('cust-type').value = c.type || 'Retail'; document.getElementById('cust-address').value = c.address || ''; document.getElementById('cust-company').value = c.company || ''; document.getElementById('cust-notes').value = c.notes || ''; }
+      } else { ['cust-name','cust-phone','cust-email','cust-city','cust-address','cust-company','cust-notes'].forEach(id => document.getElementById(id).value = ''); document.getElementById('cust-type').value = 'Retail'; }
+      gsap.from('#customer-modal .glass-strong', { scale: 0.9, opacity: 0, duration: 0.3, ease: 'back.out(1.5)' });
+    }
+    function closeCustomerModal() { document.getElementById('customer-modal').classList.add('hidden'); }
+
+    function saveCustomer() {
+      const name = document.getElementById('cust-name').value.trim();
+      const phone = document.getElementById('cust-phone').value.trim();
+      const city = document.getElementById('cust-city').value.trim();
+      if (!name || !phone || !city) { const fb = document.getElementById('cust-feedback'); fb.textContent = 'Name, phone, and city are required.'; fb.style.color = '#f87171'; fb.style.opacity = '1'; setTimeout(() => fb.style.opacity = '0', 2000); return; }
+      const editId = document.getElementById('cust-edit-id').value;
+      if (editId) {
+        const c = customers.find(x => x.id == editId);
+        if (c) { c.name = name; c.phone = phone; c.email = document.getElementById('cust-email').value.trim(); c.city = city; c.type = document.getElementById('cust-type').value; c.address = document.getElementById('cust-address').value.trim(); c.company = document.getElementById('cust-company').value.trim(); c.notes = document.getElementById('cust-notes').value.trim(); }
+        logActivity('Updated customer', name);
+      } else {
+        if (findCustomerByPhone(phone)) { const fb = document.getElementById('cust-feedback'); fb.textContent = 'Customer with this phone already exists.'; fb.style.color = '#f87171'; fb.style.opacity = '1'; setTimeout(() => fb.style.opacity = '0', 2000); return; }
+        customers.push({ id: Date.now(), name, phone, email: document.getElementById('cust-email').value.trim(), city, type: document.getElementById('cust-type').value, address: document.getElementById('cust-address').value.trim(), company: document.getElementById('cust-company').value.trim(), notes: document.getElementById('cust-notes').value.trim(), orderCount: 0, totalSpent: 0, firstOrder: null, lastOrder: null, createdAt: new Date().toISOString() });
+        logActivity('Added customer', name);
+      }
+      saveCustomers(); renderCustomers(); closeCustomerModal();
+    }
+
+    function deleteCustomer(id) { if (!confirm('Delete this customer record?')) return; customers = customers.filter(c => c.id != id); saveCustomers(); renderCustomers(); logActivity('Deleted customer', ''); }
+
+    function renderCustomers() {
+      const search = (document.getElementById('customer-search').value || '').toLowerCase();
+      const typeFilter = document.getElementById('customer-type-filter').value;
+      let filtered = customers.filter(c => { const m = !search || (c.name || '').toLowerCase().includes(search) || (c.phone || '').includes(search) || (c.company || '').toLowerCase().includes(search) || (c.city || '').toLowerCase().includes(search); return m && (typeFilter === 'all' || c.type === typeFilter); });
+      filtered.sort((a, b) => { if (b.lastOrder && a.lastOrder) return b.lastOrder.localeCompare(a.lastOrder); if (b.lastOrder) return 1; if (a.lastOrder) return -1; return (a.name || '').localeCompare(b.name || ''); });
+      const tbody = document.getElementById('customers-tbody');
+      const noMsg = document.getElementById('no-customers-msg');
+      if (filtered.length === 0) { tbody.innerHTML = ''; noMsg.classList.remove('hidden'); }
+      else {
+        noMsg.classList.add('hidden');
+        tbody.innerHTML = filtered.map(c => {
+          const typeBadge = c.type === 'Wholesale' ? '<span class="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-400">Wholesale</span>' : '<span class="text-[9px] px-1.5 py-0.5 rounded-full bg-purex-blue/10 text-purex-blue">Retail</span>';
+          return `<tr class="border-b border-white/5 hover:bg-white/[0.02] transition"><td class="py-2.5"><p class="text-xs text-white/80 font-light">${c.name}</p>${c.company ? '<p class="text-[10px] text-white/30">' + c.company + '</p>' : ''}</td><td class="py-2.5 text-xs text-white/50 font-light">${c.phone}</td><td class="py-2.5 text-xs text-white/50 font-light hidden md:table-cell">${c.city || '-'}</td><td class="py-2.5 text-xs text-white/50 font-light hidden lg:table-cell">${c.company || '-'}</td><td class="py-2.5 text-center">${typeBadge}</td><td class="py-2.5 text-center text-xs text-white/50">${c.orderCount || 0}</td><td class="py-2.5 text-right text-xs text-white/70 font-light">Rs. ${(c.totalSpent || 0).toLocaleString()}</td><td class="py-2.5 text-center"><div class="flex items-center justify-center gap-1"><button onclick="viewCustomer(${c.id})" class="text-purex-blue/60 hover:text-purex-blue transition text-[10px] px-1.5 py-0.5 rounded bg-purex-blue/5">View</button><button onclick="openCustomerModal(${c.id})" class="text-white/30 hover:text-white/60 transition text-[10px] px-1.5 py-0.5 rounded bg-white/5">Edit</button><button onclick="deleteCustomer(${c.id})" class="text-red-400/40 hover:text-red-400 transition text-[10px] px-1.5 py-0.5 rounded bg-red-500/5">&times;</button></div></td></tr>`;
+        }).join('');
+      }
+      document.getElementById('customers-badge').textContent = customers.length + ' customers';
+    }
+
+    function viewCustomer(id) {
+      const c = customers.find(x => x.id == id);
+      if (!c) return;
+      const modal = document.getElementById('customer-detail-modal');
+      document.getElementById('customer-detail-content').innerHTML = `
+        <div class="grid grid-cols-2 gap-3 mb-4">
+          <div><p class="text-[10px] text-white/30 mb-0.5">Name</p><p class="text-sm text-white/80 font-light">${c.name}</p></div>
+          <div><p class="text-[10px] text-white/30 mb-0.5">Phone</p><p class="text-sm text-white/80 font-light">${c.phone}</p></div>
+          <div><p class="text-[10px] text-white/30 mb-0.5">Email</p><p class="text-sm text-white/80 font-light">${c.email || '-'}</p></div>
+          <div><p class="text-[10px] text-white/30 mb-0.5">City</p><p class="text-sm text-white/80 font-light">${c.city || '-'}</p></div>
+          <div><p class="text-[10px] text-white/30 mb-0.5">Type</p><p class="text-sm ${c.type === 'Wholesale' ? 'text-amber-400' : 'text-purex-blue'} font-light">${c.type || 'Retail'}</p></div>
+          <div><p class="text-[10px] text-white/30 mb-0.5">Company</p><p class="text-sm text-white/80 font-light">${c.company || '-'}</p></div>
+          <div><p class="text-[10px] text-white/30 mb-0.5">Address</p><p class="text-sm text-white/80 font-light">${c.address || '-'}</p></div>
+          <div><p class="text-[10px] text-white/30 mb-0.5">Total Spent</p><p class="text-sm text-emerald-400 font-light">Rs. ${(c.totalSpent || 0).toLocaleString()}</p></div>
+        </div>
+        ${c.notes ? '<div class="mb-4"><p class="text-[10px] text-white/30 mb-0.5">Notes</p><p class="text-xs text-white/60 font-light">' + c.notes + '</p></div>' : ''}
+        <div class="flex gap-2 mt-4">
+          <a href="https://wa.me/${(c.phone || '').replace(/[\s\-\+]/g, '').replace(/^0/, '92')}" target="_blank" class="flex-1 text-center text-[10px] px-3 py-2 rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition font-light">WhatsApp</a>
+          <button onclick="openCustomerModal(${c.id}); document.getElementById('customer-detail-modal').classList.add('hidden');" class="flex-1 text-[10px] px-3 py-2 rounded-lg bg-purex-blue/10 text-purex-blue hover:bg-purex-blue/20 transition font-light">Edit</button>
+        </div>`;
+      modal.classList.remove('hidden');
+      gsap.from('#customer-detail-modal .glass-strong', { scale: 0.9, opacity: 0, duration: 0.3, ease: 'back.out(1.5)' });
+    }
+
+    function exportCustomersCSV() {
+      if (!hasPermission('exportData')) { alert('No export permission.'); return; }
+      const header = ['Name', 'Phone', 'Email', 'City', 'Address', 'Company', 'Type', 'Orders', 'Total Spent', 'First Order', 'Last Order', 'Notes'];
+      const rows = customers.map(c => [c.name, c.phone, c.email || '', c.city || '', c.address || '', c.company || '', c.type || 'Retail', c.orderCount || 0, c.totalSpent || 0, c.firstOrder || '', c.lastOrder || '', (c.notes || '').replace(/,/g, ';')]);
+      downloadCSV([header, ...rows], 'purex-customers.csv');
+    }
+
+    let apiAvailable = false;
+    async function syncFromAPI() {
+      try {
+        const res = await fetch('/api/customers', { headers: apiHeaders() });
+        if (!res.ok) return;
+        apiAvailable = true;
+        const apiCust = await res.json();
+        if (Array.isArray(apiCust) && apiCust.length > 0) {
+          customers = apiCust.map(c => ({ id: c.id, name: c.name, phone: c.phone || '', email: c.email || '', city: c.city || '', address: c.address || '', company: c.company || '', type: c.type || 'Retail', orderCount: Number(c.order_count || 0), totalSpent: Number(c.total_spent || 0), lastOrder: c.last_order || '', notes: c.notes || '' }));
+          localStorage.setItem('purex_customers', JSON.stringify(customers));
+        }
+        renderCustomers();
+      } catch(e) { console.log('API not available:', e.message); }
+    }
+
+    renderCustomers();
+    syncFromAPI();
+
+    document.getElementById('customer-modal').addEventListener('click', function(e) { if (e.target === this) closeCustomerModal(); });
+    document.getElementById('customer-detail-modal').addEventListener('click', function(e) { if (e.target === this) this.classList.add('hidden'); });
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        if (!document.getElementById('customer-modal').classList.contains('hidden')) closeCustomerModal();
+        if (!document.getElementById('customer-detail-modal').classList.contains('hidden')) document.getElementById('customer-detail-modal').classList.add('hidden');
+      }
+    });
+  </script>
+</body>
+</html>

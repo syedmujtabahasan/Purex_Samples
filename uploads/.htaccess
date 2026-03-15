@@ -1,0 +1,83 @@
+# ==================== UPLOADS DIRECTORY — EXECUTION PREVENTION ====================
+# This file MUST remain in the uploads/ directory. It is the last line of defense
+# against remote code execution if a malicious file somehow bypasses PHP validation.
+
+# ---- 1. KILL THE PHP ENGINE ENTIRELY ----
+# Even if a .php file exists here, Apache will NOT execute it.
+# This is the single most important line in this file.
+php_flag engine off
+
+# ---- 2. REMOVE ALL SCRIPT HANDLERS ----
+# Strip handler mappings for every known server-side language.
+# Without a handler, Apache serves these files as plain text (harmless).
+<IfModule mod_mime.c>
+  RemoveHandler .php .php3 .php4 .php5 .php7 .php8 .phtml .pht .phps
+  RemoveHandler .pl .py .cgi .sh .asp .aspx .jsp .shtml
+  RemoveType .php .php3 .php4 .php5 .php7 .php8 .phtml .pht .phps
+  RemoveType .pl .py .cgi .sh .asp .aspx .jsp .shtml
+</IfModule>
+
+# ---- 3. DENY ACCESS TO ALL SCRIPT FILES BY NAME ----
+# Belt + suspenders: even if handlers leak, block the files from being served at all.
+<FilesMatch "\.(ph(p[0-9]?|t|tml|ps)|cgi|pl|py|sh|asp|aspx|jsp|shtml|htaccess|env|sql|exe|bat|cmd)$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
+
+# ---- 4. DENY DOUBLE-EXTENSION ATTACKS ----
+# Blocks files like: shell.php.jpg, exploit.phtml.png, etc.
+<FilesMatch "\.ph(p[0-9]?|t|tml|ps)\.">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
+
+# ---- 5. ONLY ALLOW IMAGE FILE EXTENSIONS ----
+# Deny everything that is NOT a whitelisted image extension.
+# This is a positive whitelist — much safer than a blacklist.
+<FilesMatch "^[^.]+\.(?!(jpe?g|png|webp|gif)$)[^.]+$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
+
+# ---- 6. FORCE CORRECT CONTENT-TYPE ON IMAGES ----
+# Prevents browsers from sniffing uploaded files as HTML/JS.
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Content-Security-Policy "default-src 'none'; style-src 'unsafe-inline'"
+  # Force images to be downloaded rather than rendered as HTML
+  <FilesMatch "\.(jpe?g)$">
+    Header set Content-Type "image/jpeg"
+  </FilesMatch>
+  <FilesMatch "\.png$">
+    Header set Content-Type "image/png"
+  </FilesMatch>
+  <FilesMatch "\.webp$">
+    Header set Content-Type "image/webp"
+  </FilesMatch>
+  <FilesMatch "\.gif$">
+    Header set Content-Type "image/gif"
+  </FilesMatch>
+</IfModule>
+
+# ---- 7. DISABLE DANGEROUS APACHE FEATURES ----
+# No directory listing, no server-side includes, no CGI
+Options -Indexes -ExecCGI -Includes +FollowSymLinks
+
+# ---- 8. DISABLE .htaccess OVERRIDE IN SUBDIRS ----
+# Prevent an attacker from uploading a .htaccess that re-enables PHP
+AllowOverride None
